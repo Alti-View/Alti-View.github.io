@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlightPrep Solution</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Base Reset & Variables */
+        :root {
+            --bg-color: #F6F4F0;
+            --border-color: #111111;
+            --text-color: #111111;
+            --hover-bg: #E4DFD3;
+            --accent-green: #4A7C59;
+            --accent-orange: #C16E56;
+            --sidebar-highlight-hover: #333;
+        }
+
+        html.dark-mode {
+            --bg-color: #15171A;
+            --border-color: #EDEBE6;
+            --text-color: #EDEBE6;
+            --hover-bg: #23262B;
+            --accent-green: #6FBE86;
+            --accent-orange: #E08A6D;
+            --sidebar-highlight-hover: #cfcac1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            transition: background-color 0.25s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
+
+        /* Top Header Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            height: 80px;
+            border-bottom: 2px solid var(--border-color);
+            background-color: var(--bg-color);
+            gap: 20px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        .brand svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .meta-text {
+            font-size: 13px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Dark mode toggle button */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--hover-bg);
+            transform: scale(1.05);
+        }
+
+        .theme-toggle svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--text-color);
+        }
+
+        .theme-toggle .icon-moon { display: none; }
+        html.dark-mode .theme-toggle .icon-sun { display: none; }
+        html.dark-mode .theme-toggle .icon-moon { display: block; }
+
+        /* Main Layout */
+        .main-layout {
+            display: flex;
+            flex: 1;
+        }
+
+        /* Left Navigation Sidebar */
+        .sidebar {
+            width: 260px;
+            min-width: 260px;
+            max-width: 260px;
+            flex: 0 0 260px;
+            border-right: 2px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            background-color: var(--bg-color);
+        }
+
+        .sidebar a {
+            padding: 25px;
+            text-decoration: none;
+            color: var(--text-color);
+            font-size: 16px;
+            font-weight: 500;
+            border-bottom: 2px solid var(--border-color);
+            transition: background-color 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+
+        .sidebar a::after {
+            content: '→';
+            flex-shrink: 0;
+            opacity: 0;
+            transform: translateX(-6px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .sidebar a:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .sidebar a:hover::after {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .sidebar a.highlight {
+            background-color: var(--border-color);
+            color: var(--bg-color);
+        }
+
+        .sidebar a.highlight:hover {
+            background-color: var(--sidebar-highlight-hover);
+        }
+
+        /* Right Hero Section */
+        .hero-section {
+            flex: 1;
+            padding: 8vw 5vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        .hero-title {
+            font-size: 7vw;
+            font-weight: 700;
+            line-height: 1.05;
+            letter-spacing: -0.04em;
+            max-width: 1200px;
+        }
+
+        /* Typography Accents */
+        .accent {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            -webkit-text-stroke: 2px var(--border-color);
+            font-weight: 600;
+        }
+
+        .accent.green { color: var(--accent-green); }
+        .accent.orange { color: var(--accent-orange); }
+
+        /* Abstract Graphic Element */
+        .graphic {
+            position: absolute;
+            top: 10%;
+            right: 10%;
+            width: 120px;
+            height: 120px;
+            opacity: 0.8;
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+
+        .hero-modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+            margin-top: 48px;
+            max-width: 1100px;
+        }
+
+        .module-card {
+            border: 2px solid var(--border-color);
+            background: var(--bg-color);
+            padding: 20px;
+            text-decoration: none;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .module-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--text-color);
+            background-color: var(--hover-bg);
+        }
+
+        .module-card-emergency {
+            border-color: var(--accent-orange);
+        }
+
+        .module-card-emergency:hover {
+            border-color: var(--accent-orange);
+            background-color: rgba(224, 76, 56, 0.06);
+        }
+
+        .module-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .module-code {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--border-color);
+        }
+
+        .module-arrow {
+            font-size: 16px;
+            font-weight: 700;
+            transition: transform 0.2s ease;
+        }
+
+        .module-card:hover .module-arrow {
+            transform: translateX(4px);
+        }
+
+        .module-title {
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .module-desc {
+            font-size: 13px;
+            line-height: 1.45;
+            color: var(--text-color);
+            opacity: 0.75;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            .main-layout {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                min-width: 0;
+                max-width: none;
+                flex-basis: auto;
+                border-right: none;
+                border-bottom: 2px solid var(--border-color);
+            }
+            .hero-title {
+                font-size: 48px;
+            }
+            .top-bar {
+                flex-direction: column;
+                height: auto;
+                padding: 20px;
+                gap: 15px;
+            }
+            .graphic {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="top-bar">
+        <a href="homepage.html" class="brand">
+            <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="round">
+                <path d="M50 10 L90 85 L50 70 L10 85 Z" fill="var(--border-color)" />
+                <path d="M50 10 L50 70" stroke="var(--bg-color)" stroke-width="4" />
+            </svg>
+            FlightPrep Solution
+        </a>
+        <div class="top-bar-right">
+            <div class="meta-text">
+                Precision Software // Est. 2026
+            </div>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+                <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <line x1="12" y1="2" x2="12" y2="4"></line>
+                    <line x1="12" y1="20" x2="12" y2="22"></line>
+                    <line x1="4.93" y1="4.93" x2="6.34" y2="6.34"></line>
+                    <line x1="17.66" y1="17.66" x2="19.07" y2="19.07"></line>
+                    <line x1="2" y1="12" x2="4" y2="12"></line>
+                    <line x1="20" y1="12" x2="22" y2="12"></line>
+                    <line x1="4.93" y1="19.07" x2="6.34" y2="17.66"></line>
+                    <line x1="17.66" y1="6.34" x2="19.07" y2="4.93"></line>
+                </svg>
+                <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="main-layout">
+        <nav class="sidebar">
+            <a href="flg_prep.html">Flight Preparation</a>
+            <a href="VFR.html">Interactive Route Map</a>
+            <a href="perfo.html">Aircraft Performance</a>
+            <a href="checklists.html">Checklists</a>
+            <a href="emergency.html">Emergency Procedures</a>
+            
+            <!-- AIRCRAFT PROFILE MANAGER BUTTON -->
+            <div style="padding: 0 16px; margin: 12px 0 6px 0;">
+                <button type="button" onclick="AircraftProfiles.openModal()" style="width: 100%; padding: 10px 12px; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 4px; background: var(--accent-green, #188038); color: #fff; border: 2px solid var(--border-color);" title="Import, export, or select aircraft profiles">
+                    <span>✈️</span> Aircraft Profiles
+                </button>
+            </div>
+        </nav>
+
+        <section class="hero-section">
+            <svg class="graphic" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--border-color)" stroke-width="2" stroke-dasharray="4 4" />
+                <line x1="50" y1="0" x2="50" y2="100" stroke="var(--border-color)" stroke-width="2" />
+                <line x1="0" y1="50" x2="100" y2="50" stroke="var(--border-color)" stroke-width="2" />
+                <circle cx="50" cy="50" r="10" fill="var(--accent-orange)" stroke="var(--border-color)" stroke-width="2" />
+            </svg>
+
+            <h1 class="hero-title">
+                Next-generation <br>
+                tools for <span class="accent green">modern</span> <br>
+                flight <span class="accent orange">operations.</span>
+            </h1>
+
+            <div class="hero-modules-grid">
+                <a href="flg_prep.html" class="module-card">
+                    <div class="module-card-header">
+                        <span class="module-code">01 // NAV</span>
+                        <span class="module-arrow">&rarr;</span>
+                    </div>
+                    <div class="module-title">Flight Preparation</div>
+                    <div class="module-desc">NavLog, METAR/TAF weather decoder, W&amp;B, fuel calculation &amp; NOTAMs</div>
+                </a>
+                <a href="VFR.html" class="module-card">
+                    <div class="module-card-header">
+                        <span class="module-code">02 // MAP</span>
+                        <span class="module-arrow">&rarr;</span>
+                    </div>
+                    <div class="module-title">Interactive Route Map</div>
+                    <div class="module-desc">OpenAIP aeronautical charts, European airspaces, waypoints &amp; altitude filter</div>
+                </a>
+                <a href="perfo.html" class="module-card">
+                    <div class="module-card-header">
+                        <span class="module-code">03 // PERF</span>
+                        <span class="module-arrow">&rarr;</span>
+                    </div>
+                    <div class="module-title">Aircraft Performance</div>
+                    <div class="module-desc">Runway takeoff/landing distances, crosswind component &amp; critical V-speeds</div>
+                </a>
+                <a href="checklists.html" class="module-card">
+                    <div class="module-card-header">
+                        <span class="module-code">04 // CHK</span>
+                        <span class="module-arrow">&rarr;</span>
+                    </div>
+                    <div class="module-title">Checklists</div>
+                    <div class="module-desc">Multi-aircraft normal checklists organized by flight phase with progress tracking</div>
+                </a>
+                <a href="emergency.html" class="module-card module-card-emergency">
+                    <div class="module-card-header">
+                        <span class="module-code" style="color: var(--accent-orange);">05 // ALERT</span>
+                        <span class="module-arrow" style="color: var(--accent-orange);">&rarr;</span>
+                    </div>
+                    <div class="module-title" style="color: var(--accent-orange);">Emergency Procedures</div>
+                    <div class="module-desc">Memory items, quick-action emergency checklists, glide calculator &amp; 121.5 VHF script</div>
+                </a>
+                <a href="javascript:void(0)" onclick="AircraftProfiles.openModal()" class="module-card" style="border-color: var(--accent-green); cursor: pointer;">
+                    <div class="module-card-header">
+                        <span class="module-code" style="color: var(--accent-green);">06 // FLEET</span>
+                        <span class="module-arrow" style="color: var(--accent-green);">&rarr;</span>
+                    </div>
+                    <div class="module-title" style="color: var(--accent-green);">Aircraft Profiles &amp; Fleet</div>
+                    <div class="module-desc">Load manufacturer POH presets (C172, DR400, PA28, DA40, C152), import &amp; export JSON profiles across all tools</div>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const toggleBtn = document.getElementById('themeToggle');
+        const root = document.documentElement;
+
+        // Respect the visitor's system preference on first load
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            root.classList.add('dark-mode');
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            root.classList.toggle('dark-mode');
+        });
+    </script>
+    <script src="aircraft_profiles.js"></script>
+</body>
+</html>
