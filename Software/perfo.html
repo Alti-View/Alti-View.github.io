@@ -1,0 +1,2181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALTIVIEW — Masse &amp; Performances</title>
+    <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/cockpit.css">
+    <script src="assets/cockpit-nav.js"></script>
+    <script src="assets/data-sources.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous"></script>
+
+    <style>
+        :root {
+            --bg-color: var(--canvas, #070b10);
+            --border-color: var(--line, #1e293b);
+            --text-color: var(--text, #f1f5f9);
+            --hover-bg: var(--panel-hover, #141f2d);
+            --accent-green: var(--success, #10B981);
+            --accent-orange: var(--accent, #f97316);
+            --accent-blue: var(--cyan, #22d3ee);
+            --sidebar-highlight-hover: var(--line-strong, #2a3c54);
+            --card-bg: var(--panel, #0d1520);
+            --muted-text: var(--muted, #718398);
+            --danger-bg: rgba(244, 63, 94, 0.14);
+            --danger-border: var(--danger, #F43F5E);
+            --special-bg: var(--cyan-soft, rgba(79, 216, 196, 0.12));
+            --special-border: var(--cyan, #22d3ee);
+        }
+
+        [data-theme="day"], html:not(.dark-mode) {
+            --bg-color: var(--canvas, #E8EDF1);
+            --border-color: var(--line, #C8D2DB);
+            --text-color: var(--text, #0C1620);
+            --hover-bg: var(--panel-hover, #E2E8EE);
+            --accent-green: var(--success, #059669);
+            --accent-orange: var(--accent, #f97316);
+            --accent-blue: var(--cyan, #0A7365);
+            --sidebar-highlight-hover: var(--panel-hover, #E2E8EE);
+            --card-bg: var(--panel, #F5F7F9);
+            --muted-text: var(--muted, #475868);
+            --danger-bg: rgba(225, 29, 72, 0.12);
+            --danger-border: var(--danger, #E11D48);
+            --special-bg: rgba(10, 115, 101, 0.12);
+            --special-border: var(--cyan, #0A7365);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { transition: background-color 0.25s ease; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font: 400 15px/1.6 var(--f-body, 'IBM Plex Sans', system-ui, sans-serif);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
+
+        /* Top Bar Header */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 clamp(16px, 2.5vw, 32px);
+            height: var(--navh, 68px);
+            border-bottom: 1px solid var(--line, #1e293b);
+            background-color: var(--glass);
+            backdrop-filter: blur(16px) saturate(1.2);
+            -webkit-backdrop-filter: blur(16px) saturate(1.2);
+            gap: 20px;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            text-decoration: none;
+            color: var(--text-color);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .brand svg { width: 40px; height: 40px; }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .meta-text {
+            font-size: 13px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            flex-shrink: 0;
+        }
+        .theme-toggle:hover { background-color: var(--hover-bg); transform: scale(1.05); }
+        .theme-toggle svg { width: 20px; height: 20px; stroke: var(--text-color); }
+        .theme-toggle .icon-moon { display: none; }
+        html.dark-mode .theme-toggle .icon-sun { display: none; }
+        html.dark-mode .theme-toggle .icon-moon { display: block; }
+
+        /* Main Layout */
+        .main-layout {
+            display: flex;
+            flex: 1;
+        }
+        
+        /* Navigation Sidebar */
+        .sidebar {
+            width: 260px;
+            min-width: 260px;
+            max-width: 260px;
+            flex: 0 0 260px;
+            border-right: 2px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            background-color: var(--bg-color);
+            z-index: 10;
+        }
+        .sidebar a {
+            padding: 25px;
+            text-decoration: none;
+            color: var(--text-color);
+            font-size: 16px;
+            font-weight: 500;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+            transition: background-color 0.2s ease;
+        }
+        .sidebar a::after {
+            content: '→';
+            flex-shrink: 0;
+            opacity: 0;
+            transform: translateX(-6px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .sidebar a:hover {
+            background-color: var(--hover-bg);
+        }
+        .sidebar a:hover::after {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .sidebar a.highlight {
+            background-color: var(--border-color);
+            color: var(--bg-color);
+        }
+        .sidebar a.highlight:hover { background-color: var(--sidebar-highlight-hover); }
+
+        .sidebar-export-wrap { padding: 25px; }
+        .btn-export-bw {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 12px 18px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: var(--f-mono);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+        .btn-export-bw:hover {
+            background-color: var(--hover-bg);
+            border-color: var(--accent-blue);
+            color: #ffffff;
+        }
+        .btn-export-bw:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Content Section - Sizing & Padding identical to Checklists & Emergency */
+        .content-section {
+            flex: 1;
+            padding: 24px 32px 60px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            min-width: 0;
+            background-color: var(--bg-color);
+        }
+
+        /* Page Heading Banner */
+        .page-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 18px;
+        }
+        .page-heading h1 {
+            font-size: 36px;
+            font-weight: 800;
+            font-family: var(--f-display);
+            text-transform: uppercase;
+            letter-spacing: .02em;
+            line-height: 1;
+            margin: 0;
+        }
+        .page-heading p {
+            margin-top: 6px;
+            color: var(--muted-text);
+            font-size: 13.5px;
+        }
+
+        .page-heading-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .unit-selector-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 6px 14px;
+        }
+        .unit-toolbar-label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--muted-text);
+            margin-right: 4px;
+        }
+        .unit-select-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .unit-field-tag {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted-text);
+            text-transform: uppercase;
+        }
+        .unit-system-select {
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 5px 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            outline: none;
+            border-radius: 6px;
+            transition: background-color 0.15s ease;
+        }
+        .unit-system-select:hover {
+            background-color: var(--hover-bg);
+        }
+
+        /* Responsive Two-Column Workspace Grid */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 1.05fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .perf-column {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            min-width: 0;
+        }
+
+        /* Card Container with Round Borders */
+        .card {
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            background-color: var(--card-bg);
+            box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.45);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .card-header {
+            padding: 14px 20px;
+            border-bottom: 1px solid #141f2d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--card-bg);
+        }
+        .card-header h2 {
+            font-size: 14px;
+            font-weight: 800;
+            font-family: var(--f-mono);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+        }
+        .card-body {
+            padding: 22px;
+        }
+
+        /* Action Buttons with Round Borders */
+        .btn-action {
+            background: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            font-weight: 700;
+            font-family: var(--f-mono);
+            cursor: pointer;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 8px;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            line-height: 1;
+        }
+        .btn-action:hover { background: var(--hover-bg); border-color: var(--accent-blue); }
+        .btn-action.primary {
+            background: var(--accent-orange);
+            border-color: var(--accent-orange);
+            color: #ffffff;
+        }
+        .btn-action.primary:hover {
+            opacity: 0.9;
+            background: var(--border-color);
+        }
+        .btn-action.small {
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .btn-action.btn-danger {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+        .btn-action.btn-danger:hover {
+            background: var(--danger-bg);
+        }
+        .btn-action.btn-special {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+        .btn-action.btn-special:hover {
+            background: var(--special-bg);
+        }
+
+        .ghost-btn {
+            border: 2px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            padding: 8px 16px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 8px;
+            font-family: var(--f-mono);
+            transition: all 0.15s ease;
+        }
+        .ghost-btn:hover { background-color: var(--hover-bg); border-color: var(--accent-blue); color: #ffffff; }
+
+        /* Form Grids */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        .form-grid.cols-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-group label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted-text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .form-group input, .form-group select {
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            padding: 9px 12px;
+            font-family: var(--f-mono);
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-color);
+            outline: none;
+            border-radius: 8px;
+            width: 100%;
+            transition: border-color 0.15s ease, background-color 0.15s ease;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--accent-blue);
+            background: var(--card-bg);
+        }
+
+        /* Speeds List */
+        .speeds-section-title {
+            font-size: 11.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--muted-text);
+            margin: 0 0 10px 0;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .speeds-section-title.emergency-title {
+            color: var(--danger);
+            border-bottom-color: var(--danger);
+            margin-top: 24px;
+        }
+        .speeds-section-title.special-title {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
+            margin-top: 24px;
+        }
+
+        .edit-list {
+            list-style: none;
+            margin: 0 0 12px 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        /* Speed Row Item */
+        .speed-row {
+            display: flex;
+            align-items: center;
+            padding: 6px 10px;
+            border: 1.5px solid var(--hover-bg);
+            background-color: var(--bg-color);
+            gap: 10px;
+            transition: border-color 0.15s ease, background-color 0.15s ease;
+        }
+        .speed-row:hover {
+            border-color: var(--border-color);
+        }
+
+        /* Emergency speed row */
+        .edit-list.emergency-list .speed-row {
+            background-color: var(--danger-bg);
+            border-color: var(--danger-border);
+        }
+        .edit-list.emergency-list .speed-row:hover {
+            border-color: var(--danger);
+        }
+        .edit-list.emergency-list .name-input,
+        .edit-list.emergency-list .val-input {
+            color: var(--danger);
+            font-weight: 700;
+        }
+        .edit-list.emergency-list .desc-input {
+            color: var(--danger);
+            opacity: 0.85;
+        }
+
+        /* Special speed row */
+        .edit-list.special-list .speed-row {
+            background-color: var(--special-bg);
+            border-color: var(--special-border);
+        }
+        .edit-list.special-list .speed-row:hover {
+            border-color: var(--accent-blue);
+        }
+        .edit-list.special-list .name-input,
+        .edit-list.special-list .val-input {
+            color: var(--accent-blue);
+            font-weight: 700;
+        }
+        .edit-list.special-list .desc-input {
+            color: var(--accent-blue);
+            opacity: 0.85;
+        }
+
+        .name-input {
+            width: 120px;
+            min-width: 90px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            padding: 6px 8px;
+            font-family: var(--f-mono);
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-color);
+            outline: none;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+        }
+        .name-input:focus, .name-input:hover {
+            border-color: var(--accent-blue);
+            background: var(--card-bg);
+        }
+
+        .val-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 2px 8px;
+            flex-shrink: 0;
+        }
+        .val-input {
+            width: 58px;
+            border: none;
+            background: transparent;
+            font-family: var(--f-mono);
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-color);
+            outline: none;
+            text-align: right;
+        }
+        .unit-tag {
+            font-size: 11px;
+            color: var(--muted-text);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .desc-input {
+            flex: 1;
+            min-width: 80px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            padding: 6px 8px;
+            font-family: var(--f-body);
+            font-size: 13px;
+            color: var(--text-color);
+            outline: none;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+        }
+        .desc-input:focus, .desc-input:hover {
+            border-color: var(--accent-blue);
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .btn-delete {
+            background: none;
+            border: 1px solid transparent;
+            color: var(--muted-text);
+            cursor: pointer;
+            font-size: 14px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            line-height: 1;
+            flex-shrink: 0;
+            border-radius: 6px;
+        }
+        .btn-delete:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+            background-color: var(--danger-bg);
+        }
+
+        .empty-speed-msg {
+            color: var(--muted-text);
+            font-size: 13px;
+            padding: 10px;
+            text-align: center;
+            background: transparent;
+            border: 1px dashed var(--hover-bg);
+            list-style: none;
+        }
+        .empty-speed-msg.emergency {
+            color: var(--danger);
+            border-color: var(--danger-border);
+        }
+        .empty-speed-msg.special {
+            color: var(--accent-blue);
+            border-color: var(--special-border);
+        }
+
+        /* Range Results Strip */
+        .result-strip {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            margin-top: 20px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .result-box {
+            padding: 16px 12px;
+            text-align: center;
+            border-right: 1px solid var(--border-color);
+        }
+        .result-box:last-child { border-right: none; }
+        .result-box .r-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--muted-text);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .result-box .r-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 22px;
+            font-weight: 700;
+            margin-top: 6px;
+            color: var(--text-color);
+        }
+
+        /* Right Column: Weight & Balance Studio */
+        .wb-panel {
+            background-color: var(--card-bg);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .wb-panel:hover {
+            border-color: #2a3c54;
+        }
+
+        .wb-params {
+            padding: 16px 20px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+        }
+
+        .wb-table-wrap {
+            overflow-x: auto;
+            width: 100%;
+        }
+        table.wb-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        table.wb-table th {
+            padding: 12px 14px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+            color: var(--muted-text);
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+        table.wb-table td {
+            padding: 6px 10px;
+            border-bottom: 1px solid var(--hover-bg);
+            font-size: 13.5px;
+        }
+        table.wb-table tr:hover td {
+            background-color: var(--hover-bg);
+        }
+        table.wb-table td input {
+            width: 100%;
+            border: 1px solid transparent;
+            background: transparent;
+            padding: 6px 8px;
+            font-family: 'Space Mono', monospace;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-color);
+            outline: none;
+            border-radius: 8px;
+            text-align: right;
+            transition: all 0.15s ease;
+        }
+        table.wb-table td input:focus, table.wb-table td input:hover {
+            border-color: var(--accent-blue);
+            background: var(--bg-color);
+        }
+        table.wb-table td.item-name input {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            text-align: left;
+        }
+        table.wb-table td.moment-cell {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            text-align: right;
+            padding-right: 14px;
+            font-size: 13.5px;
+            white-space: nowrap;
+        }
+
+        .wb-totals {
+            padding: 18px 24px;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .wb-totals .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13.5px;
+            font-weight: 500;
+        }
+        .wb-totals .row span:last-child {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 14.5px;
+        }
+        .wb-totals .row.grand {
+            font-weight: 800;
+            font-size: 15.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 6px;
+            padding-top: 10px;
+        }
+        .wb-totals .row.grand span:last-child {
+            font-size: 19px;
+            font-weight: 800;
+            color: var(--accent-blue);
+        }
+
+        .limits-inputs {
+            padding: 14px 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+        }
+
+        .status-banner {
+            margin: 18px 24px 0 24px;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 13px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .status-banner.ok {
+            background-color: rgba(74, 124, 89, 0.1);
+            color: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+        .status-banner.bad {
+            background-color: var(--danger-bg);
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .cg-graph-wrap {
+            padding: 18px 24px 24px 24px;
+        }
+        #cgGraph {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            display: block;
+        }
+        svg text {
+            font-family: 'Space Mono', monospace;
+        }
+
+        /* Responsive Layout */
+        @media (max-width: 1150px) {
+            .workspace-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 900px) {
+            .main-layout { flex-direction: column; }
+            .sidebar {
+                width: 100%;
+                min-width: 0;
+                max-width: none;
+                flex-basis: auto;
+                border-right: none;
+                border-bottom: 2px solid var(--border-color);
+            }
+            .top-bar {
+                flex-direction: column;
+                height: auto;
+                padding: 20px;
+                gap: 15px;
+            }
+            .content-section {
+                padding: 35px 20px;
+            }
+            .page-heading h1 {
+                font-size: 32px;
+            }
+            .wb-params {
+                grid-template-columns: 1fr 1fr;
+            }
+            .form-grid.cols-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* =============================================================
+           ALTIVIEW · Performances, redesigned on the website look.
+           Every colour comes from the theme tokens (night / day). ":root" + !important
+           outranks the older hard-coded rules of cockpit.css, so day mode stays readable.
+        ============================================================= */
+        :root .content-section { background: var(--canvas) !important; color: var(--text) !important; padding: 28px 36px 64px !important; gap: 22px !important; }
+        :root .page-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; border-bottom: 1px solid var(--line) !important; padding-bottom: 20px !important; }
+        :root .page-heading h1 { color: var(--text) !important; font-size: 40px !important; }
+        :root .page-heading p { color: var(--text-secondary) !important; font-size: 14.5px !important; max-width: 62ch; }
+        :root .page-heading-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+        /* unit selector */
+        :root .unit-selector-toolbar { display: flex; align-items: center; gap: 12px; padding: 6px 12px !important; background: var(--panel) !important; border: 1px solid var(--line) !important; border-radius: 10px !important; }
+        :root .unit-toolbar-label, :root .unit-field-tag { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-secondary) !important; }
+        :root .unit-select-group { display: flex; align-items: center; gap: 6px; }
+        :root .unit-system-select { background: var(--panel-2) !important; border: 1px solid var(--line) !important; color: var(--text) !important; border-radius: 7px !important; font-family: var(--f-mono); font-size: 12.5px; padding: 5px 8px !important; }
+
+        /* cards */
+        :root .card, :root .wb-panel { background: var(--panel) !important; border: 1px solid var(--line) !important; border-radius: 16px !important; box-shadow: none !important; color: var(--text) !important; }
+        :root .card:hover, :root .wb-panel:hover { border-color: var(--line-strong) !important; }
+        :root .card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px !important; border-bottom: 1px solid var(--line) !important; background: transparent !important; }
+        :root .card-header h2 { font-family: var(--f-mono) !important; font-size: 11.5px !important; font-weight: 600 !important; letter-spacing: .16em !important; text-transform: uppercase !important; color: var(--cyan) !important; margin: 0; }
+        :root .card-body { padding: 18px 20px 20px !important; }
+
+        /* form fields */
+        :root .form-group label { font-family: var(--f-mono) !important; font-size: 10.5px !important; font-weight: 500 !important; letter-spacing: .12em !important; text-transform: uppercase !important; color: var(--text-secondary) !important; }
+        :root .form-group input, :root .form-group select, :root table.wb-table td input {
+            background: var(--panel-2) !important; border: 1px solid var(--line) !important; color: var(--text) !important;
+            border-radius: 8px !important; font-family: var(--f-mono) !important; font-size: 13.5px !important;
+        }
+        :root .form-group input:focus, :root .form-group select:focus, :root table.wb-table td input:focus { border-color: var(--cyan) !important; box-shadow: 0 0 0 3px var(--cyan-soft) !important; outline: none; }
+        :root input::placeholder { color: var(--muted) !important; }
+
+        /* speeds */
+        :root .speeds-section-title { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--text-secondary) !important; border-bottom: 1px solid var(--line) !important; padding-bottom: 8px; margin-bottom: 10px; background: transparent !important; }
+        :root .speeds-section-title.emergency-title { color: var(--danger) !important; border-bottom-color: color-mix(in srgb, var(--danger) 35%, transparent) !important; }
+        :root .speeds-section-title.special-title { color: var(--cyan) !important; border-bottom-color: color-mix(in srgb, var(--cyan) 35%, transparent) !important; }
+        :root .speed-row { background: var(--panel-2) !important; border: 1px solid var(--line) !important; border-radius: 10px !important; }
+        :root .speed-row:hover { border-color: var(--line-strong) !important; }
+        :root .edit-list.emergency-list .speed-row { border-left: 3px solid var(--danger) !important; background: color-mix(in srgb, var(--danger) 6%, var(--panel-2)) !important; }
+        :root .edit-list.special-list .speed-row { border-left: 3px solid var(--cyan) !important; background: color-mix(in srgb, var(--cyan) 6%, var(--panel-2)) !important; }
+        :root .name-input, :root .desc-input { background: transparent !important; border: 1px solid transparent !important; color: var(--text) !important; }
+        :root .name-input { font-family: var(--f-mono) !important; font-weight: 700 !important; }
+        :root .desc-input { color: var(--text-secondary) !important; }
+        :root .name-input:focus, :root .name-input:hover, :root .desc-input:focus, :root .desc-input:hover { border-color: var(--line) !important; background: var(--panel) !important; }
+        :root .val-input-wrap { background: var(--panel) !important; border: 1px solid var(--line) !important; border-radius: 8px !important; }
+        :root .val-input { background: transparent !important; color: var(--text) !important; font-family: var(--f-mono) !important; font-weight: 700 !important; border: 0 !important; width: 52px !important; padding: 5px 2px !important; box-shadow: none !important; }
+        :root .edit-list.emergency-list .val-input { color: var(--danger) !important; }
+        :root .edit-list.special-list .val-input { color: var(--cyan) !important; }
+        :root .unit-tag { font-family: var(--f-mono); color: var(--muted) !important; }
+        :root .btn-delete { color: var(--muted) !important; background: transparent !important; }
+        :root .btn-delete:hover { color: var(--danger) !important; }
+        :root .empty-speed-msg { color: var(--muted) !important; border-color: var(--line) !important; background: transparent !important; }
+
+        /* fuel results: endurance in amber, as on the website */
+        :root .result-strip { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 18px; border: 1px solid var(--line) !important; border-radius: 12px !important; background: var(--panel-2) !important; }
+        :root .result-box { border-right: 1px solid var(--line) !important; padding: 12px 14px !important; background: transparent !important; }
+        :root .result-box:last-child { border-right: 0 !important; }
+        :root .result-box .r-label { font-family: var(--f-mono) !important; font-size: 10px !important; letter-spacing: .14em !important; text-transform: uppercase !important; color: var(--text-secondary) !important; }
+        :root .result-box .r-value { font-family: var(--f-mono) !important; font-size: 20px !important; font-weight: 500 !important; color: var(--text) !important; margin-top: 4px; }
+        :root .result-box:nth-child(2) .r-value { color: var(--accent-ink, var(--accent)) !important; }
+
+        /* weight & balance */
+        :root .wb-params { background: var(--panel-2) !important; border-bottom: 1px solid var(--line) !important; padding: 14px 20px !important; }
+        :root table.wb-table th { background: transparent !important; color: var(--text-secondary) !important; font-family: var(--f-mono) !important; font-size: 10.5px !important; letter-spacing: .12em !important; border-bottom: 1px solid var(--line) !important; }
+        :root table.wb-table td { background: transparent !important; border-bottom: 1px solid var(--line) !important; color: var(--text) !important; }
+        :root table.wb-table tr:hover td { background: var(--panel-hover) !important; }
+        :root table.wb-table td.item-name input { background: transparent !important; border-color: transparent !important; font-family: var(--f-body) !important; font-weight: 600 !important; }
+        :root table.wb-table td.moment-cell { font-family: var(--f-mono) !important; color: var(--text-secondary) !important; }
+        :root .wb-totals { border-top: 1px solid var(--line) !important; background: transparent !important; }
+        :root .wb-totals .row { color: var(--text-secondary) !important; font-family: var(--f-mono); font-size: 12.5px; }
+        :root .wb-totals .row span:last-child { color: var(--text) !important; font-family: var(--f-mono) !important; }
+        :root .wb-totals .row.grand { border-top: 1px solid var(--line) !important; color: var(--text) !important; background: transparent !important; }
+        :root .wb-totals .row.grand span:last-child { color: var(--cyan) !important; font-size: 22px !important; }
+        :root .limits-inputs { background: transparent !important; border-top: 1px solid var(--line) !important; }
+        :root .status-banner { font-family: var(--f-mono) !important; font-size: 12px !important; letter-spacing: .08em !important; text-transform: uppercase; border-radius: 10px !important; }
+        :root .status-banner.ok { background: var(--success-soft) !important; color: var(--success) !important; border: 1px solid color-mix(in srgb, var(--success) 40%, transparent) !important; }
+        :root .status-banner.bad { background: var(--danger-soft) !important; color: var(--danger) !important; border: 1px solid color-mix(in srgb, var(--danger) 40%, transparent) !important; }
+        :root #cgGraph { background: var(--panel-2) !important; border: 1px solid var(--line) !important; }
+        :root #cgGraph text { font-family: var(--f-mono) !important; }
+
+        /* buttons */
+        :root .btn-action:not(.primary) { background: transparent !important; border: 1px solid var(--line-strong) !important; color: var(--text) !important; font-family: var(--f-mono) !important; font-size: 11px !important; letter-spacing: .08em !important; text-transform: uppercase; border-radius: 8px !important; }
+        :root .btn-action:not(.primary):hover { border-color: var(--cyan) !important; color: var(--cyan) !important; background: var(--cyan-soft) !important; }
+        :root .btn-action.btn-danger { color: var(--danger) !important; border-color: color-mix(in srgb, var(--danger) 45%, transparent) !important; }
+        :root .btn-action.btn-danger:hover { background: var(--danger-soft) !important; color: var(--danger) !important; border-color: var(--danger) !important; }
+        :root .btn-action.btn-special { color: var(--cyan) !important; border-color: color-mix(in srgb, var(--cyan) 45%, transparent) !important; }
+        :root .ghost-btn { background: transparent !important; border: 1px solid var(--line-strong) !important; color: var(--text) !important; font-family: var(--f-mono) !important; font-size: 11px !important; letter-spacing: .08em !important; border-radius: 8px !important; }
+        :root .ghost-btn:hover { border-color: var(--cyan) !important; color: var(--cyan) !important; background: var(--cyan-soft) !important; }
+        :root .btn-aircraft-profile { font-family: var(--f-mono) !important; letter-spacing: .08em !important; text-transform: uppercase; border-radius: 8px !important; }
+
+        /* readability pass: secondary ink for small labels, full-opacity descriptions, wider element names */
+        :root .desc-input { opacity: 1 !important; }
+        :root .unit-tag, :root .btn-delete { color: var(--text-secondary) !important; }
+        :root table.wb-table td.item-name { width: 34%; }
+        :root table.wb-table td input { padding: 6px 6px !important; }
+        :root table.wb-table td.item-name input { text-overflow: ellipsis; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. TABLET HUD BAR -->
+    <header class="tablet-hud">
+        <div class="hud-left">
+            <a href="index.html" class="hud-brand" title="ALTIVIEW — Préparation du Vol">
+                <svg class="hud-logo-svg" viewBox="250 190 1432 1432" width="26" height="26" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="lgA-perfo" x1="0" y1="212" x2="0" y2="990" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#5FE3CF"/><stop offset="1" stop-color="#4BC8B6"/></linearGradient>
+                        <linearGradient id="lgLeg-perfo" x1="0" y1="1120" x2="0" y2="1586" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#43A99B"/><stop offset="1" stop-color="#24665D"/></linearGradient>
+                        <radialGradient id="lgGlow-perfo" cx="966" cy="362" r="120" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#8CF7E4" stop-opacity=".75"/><stop offset=".45" stop-color="#8CF7E4" stop-opacity=".25"/><stop offset="1" stop-color="#8CF7E4" stop-opacity="0"/></radialGradient>
+                        <clipPath id="lgLegs-perfo"><path d="M540 1120 346 1586H602L790 1120ZM1392 1120 1586 1586H1330L1142 1120Z"/></clipPath>
+                    </defs>
+                    <path d="M966 212 1366 990H566ZM966 540 820 916H1111Z" fill="url(#lgA-perfo)" fill-rule="evenodd"/>
+                    <path d="M540 1120 346 1586H602L790 1120ZM1392 1120 1586 1586H1330L1142 1120Z" fill="url(#lgLeg-perfo)"/>
+                    <path d="M381 1250 912 1138H1020L1550 1250V1296L1020 1184H912L381 1296Z" fill="#000" opacity=".22" clip-path="url(#lgLegs-perfo)"/>
+                    <circle cx="966" cy="362" r="120" fill="url(#lgGlow-perfo)"/>
+                    <circle cx="966" cy="362" r="44" fill="#8CF7E4"/>
+                    <path d="M966 405 1020 920 1660 1177 1550 1250 1020 1138V1440L1166 1512 966 1473 766 1512 912 1440V1138L381 1250 272 1177 912 920Z" style="fill:var(--logo-plane,#F8FAFB)"/>
+                </svg>
+                <span class="hud-title">ALTIVIEW</span>
+            </a>
+        </div>
+
+        <div class="hud-right">
+            <div class="hud-telemetry">
+                <span class="hud-aircraft" id="hudAircraftTag">F-HAERO · C172S</span>
+                <span class="hud-clock" id="hudUtcClock">--:-- UTC</span>
+            </div>
+            <button class="theme-switch" id="themeSwitch" type="button" role="switch" aria-label="Basculer entre mode nuit et jour" title="Mode nuit / jour">
+                <svg class="icon-moon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                <svg class="icon-sun" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="main-layout">
+        <!-- Numbered Tablet Sidebar Navigation -->
+        <nav class="tablet-sidebar">
+            <a href="flg_prep.html" class="sidebar-item">
+                <span class="num">01</span>
+                <span class="label">Préparation</span>
+            </a>
+            <a href="VFR.html" class="sidebar-item">
+                <span class="num">02</span>
+                <span class="label">Carte</span>
+            </a>
+            <a href="perfo.html" class="sidebar-item active">
+                <span class="num">03</span>
+                <span class="label">Performances</span>
+            </a>
+            <a href="checklists.html" class="sidebar-item">
+                <span class="num">04</span>
+                <span class="label">Checklists</span>
+            </a>
+            <a href="emergency.html" class="sidebar-item">
+                <span class="num">05</span>
+                <span class="label">Urgences</span>
+            </a>
+
+            <div class="sidebar-footer">
+                <button type="button" class="btn-sidebar-tool" onclick="AircraftProfiles.openModal()" title="Profils Avion (C172, DR400, PA28...)">
+                    <svg class="tool-ico" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5L21 16z"/></svg> Profils
+                </button>
+                <button type="button" class="btn-sidebar-tool" id="exportFlightDocBtn" title="Exporter Dossier PDF">
+                    <svg class="tool-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg> PDF
+                </button>
+                        <button type="button" class="btn-sidebar-tool" id="btnDataSources" title="Sources de données (METAR, NOTAM, espaces aériens)">
+                            <svg class="tool-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 0 1 7.5-7.5M8 12a4 4 0 0 1 4-4"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><path d="M12 13.5V20M9 20h6"/></svg> Données
+                        </button>
+            </div>
+        </nav>
+
+        <section class="content-section">
+            <div class="page-heading">
+                <div>
+                    <h1>Performances</h1>
+                    <p>Masse et centrage, vérification de l'enveloppe, vitesses caractéristiques, autonomie et distance franchissable.</p>
+                </div>
+                <div class="page-heading-actions">
+                    <button type="button" class="btn-action btn-aircraft-profile" onclick="AircraftProfiles.openModal()" style="font-weight: 800; font-size: 12px; display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 4px; cursor: pointer; background: var(--cyan-soft); color: var(--cyan); border: 1.5px solid color-mix(in srgb, var(--cyan) 45%, transparent); box-shadow: none;" title="Import, export, or select manufacturer POH profile">
+                        <svg class="tool-ico" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5L21 16z"/></svg> Profils avion
+                    </button>
+                    <div class="unit-selector-toolbar">
+                        <span class="unit-toolbar-label">Unités</span>
+                        <div class="unit-select-group">
+                            <span class="unit-field-tag">Masse</span>
+                            <select id="unitWeight" class="unit-system-select" title="Weight Unit">
+                                <option value="kg">kg</option>
+                                <option value="lbs">lbs</option>
+                            </select>
+                        </div>
+                        <div class="unit-select-group">
+                            <span class="unit-field-tag">Bras</span>
+                            <select id="unitArm" class="unit-system-select" title="Arm Unit">
+                                <option value="cm">cm</option>
+                                <option value="in">in</option>
+                            </select>
+                        </div>
+                        <div class="unit-select-group">
+                            <span class="unit-field-tag">Carb.</span>
+                            <select id="unitFuel" class="unit-system-select" title="Fuel Unit">
+                                <option value="L">L</option>
+                                <option value="USG">USG</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="ghost-btn" id="exportPdfBtn" title="Export Weight & Balance computation sheet to PDF">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                        Export PDF
+                    </button>
+                </div>
+            </div>
+
+            <div class="workspace-grid">
+                <!-- Left Column: Profile, Speeds, Range -->
+                <div class="perf-column">
+
+                    <!-- Aircraft Profile Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Profil avion</h2>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button class="btn-action small" onclick="AircraftProfiles.openModal('presets')" title="Charger un profil constructeur">Modèles</button>
+                                <button class="btn-action small" onclick="AircraftProfiles.openModal('import')" title="Importer un profil avion (JSON)">Importer</button>
+                                <button class="btn-action small" onclick="AircraftProfiles.openModal('export')" title="Exporter le profil avion (JSON)">Exporter</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-grid cols-3">
+                                <div class="form-group">
+                                    <label>Immatriculation</label>
+                                    <input type="text" id="acReg" placeholder="F-GXXX">
+                                </div>
+                                <div class="form-group">
+                                    <label>Type d'avion</label>
+                                    <input type="text" id="acType" placeholder="DR400">
+                                </div>
+                                <div class="form-group">
+                                    <label>Carburant utilisable (<span class="unit-fuel">L</span>)</label>
+                                    <input type="number" id="fuelCapacity" value="110" step="0.1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- V-Speeds Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Vitesses caractéristiques</h2>
+                        </div>
+                        <div class="card-body">
+                            <!-- Normal Speeds -->
+                            <div class="speeds-section-title">
+                                <span>Opérations normales</span>
+                            </div>
+                            <ul class="edit-list" id="normalSpeedsList"></ul>
+                            <div style="margin-bottom: 22px;">
+                                <button class="btn-action small" id="addNormalSpeedBtn">+ Ajouter une vitesse</button>
+                            </div>
+
+                            <!-- Emergency Speeds -->
+                            <div class="speeds-section-title emergency-title">
+                                <span>Urgences et limites</span>
+                            </div>
+                            <ul class="edit-list emergency-list" id="emergencySpeedsList"></ul>
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom: 22px; flex-wrap:wrap;">
+                                <button class="btn-action small btn-danger" id="addEmergencySpeedBtn">+ Ajouter une vitesse</button>
+                                <a href="emergency.html" class="btn-action small btn-danger" style="text-decoration:none;">Procédures d'urgence &rarr;</a>
+                            </div>
+                            
+                            <!-- Special Procedures -->
+                            <div class="speeds-section-title special-title">
+                                <span>Procédures spéciales</span>
+                            </div>
+                            <ul class="edit-list special-list" id="specialSpeedsList"></ul>
+                            <div>
+                                <button class="btn-action small btn-special" id="addSpecialSpeedBtn">+ Ajouter une vitesse</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Range & Endurance Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Autonomie et distance</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-grid cols-3">
+                                <div class="form-group">
+                                    <label>Carburant à bord (<span class="unit-fuel">L</span>)</label>
+                                    <input type="number" id="fuelOnBoard" value="110" step="0.1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Consommation (<span class="unit-fuel-flow">L/h</span>)</label>
+                                    <input type="number" id="fuelBurn" value="28" step="0.1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Réserve finale (min)</label>
+                                    <input type="number" id="reserveMin" value="45">
+                                </div>
+                                <div class="form-group">
+                                    <label>Vitesse de croisière</label>
+                                    <select id="cruiseTas"></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Roulage et mise en route (<span class="unit-fuel">L</span>)</label>
+                                    <input type="number" id="taxiFuel" value="4" step="0.1">
+                                </div>
+                            </div>
+
+                            <div class="result-strip">
+                                <div class="result-box">
+                                    <div class="r-label">Carburant utilisable</div>
+                                    <div class="r-value" id="resUsableFuel">— L</div>
+                                </div>
+                                <div class="result-box">
+                                    <div class="r-label">Autonomie</div>
+                                    <div class="r-value" id="resEndurance">— h</div>
+                                </div>
+                                <div class="result-box">
+                                    <div class="r-label">Distance (air calme)</div>
+                                    <div class="r-value" id="resRange">— nm</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right Column: Weight & Balance Studio -->
+                <div class="wb-panel">
+                    <div class="card-header">
+                        <h2>Masse et centrage</h2>
+                    </div>
+                    
+                    <div class="wb-params">
+                        <div class="form-group">
+                            <label>Masse à vide (<span class="unit-weight">kg</span>)</label>
+                            <input type="number" id="emptyWeight" value="600" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Bras à vide (<span class="unit-arm">cm</span>)</label>
+                            <input type="number" id="emptyArm" value="230" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>MTOW (<span class="unit-weight">kg</span>)</label>
+                            <input type="number" id="mtow" value="1000" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>MLW (<span class="unit-weight">kg</span>)</label>
+                            <input type="number" id="mlw" value="1000" step="0.1">
+                        </div>
+                    </div>
+
+                    <div class="wb-table-wrap">
+                        <table id="wbTable" class="wb-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:34%;">Élément</th>
+                                    <th>Masse (<span class="unit-weight">kg</span>)</th>
+                                    <th>Bras (<span class="unit-arm">cm</span>)</th>
+                                    <th style="text-align:right; padding-right:14px;">Moment</th>
+                                    <th style="width:36px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="wbBody"></tbody>
+                        </table>
+                    </div>
+                    
+                    <div style="padding: 12px 20px;">
+                        <button class="btn-action small" id="addRowBtn">+ Ajouter une ligne</button>
+                    </div>
+
+                    <div class="wb-totals">
+                        <div class="row"><span>Masse totale</span><span id="totWeight">0 kg</span></div>
+                        <div class="row"><span>Moment total</span><span id="totMoment">0</span></div>
+                        <div class="row grand"><span>Centrage (bras)</span><span id="totCg">0 cm</span></div>
+                        <div class="row"><span>Marge sur la MTOW</span><span id="totMargin">0 kg</span></div>
+                    </div>
+
+                    <div class="limits-inputs">
+                        <div class="form-group">
+                            <label>Limite avant (<span class="unit-arm">cm</span>)</label>
+                            <input type="number" id="fwdLimit" value="215" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Limite arrière (<span class="unit-arm">cm</span>)</label>
+                            <input type="number" id="aftLimit" value="245" step="0.1">
+                        </div>
+                    </div>
+
+                    <div id="statusBanner" class="status-banner ok">Saisissez les données pour vérifier le centrage</div>
+
+                    <div class="cg-graph-wrap">
+                        <svg id="cgGraph" viewBox="0 0 440 260" width="100%" height="260"></svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const STORAGE_KEY = 'flightprep_perf_data_v10'; // Bumped for Layout changes
+        const BRIEFING_STORAGE_KEY = 'flightprep_info_v1'; // Added for cross-tab sync
+
+        // Conversion Factors
+        const KG_TO_LBS = 2.2046226218;
+        const CM_TO_IN = 0.3937007874;
+        const L_TO_USG = 0.2641720524;
+
+        // Active Unit States
+        let currentUnitWeight = 'kg';
+        let currentUnitArm = 'cm';
+        let currentUnitFuel = 'L';
+
+        // Avgas Fuel Density getter (dynamically scales to combinations)
+        function getFuelDensity() {
+            // Base density is 0.72 kg per Liter
+            let weightBase = currentUnitWeight === 'lbs' ? (0.72 * KG_TO_LBS) : 0.72;
+            
+            if (currentUnitFuel === 'USG') {
+                return weightBase / L_TO_USG; 
+            }
+            return weightBase; 
+        }
+
+        // ---------- Elements ----------
+        const unitWeightSelect = document.getElementById('unitWeight');
+        const unitArmSelect = document.getElementById('unitArm');
+        const unitFuelSelect = document.getElementById('unitFuel');
+
+        const acReg = document.getElementById('acReg');
+        const acType = document.getElementById('acType');
+        const emptyWeight = document.getElementById('emptyWeight');
+        const emptyArm = document.getElementById('emptyArm');
+        const mtow = document.getElementById('mtow');
+        const mlw = document.getElementById('mlw');
+
+        const normalSpeedsList = document.getElementById('normalSpeedsList');
+        const emergencySpeedsList = document.getElementById('emergencySpeedsList');
+        const specialSpeedsList = document.getElementById('specialSpeedsList');
+        
+        const addNormalSpeedBtn = document.getElementById('addNormalSpeedBtn');
+        const addEmergencySpeedBtn = document.getElementById('addEmergencySpeedBtn');
+        const addSpecialSpeedBtn = document.getElementById('addSpecialSpeedBtn');
+
+        const fuelOnBoard = document.getElementById('fuelOnBoard');
+        const fuelBurn = document.getElementById('fuelBurn');
+        const reserveMin = document.getElementById('reserveMin');
+        const cruiseTas = document.getElementById('cruiseTas');
+        const taxiFuel = document.getElementById('taxiFuel');
+        const fuelCapacity = document.getElementById('fuelCapacity');
+        const resUsableFuel = document.getElementById('resUsableFuel');
+        const resEndurance = document.getElementById('resEndurance');
+        const resRange = document.getElementById('resRange');
+
+        const wbBody = document.getElementById('wbBody');
+        const addRowBtn = document.getElementById('addRowBtn');
+        const totWeight = document.getElementById('totWeight');
+        const totMoment = document.getElementById('totMoment');
+        const totCg = document.getElementById('totCg');
+        const totMargin = document.getElementById('totMargin');
+        const fwdLimit = document.getElementById('fwdLimit');
+        const aftLimit = document.getElementById('aftLimit');
+        const statusBanner = document.getElementById('statusBanner');
+        const cgGraph = document.getElementById('cgGraph');
+
+        // ---------- Default data ----------
+        let speeds = [
+            { name: 'Vs0', value: 40, unit: 'kt', desc: 'Stall speed, landing config', type: 'emergency' },
+            { name: 'Vs1', value: 47, unit: 'kt', desc: 'Stall speed, clean config', type: 'emergency' },
+            { name: 'Vfe', value: 100, unit: 'kt', desc: 'Max flap extended speed', type: 'normal' },
+            { name: 'Vc', value: 110, unit: 'kt', desc: 'Design cruising speed', type: 'normal' },
+            { name: 'Vno', value: 138, unit: 'kt', desc: 'Max structural cruise speed', type: 'normal' },
+            { name: 'Vne', value: 172, unit: 'kt', desc: 'Never exceed speed', type: 'emergency' },
+            { name: 'Va', value: 108, unit: 'kt', desc: 'Maneuvering speed', type: 'normal' },
+            { name: 'Vr', value: 55, unit: 'kt', desc: 'Rotation speed', type: 'normal' },
+            { name: 'Vref', value: 65, unit: 'kt', desc: 'Approach reference speed', type: 'normal' },
+            { name: 'Best Glide', value: 70, unit: 'kt', desc: 'Best glide speed, idle power', type: 'emergency' },
+            { name: 'Vx', value: 62, unit: 'kt', desc: 'Best angle of climb', type: 'special' },
+            { name: 'Vy', value: 68, unit: 'kt', desc: 'Best rate of climb', type: 'special' },
+            { name: 'Von', value: 110, unit: 'kt', desc: 'Operating maneuvering speed', type: 'special' }
+        ];
+
+        let wbRows = [
+            { name: 'Masse à vide', weight: 600, arm: 230, linkedEmpty: true },
+            { name: 'Pilote + passager avant', weight: 160, arm: 210 },
+            { name: 'Passagers arrière', weight: 0, arm: 280 },
+            { name: 'Carburant', weight: 79.2, arm: 240, linkedFuel: true },
+            { name: 'Bagages', weight: 0, arm: 320 }
+        ];
+
+        function updateUnitLabels() {
+            document.querySelectorAll('.unit-weight').forEach(el => el.textContent = currentUnitWeight);
+            document.querySelectorAll('.unit-arm').forEach(el => el.textContent = currentUnitArm);
+            document.querySelectorAll('.unit-fuel').forEach(el => el.textContent = currentUnitFuel);
+            document.querySelectorAll('.unit-fuel-flow').forEach(el => el.textContent = currentUnitFuel + '/h');
+        }
+
+        // --- Unit Change Listeners ---
+        unitWeightSelect.addEventListener('change', (e) => {
+            const newUnit = e.target.value;
+            if (newUnit === currentUnitWeight) return;
+            
+            const factor = newUnit === 'lbs' ? KG_TO_LBS : (1 / KG_TO_LBS);
+            
+            emptyWeight.value = (parseFloat(emptyWeight.value) * factor).toFixed(1);
+            mtow.value = (parseFloat(mtow.value) * factor).toFixed(1);
+            mlw.value = (parseFloat(mlw.value) * factor).toFixed(1);
+            
+            wbRows.forEach(r => {
+                r.weight = parseFloat((r.weight * factor).toFixed(1));
+            });
+            
+            currentUnitWeight = newUnit;
+            updateUnitLabels();
+            renderWB();
+            computeRange();
+            saveState();
+        });
+
+        unitArmSelect.addEventListener('change', (e) => {
+            const newUnit = e.target.value;
+            if (newUnit === currentUnitArm) return;
+            
+            const factor = newUnit === 'in' ? CM_TO_IN : (1 / CM_TO_IN);
+            
+            emptyArm.value = (parseFloat(emptyArm.value) * factor).toFixed(1);
+            fwdLimit.value = (parseFloat(fwdLimit.value) * factor).toFixed(1);
+            aftLimit.value = (parseFloat(aftLimit.value) * factor).toFixed(1);
+            
+            wbRows.forEach(r => {
+                r.arm = parseFloat((r.arm * factor).toFixed(1));
+            });
+            
+            currentUnitArm = newUnit;
+            updateUnitLabels();
+            renderWB();
+            saveState();
+        });
+
+        unitFuelSelect.addEventListener('change', (e) => {
+            const newUnit = e.target.value;
+            if (newUnit === currentUnitFuel) return;
+            
+            const factor = newUnit === 'USG' ? L_TO_USG : (1 / L_TO_USG);
+            
+            fuelCapacity.value = (parseFloat(fuelCapacity.value) * factor).toFixed(1);
+            fuelOnBoard.value = (parseFloat(fuelOnBoard.value) * factor).toFixed(1);
+            fuelBurn.value = (parseFloat(fuelBurn.value) * factor).toFixed(1);
+            taxiFuel.value = (parseFloat(taxiFuel.value) * factor).toFixed(1);
+            
+            currentUnitFuel = newUnit;
+            updateUnitLabels();
+            computeRange();
+            computeWB();
+            saveState();
+            syncToFlightPrep();
+        });
+
+        // ---------- Persistence & Cross-Tab Sync ----------
+        
+        function syncToFlightPrep() {
+            try {
+                const raw = localStorage.getItem(BRIEFING_STORAGE_KEY);
+                const data = raw ? JSON.parse(raw) : {};
+                data.flightNumber = acReg.value;
+                data.aircraft = acType.value;
+                if (fuelOnBoard && fuelOnBoard.value !== '') {
+                    data.fuel = fuelOnBoard.value;
+                }
+                if (fuelBurn && fuelBurn.value !== '') {
+                    data.burn = fuelBurn.value;
+                }
+                localStorage.setItem(BRIEFING_STORAGE_KEY, JSON.stringify(data));
+                localStorage.setItem('flightprep_profile_sync_trigger', Date.now().toString());
+            } catch(e) {}
+        }
+
+        function syncFromFlightPrep() {
+            try {
+                const raw = localStorage.getItem(BRIEFING_STORAGE_KEY);
+                if (raw) {
+                    const data = JSON.parse(raw);
+                    let changed = false;
+                    let fuelChanged = false;
+                    if (data.flightNumber !== undefined && acReg.value !== data.flightNumber) {
+                        acReg.value = data.flightNumber;
+                        changed = true;
+                    }
+                    if (data.aircraft !== undefined && acType.value !== data.aircraft) {
+                        acType.value = data.aircraft;
+                        changed = true;
+                    }
+                    if (data.fuel !== undefined && data.fuel !== '' && fuelOnBoard.value !== String(data.fuel)) {
+                        fuelOnBoard.value = data.fuel;
+                        const fob = parseFloat(data.fuel) || 0;
+                        wbRows.forEach(r => {
+                            if (r.linkedFuel) r.weight = parseFloat((fob * getFuelDensity()).toFixed(1));
+                        });
+                        fuelChanged = true;
+                        changed = true;
+                    }
+                    if (data.burn !== undefined && data.burn !== '' && fuelBurn.value !== String(data.burn)) {
+                        fuelBurn.value = data.burn;
+                        fuelChanged = true;
+                        changed = true;
+                    }
+                    if (changed) {
+                        saveState();
+                        if (fuelChanged) {
+                            renderWB();
+                            computeWB();
+                            computeRange();
+                        }
+                    }
+                } else {
+                    syncToFlightPrep();
+                }
+            } catch(e) {}
+        }
+
+        function saveState() {
+            const data = {
+                units: {
+                    weight: currentUnitWeight,
+                    arm: currentUnitArm,
+                    fuel: currentUnitFuel
+                },
+                profile: {
+                    reg: acReg.value,
+                    type: acType.value,
+                    emptyWeight: emptyWeight.value, emptyArm: emptyArm.value,
+                    mtow: mtow.value, mlw: mlw.value, fuelCapacity: fuelCapacity.value
+                },
+                speeds: speeds,
+                range: {
+                    fuelOnBoard: fuelOnBoard.value, fuelBurn: fuelBurn.value,
+                    reserveMin: reserveMin.value, cruiseTas: cruiseTas.value, taxiFuel: taxiFuel.value
+                },
+                wbRows: wbRows,
+                limits: { fwd: fwdLimit.value, aft: aftLimit.value }
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function loadState() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) {
+                updateUnitLabels();
+                return;
+            }
+            try {
+                const data = JSON.parse(raw);
+                
+                if (data.units) {
+                    currentUnitWeight = data.units.weight || 'kg';
+                    currentUnitArm = data.units.arm || 'cm';
+                    currentUnitFuel = data.units.fuel || 'L';
+                }
+                
+                unitWeightSelect.value = currentUnitWeight;
+                unitArmSelect.value = currentUnitArm;
+                unitFuelSelect.value = currentUnitFuel;
+                updateUnitLabels();
+
+                if (data.profile) {
+                    acReg.value = data.profile.reg ?? '';
+                    acType.value = data.profile.type ?? '';
+                    emptyWeight.value = data.profile.emptyWeight ?? emptyWeight.value;
+                    emptyArm.value = data.profile.emptyArm ?? emptyArm.value;
+                    mtow.value = data.profile.mtow ?? mtow.value;
+                    mlw.value = data.profile.mlw ?? mlw.value;
+                    fuelCapacity.value = data.profile.fuelCapacity ?? fuelCapacity.value;
+                }
+                if (Array.isArray(data.speeds) && data.speeds.length) {
+                    speeds = data.speeds.map(s => ({ ...s, type: s.type || 'normal' }));
+                }
+                if (data.range) {
+                    fuelOnBoard.value = data.range.fuelOnBoard ?? fuelOnBoard.value;
+                    fuelBurn.value = data.range.fuelBurn ?? fuelBurn.value;
+                    reserveMin.value = data.range.reserveMin ?? reserveMin.value;
+                    taxiFuel.value = data.range.taxiFuel ?? taxiFuel.value;
+                    
+                    updateCruiseDropdown();
+                    if (data.range.cruiseTas) {
+                        cruiseTas.value = data.range.cruiseTas;
+                    }
+                }
+                if (Array.isArray(data.wbRows) && data.wbRows.length) wbRows = data.wbRows;
+                
+                const fob = parseFloat(fuelOnBoard.value) || 0;
+                wbRows.forEach(r => {
+                    if (r.linkedFuel) r.weight = parseFloat((fob * getFuelDensity()).toFixed(1));
+                });
+
+                if (data.limits) {
+                    fwdLimit.value = data.limits.fwd ?? fwdLimit.value;
+                    aftLimit.value = data.limits.aft ?? aftLimit.value;
+                }
+            } catch (e) { 
+                console.warn('Failed to load performance state.', e); 
+                updateUnitLabels();
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+        
+        function updateCruiseDropdown() {
+            const currentSelection = cruiseTas.value;
+            cruiseTas.innerHTML = '';
+            
+            speeds.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.name;
+                opt.textContent = `${s.name} (${s.value} ${s.unit})`;
+                cruiseTas.appendChild(opt);
+            });
+            
+            if (speeds.some(s => s.name === currentSelection)) {
+                cruiseTas.value = currentSelection;
+            } else {
+                const defaultSpd = speeds.find(s => s.name.toLowerCase().includes('vc') || s.name.toLowerCase().includes('cruise') || s.name === 'Vno') || speeds[0];
+                if (defaultSpd) cruiseTas.value = defaultSpd.name;
+            }
+        }
+
+        // ---------- Speeds list (No category switching dropdown; direct add/remove) ----------
+        function renderSpeeds() {
+            normalSpeedsList.innerHTML = '';
+            emergencySpeedsList.innerHTML = '';
+            specialSpeedsList.innerHTML = '';
+            
+            speeds.forEach((s, i) => {
+                const li = document.createElement('li');
+                li.className = 'speed-row';
+
+                const nameInput = document.createElement('input');
+                nameInput.className = 'name-input';
+                nameInput.value = s.name;
+                nameInput.placeholder = 'Speed Code';
+                nameInput.addEventListener('input', e => { 
+                    speeds[i].name = e.target.value; 
+                    updateCruiseDropdown();
+                    computeRange();
+                    saveState(); 
+                });
+
+                const valWrap = document.createElement('div');
+                valWrap.className = 'val-input-wrap';
+
+                const valInput = document.createElement('input');
+                valInput.className = 'val-input';
+                valInput.type = 'number';
+                valInput.value = s.value;
+                valInput.addEventListener('input', e => { 
+                    speeds[i].value = parseFloat(e.target.value) || 0; 
+                    updateCruiseDropdown();
+                    computeRange();
+                    saveState(); 
+                });
+
+                const unitTag = document.createElement('span');
+                unitTag.className = 'unit-tag';
+                unitTag.textContent = s.unit || 'kt';
+
+                valWrap.appendChild(valInput);
+                valWrap.appendChild(unitTag);
+
+                const descInput = document.createElement('input');
+                descInput.className = 'desc-input';
+                descInput.value = s.desc || '';
+                descInput.placeholder = 'Description / Note';
+                descInput.addEventListener('input', e => { 
+                    speeds[i].desc = e.target.value; 
+                    saveState(); 
+                });
+
+                const delBtn = document.createElement('button');
+                delBtn.className = 'btn-delete';
+                delBtn.innerHTML = '✕';
+                delBtn.title = 'Supprimer';
+                delBtn.onclick = () => { 
+                    speeds.splice(i, 1); 
+                    renderSpeeds(); 
+                    saveState(); 
+                };
+
+                li.appendChild(nameInput);
+                li.appendChild(valWrap);
+                li.appendChild(descInput);
+                li.appendChild(delBtn);
+                
+                if (s.type === 'emergency') {
+                    emergencySpeedsList.appendChild(li);
+                } else if (s.type === 'special') {
+                    specialSpeedsList.appendChild(li);
+                } else {
+                    normalSpeedsList.appendChild(li);
+                }
+            });
+            
+            if (normalSpeedsList.children.length === 0) {
+                normalSpeedsList.innerHTML = '<li class="empty-speed-msg">Aucune vitesse normale</li>';
+            }
+            if (emergencySpeedsList.children.length === 0) {
+                emergencySpeedsList.innerHTML = '<li class="empty-speed-msg emergency">Aucune vitesse d’urgence</li>';
+            }
+            if (specialSpeedsList.children.length === 0) {
+                specialSpeedsList.innerHTML = '<li class="empty-speed-msg special">Aucune vitesse spéciale</li>';
+            }
+            
+            updateCruiseDropdown();
+            computeRange();
+        }
+
+        addNormalSpeedBtn.addEventListener('click', () => {
+            speeds.push({ name: 'New Speed', value: 0, unit: 'kt', desc: '', type: 'normal' });
+            renderSpeeds();
+            saveState();
+        });
+        
+        addEmergencySpeedBtn.addEventListener('click', () => {
+            speeds.push({ name: 'New Limit', value: 0, unit: 'kt', desc: '', type: 'emergency' });
+            renderSpeeds();
+            saveState();
+        });
+        
+        addSpecialSpeedBtn.addEventListener('click', () => {
+            speeds.push({ name: 'New Procedure', value: 0, unit: 'kt', desc: '', type: 'special' });
+            renderSpeeds();
+            saveState();
+        });
+
+        // ---------- Range & Endurance ----------
+        function computeRange() {
+            const fob = parseFloat(fuelOnBoard.value) || 0;
+            const burn = parseFloat(fuelBurn.value) || 0;
+            const reserve = parseFloat(reserveMin.value) || 0;
+            const taxi = parseFloat(taxiFuel.value) || 0;
+            
+            const selectedSpeedName = cruiseTas.value;
+            const speedObj = speeds.find(s => s.name === selectedSpeedName);
+            const tas = speedObj ? (parseFloat(speedObj.value) || 0) : 0;
+
+            const reserveFuel = burn * (reserve / 60);
+            const usableFuel = Math.max(0, fob - taxi - reserveFuel);
+            const endurance = burn > 0 ? usableFuel / burn : 0;
+            const range = endurance * tas;
+
+            resUsableFuel.textContent = `${usableFuel.toFixed(1)} ${currentUnitFuel}`;
+            resEndurance.textContent = `${Math.floor(endurance)}h ${Math.round((endurance % 1) * 60)}m`;
+            resRange.textContent = `${Math.round(range)} nm`;
+        }
+
+        [fuelOnBoard, fuelBurn, reserveMin, cruiseTas, taxiFuel].forEach(el => {
+            el.addEventListener('input', (e) => { 
+                if (e.target === fuelOnBoard) {
+                    const fob = parseFloat(fuelOnBoard.value) || 0;
+                    wbRows.forEach(r => {
+                        if (r.linkedFuel) r.weight = parseFloat((fob * getFuelDensity()).toFixed(1));
+                    });
+                    computeWB();
+                }
+                computeRange(); 
+                saveState(); 
+                if (e.target === fuelOnBoard || e.target === fuelBurn) {
+                    syncToFlightPrep();
+                }
+            });
+        });
+
+        // Attach listeners for Callsign and Aircraft to sync globally
+        [acReg, acType].forEach(el => {
+            el.addEventListener('input', () => { 
+                syncToFlightPrep(); 
+                saveState(); 
+                computeWB(); 
+            });
+        });
+
+        fuelCapacity.addEventListener('input', () => { saveState(); computeWB(); });
+
+        [mtow, mlw, emptyWeight, emptyArm].forEach(el => {
+            el.addEventListener('input', () => { syncLinkedRows(); saveState(); computeWB(); });
+        });
+
+        function syncLinkedRows() {
+            wbRows.forEach(r => {
+                if (r.linkedEmpty) { 
+                    r.weight = parseFloat(emptyWeight.value) || 0; 
+                    r.arm = parseFloat(emptyArm.value) || r.arm; 
+                }
+            });
+            renderWB();
+        }
+
+        // ---------- Weight & Balance ----------
+        function renderWB() {
+            wbBody.innerHTML = '';
+            wbRows.forEach((row, i) => {
+                const tr = document.createElement('tr');
+
+                const tdName = document.createElement('td');
+                tdName.className = 'item-name';
+                const nameInput = document.createElement('input');
+                nameInput.value = row.name;
+                nameInput.style.textAlign = 'left';
+                nameInput.addEventListener('input', e => { wbRows[i].name = e.target.value; saveState(); });
+                tdName.appendChild(nameInput);
+
+                const tdWeight = document.createElement('td');
+                const weightInput = document.createElement('input');
+                weightInput.type = 'number';
+                weightInput.step = '0.1';
+                weightInput.value = row.weight;
+                weightInput.disabled = !!row.linkedEmpty;
+                weightInput.addEventListener('input', e => { 
+                    const w = parseFloat(e.target.value) || 0;
+                    wbRows[i].weight = w; 
+                    
+                    if (wbRows[i].linkedFuel) {
+                        fuelOnBoard.value = (w / getFuelDensity()).toFixed(1);
+                        computeRange();
+                        syncToFlightPrep();
+                    }
+                    
+                    computeWB(); 
+                    saveState(); 
+                });
+                tdWeight.appendChild(weightInput);
+
+                const tdArm = document.createElement('td');
+                const armInput = document.createElement('input');
+                armInput.type = 'number';
+                armInput.step = '0.1';
+                armInput.value = row.arm;
+                armInput.addEventListener('input', e => { wbRows[i].arm = parseFloat(e.target.value) || 0; computeWB(); saveState(); });
+                tdArm.appendChild(armInput);
+
+                const tdMoment = document.createElement('td');
+                tdMoment.className = 'moment-cell';
+                tdMoment.id = `moment-${i}`;
+
+                const tdDel = document.createElement('td');
+                const delBtn = document.createElement('button');
+                delBtn.className = 'btn-delete';
+                delBtn.innerHTML = '✕';
+                delBtn.onclick = () => { wbRows.splice(i, 1); renderWB(); computeWB(); saveState(); };
+                tdDel.appendChild(delBtn);
+
+                tr.appendChild(tdName);
+                tr.appendChild(tdWeight);
+                tr.appendChild(tdArm);
+                tr.appendChild(tdMoment);
+                tr.appendChild(tdDel);
+                wbBody.appendChild(tr);
+            });
+            computeWB();
+        }
+
+        addRowBtn.addEventListener('click', () => {
+            wbRows.push({ name: 'New Item', weight: 0, arm: 0 });
+            renderWB();
+            saveState();
+        });
+
+        function computeWB() {
+            let fuelWeight = 0;
+            let totalWeight = 0;
+            let totalMoment = 0;
+            let fuelMoment = 0;
+
+            wbRows.forEach((row, i) => {
+                const w = parseFloat(row.weight) || 0;
+                const a = parseFloat(row.arm) || 0;
+                const m = w * a;
+                
+                totalWeight += w;
+                totalMoment += m;
+                if (row.linkedFuel) {
+                    fuelWeight += w;
+                    fuelMoment += m;
+                }
+
+                const cell = document.getElementById(`moment-${i}`);
+                if (cell) cell.textContent = Math.round(m).toLocaleString();
+                
+                const wInput = wbBody.children[i]?.querySelector('td:nth-child(2) input');
+                if (wInput && document.activeElement !== wInput) wInput.value = w.toFixed(1);
+                
+                const aInput = wbBody.children[i]?.querySelector('td:nth-child(3) input');
+                if (aInput && document.activeElement !== aInput) aInput.value = a.toFixed(1);
+            });
+
+            const cg = totalWeight > 0 ? totalMoment / totalWeight : 0;
+            const zfw = totalWeight - fuelWeight;
+            const zfMoment = totalMoment - fuelMoment;
+            const zfCg = zfw > 0 ? zfMoment / zfw : 0;
+
+            const mtowVal = parseFloat(mtow.value) || 0;
+            const margin = mtowVal - totalWeight;
+            const fwd = parseFloat(fwdLimit.value) || 0;
+            const aft = parseFloat(aftLimit.value) || 0;
+
+            totWeight.textContent = `${totalWeight.toFixed(1)} ${currentUnitWeight}`;
+            totMoment.textContent = Math.round(totalMoment).toLocaleString();
+            totCg.textContent = `${cg.toFixed(1)} ${currentUnitArm}`;
+            totMargin.textContent = `${margin.toFixed(1)} ${currentUnitWeight}`;
+            totMargin.style.color = margin < 0 ? 'var(--danger)' : 'var(--text-color)';
+
+            const towOk = totalWeight <= mtowVal && totalWeight > 0 && cg >= fwd && cg <= aft;
+            const zfOk = zfw <= mtowVal && zfw > 0 && zfCg >= fwd && zfCg <= aft;
+            const ok = towOk && (zfOk || fuelWeight === 0);
+
+            statusBanner.classList.toggle('ok', ok);
+            statusBanner.classList.toggle('bad', !ok);
+            
+            if (totalWeight === 0) {
+                statusBanner.textContent = 'Saisissez les données pour vérifier le centrage';
+                statusBanner.classList.remove('bad'); statusBanner.classList.add('ok');
+            } else if (ok) {
+                statusBanner.textContent = `Dans les limites · masse au décollage ${totalWeight.toFixed(1)} ${currentUnitWeight} · centrage ${cg.toFixed(1)} ${currentUnitArm}`;
+            } else {
+                const reasons = [];
+                if (totalWeight > mtowVal) reasons.push('masse au décollage supérieure à la MTOW');
+                if (cg < fwd) reasons.push('centrage au décollage trop avant');
+                if (cg > aft) reasons.push('centrage au décollage trop arrière');
+
+                if (fuelWeight > 0) {
+                    if (zfCg < fwd) reasons.push('centrage sans carburant trop avant');
+                    if (zfCg > aft) reasons.push('centrage sans carburant trop arrière');
+                }
+
+                statusBanner.textContent = `Hors limites · ${reasons.join(', ')}`;
+            }
+
+            drawCgGraph(totalWeight, cg, zfw, zfCg, mtowVal, fwd, aft, fuelWeight);
+        }
+
+        [fwdLimit, aftLimit].forEach(el => el.addEventListener('input', () => { computeWB(); saveState(); }));
+
+        // ---------- CG envelope graph ----------
+        function drawCgGraph(weight, cg, zfw, zfCg, mtowVal, fwd, aft, fuelWeight) {
+            const W = 440, H = 260;
+            const padL = 58, padR = 24, padT = 22, padB = 38;
+            const plotW = W - padL - padR;
+            const plotH = H - padT - padB;
+
+            const validArms = [fwd, aft, cg, (fuelWeight > 0 ? zfCg : cg)].filter(a => a > 0);
+            const minArmFound = validArms.length > 0 ? Math.min(...validArms) : fwd;
+            const maxArmFound = validArms.length > 0 ? Math.max(...validArms) : aft;
+
+            const armMin = minArmFound - Math.max(5, (aft - fwd) * 0.25 || 5);
+            const armMax = maxArmFound + Math.max(5, (aft - fwd) * 0.25 || 5);
+            const wMax = Math.max(mtowVal * 1.05, weight * 1.05, 100);
+
+            const xForArm = a => padL + ((a - armMin) / (armMax - armMin || 1)) * plotW;
+            const yForW = w => padT + plotH - (w / wMax) * plotH;
+
+            const rectX1 = xForArm(fwd), rectX2 = xForArm(aft);
+            const rectY1 = yForW(mtowVal), rectY2 = yForW(0);
+
+            const styleVars = getComputedStyle(document.documentElement);
+            const borderColor = styleVars.getPropertyValue('--border-color').trim();
+            const mutedColor = styleVars.getPropertyValue('--muted-text').trim();
+            const greenColor = styleVars.getPropertyValue('--accent-green').trim();
+            const dangerColor = styleVars.getPropertyValue('--danger').trim();
+            const hoverBg = styleVars.getPropertyValue('--hover-bg').trim();
+            const cardBg = styleVars.getPropertyValue('--card-bg').trim();
+
+            const towOk = weight <= mtowVal && weight > 0 && cg >= fwd && cg <= aft;
+            const zfOk = zfw <= mtowVal && zfw > 0 && zfCg >= fwd && zfCg <= aft;
+            
+            const pointColorTow = weight === 0 ? mutedColor : (towOk ? greenColor : dangerColor);
+            const pointColorZfw = zfw === 0 ? mutedColor : (zfOk ? greenColor : dangerColor);
+            const lineColor = (towOk && zfOk) ? greenColor : dangerColor;
+
+            let svg = '';
+            
+            // Background grid lines
+            svg += `<line x1="${padL}" y1="${padT + plotH * 0.5}" x2="${padL + plotW}" y2="${padT + plotH * 0.5}" stroke="${hoverBg}" stroke-width="1" stroke-dasharray="2,4"/>`;
+            
+            // axes
+            svg += `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT+plotH}" stroke="${borderColor}" stroke-width="2"/>`;
+            svg += `<line x1="${padL}" y1="${padT+plotH}" x2="${padL+plotW}" y2="${padT+plotH}" stroke="${borderColor}" stroke-width="2"/>`;
+
+            // envelope rectangle
+            svg += `<rect x="${Math.min(rectX1,rectX2)}" y="${rectY1}" width="${Math.abs(rectX2-rectX1)}" height="${rectY2-rectY1}" fill="${greenColor}" fill-opacity="0.12" stroke="${greenColor}" stroke-width="2" stroke-dasharray="5,4"/>`;
+
+            // y-axis labels
+            [0, mtowVal].forEach(w => {
+                const y = yForW(w);
+                svg += `<text x="${padL-8}" y="${y+4}" font-size="10" font-weight="700" fill="${mutedColor}" text-anchor="end">${Math.round(w)}</text>`;
+                svg += `<line x1="${padL-4}" y1="${y}" x2="${padL}" y2="${y}" stroke="${borderColor}" stroke-width="1.5"/>`;
+            });
+            svg += `<text x="16" y="${padT+plotH/2}" font-size="10" font-weight="700" letter-spacing="0.5" fill="${mutedColor}" text-anchor="middle" transform="rotate(-90 16 ${padT+plotH/2})">MASSE (${currentUnitWeight.toUpperCase()})</text>`;
+
+            // x-axis labels
+            [fwd, aft].forEach(a => {
+                const x = xForArm(a);
+                svg += `<text x="${x}" y="${padT+plotH+16}" font-size="10" font-weight="700" fill="${mutedColor}" text-anchor="middle">${a.toFixed(0)}</text>`;
+                svg += `<line x1="${x}" y1="${padT+plotH}" x2="${x}" y2="${padT+plotH+4}" stroke="${borderColor}" stroke-width="1.5"/>`;
+            });
+            svg += `<text x="${padL+plotW/2}" y="${H-8}" font-size="10" font-weight="700" letter-spacing="0.5" fill="${mutedColor}" text-anchor="middle">BRAS (${currentUnitArm.toUpperCase()})</text>`;
+
+            // CG points and line
+            if (weight > 0) {
+                const px1 = xForArm(cg);
+                const py1 = yForW(weight);
+                const px2 = xForArm(zfCg);
+                const py2 = yForW(zfw);
+
+                if (fuelWeight > 0 && weight > zfw) {
+                    svg += `<line x1="${px1}" y1="${py1}" x2="${px2}" y2="${py2}" stroke="${lineColor}" stroke-width="2" stroke-dasharray="4,4" opacity="0.85"/>`;
+                    
+                    svg += `<circle cx="${px2}" cy="${py2}" r="5" fill="${hoverBg}" stroke="${pointColorZfw}" stroke-width="2"/>`;
+                    svg += `<text x="${px2}" y="${py2+16}" font-size="10" font-weight="700" fill="${pointColorZfw}" text-anchor="middle">ZFW: ${zfw.toFixed(0)}${currentUnitWeight}</text>`;
+                }
+
+                svg += `<line x1="${px1}" y1="${padT}" x2="${px1}" y2="${padT+plotH}" stroke="${hoverBg}" stroke-width="1.5"/>`;
+                
+                svg += `<circle cx="${px1}" cy="${py1}" r="6.5" fill="${pointColorTow}" stroke="${borderColor}" stroke-width="2"/>`;
+                svg += `<text x="${px1}" y="${py1-12}" font-size="11" font-weight="700" fill="${pointColorTow}" text-anchor="middle">TOW: ${weight.toFixed(0)}${currentUnitWeight} / ${cg.toFixed(1)}${currentUnitArm}</text>`;
+            }
+
+            cgGraph.innerHTML = svg;
+        }
+
+        // ---------- Cross-Tab Event Listeners ----------
+        function reloadAndRenderAll() {
+            loadState();
+            syncFromFlightPrep();
+            renderSpeeds();
+            renderWB();
+            computeWB();
+            computeRange();
+        }
+
+        window.__hasProfileChangeHandler = true;
+        window.addEventListener('aircraftProfileChanged', () => {
+            reloadAndRenderAll();
+        });
+
+        window.addEventListener('focus', syncFromFlightPrep);
+        window.addEventListener('storage', (e) => {
+            if (e.key === BRIEFING_STORAGE_KEY) {
+                syncFromFlightPrep();
+            }
+            if (e.key === 'flightprep_profile_sync_trigger' || e.key === STORAGE_KEY) {
+                reloadAndRenderAll();
+            }
+        });
+
+        // ---------- PDF export ----------
+        document.getElementById('exportPdfBtn').addEventListener('click', () => {
+            const rootClassList = document.documentElement.classList;
+            const wasDark = rootClassList.contains('dark-mode');
+            if (wasDark) {
+                rootClassList.remove('dark-mode');
+                computeWB(); 
+            }
+
+            let svgContent = document.getElementById('cgGraph').outerHTML;
+            svgContent = svgContent.replace('width="100%"', 'width="440"');
+
+            if (wasDark) {
+                rootClassList.add('dark-mode');
+                computeWB();
+            }
+            
+            const printElement = document.createElement('div');
+            printElement.style.padding = '40px';
+            printElement.style.fontFamily = 'Inter, sans-serif';
+            printElement.style.color = '#111';
+            printElement.style.backgroundColor = '#FFF';
+
+            const normalRows = speeds.filter(s => s.type === 'normal').map(s => `
+                <tr>
+                    <td style="padding:8px;border-bottom:1px solid #ddd;">${escapeHtml(s.name)}</td>
+                    <td style="padding:8px;border-bottom:1px solid #ddd;text-align:right;">${s.value} ${escapeHtml(s.unit||'kt')}</td>
+                    <td style="padding:8px;border-bottom:1px solid #ddd;color:#555;">${escapeHtml(s.desc||'')}</td>
+                </tr>`).join('');
+
+            const emergencyRows = speeds.filter(s => s.type === 'emergency').map(s => `
+                <tr style="background-color: rgba(176, 64, 47, 0.1);">
+                    <td style="padding:8px;border-bottom:1px solid rgba(176, 64, 47, 0.2); color:#B0402F; font-weight:700;">${escapeHtml(s.name)}</td>
+                    <td style="padding:8px;border-bottom:1px solid rgba(176, 64, 47, 0.2); text-align:right; color:#B0402F; font-weight:700;">${s.value} ${escapeHtml(s.unit||'kt')}</td>
+                    <td style="padding:8px;border-bottom:1px solid rgba(176, 64, 47, 0.2); color:#B0402F;">${escapeHtml(s.desc||'')}</td>
+                </tr>`).join('');
+
+            const specialRows = speeds.filter(s => s.type === 'special').map(s => `
+                <tr style="background-color: rgba(58, 107, 136, 0.08);">
+                    <td style="padding:8px;border-bottom:1px solid rgba(58, 107, 136, 0.2); color:#3A6B88; font-weight:700;">${escapeHtml(s.name)}</td>
+                    <td style="padding:8px;border-bottom:1px solid rgba(58, 107, 136, 0.2); text-align:right; color:#3A6B88; font-weight:700;">${s.value} ${escapeHtml(s.unit||'kt')}</td>
+                    <td style="padding:8px;border-bottom:1px solid rgba(58, 107, 136, 0.2); color:#3A6B88;">${escapeHtml(s.desc||'')}</td>
+                </tr>`).join('');
+
+            const aircraftLabel = [acReg.value, acType.value].filter(Boolean).join(' — ') || 'Aircraft';
+
+            printElement.innerHTML = `
+                <div style="border-bottom: 2px solid #111; padding-bottom: 15px; margin-bottom: 25px;">
+                    <h1 style="font-size: 24px; font-weight: 700; margin: 0; text-transform: uppercase;">Aircraft Performance &amp; Weight/Balance</h1>
+                    <p style="margin: 8px 0 0 0; font-size: 14px; color: #555;">${escapeHtml(aircraftLabel)} — Generated by FlightPrep Solution — Units: ${currentUnitWeight.toUpperCase()}, ${currentUnitArm.toUpperCase()}, ${currentUnitFuel.toUpperCase()} — ${new Date().toLocaleDateString()}</p>
+                </div>
+
+                <h2 style="font-size:16px;margin-bottom:10px;">Speeds</h2>
+                <table style="width:100%;border-collapse:collapse;margin-bottom:25px;">
+                    <tbody>
+                        ${normalRows}
+                        ${emergencyRows}
+                        ${specialRows}
+                    </tbody>
+                </table>
+
+                <h2 style="font-size:16px;margin-bottom:10px;">Weight &amp; Balance</h2>
+                <div style="margin-bottom: 15px; font-size: 13px; color: #555;">
+                    <strong>Basic Empty Weight:</strong> ${emptyWeight.value} ${currentUnitWeight} @ ${emptyArm.value} ${currentUnitArm} &nbsp; | &nbsp; 
+                    <strong>MTOW:</strong> ${mtow.value} ${currentUnitWeight} &nbsp; | &nbsp; 
+                    <strong>MLW:</strong> ${mlw.value} ${currentUnitWeight}
+                </div>
+                <table style="width:100%;border-collapse:collapse;margin-bottom:15px;">
+                    <thead>
+                        <tr>
+                            <th style="width:34%;border-bottom:2px solid #111;padding:8px;font-size:11px;text-transform:uppercase;color:#555;text-align:left;">Item</th>
+                            <th style="border-bottom:2px solid #111;padding:8px;font-size:11px;text-transform:uppercase;color:#555;text-align:right;">Weight (${currentUnitWeight})</th>
+                            <th style="border-bottom:2px solid #111;padding:8px;font-size:11px;text-transform:uppercase;color:#555;text-align:right;">Arm (${currentUnitArm})</th>
+                            <th style="border-bottom:2px solid #111;padding:8px;font-size:11px;text-transform:uppercase;color:#555;text-align:right;">Moment</th>
+                        </tr>
+                    </thead>
+                    <tbody>${wbRows.map(r => `
+                        <tr>
+                            <td style="padding:8px;border-bottom:1px solid #ddd;">${escapeHtml(r.name)}</td>
+                            <td style="padding:8px;border-bottom:1px solid #ddd;text-align:right;">${(parseFloat(r.weight)||0).toFixed(1)}</td>
+                            <td style="padding:8px;border-bottom:1px solid #ddd;text-align:right;">${(parseFloat(r.arm)||0).toFixed(1)}</td>
+                            <td style="padding:8px;border-bottom:1px solid #ddd;text-align:right;">${Math.round((parseFloat(r.weight)||0)*(parseFloat(r.arm)||0)).toLocaleString()}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+
+                <div style="border-top: 2px solid #111; padding-top: 12px; font-size:14px; margin-bottom: 25px;">
+                    <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Total Weight</span><strong>${totWeight.textContent}</strong></div>
+                    <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Resulting CG</span><strong>${totCg.textContent}</strong></div>
+                    <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Margin vs MTOW</span><strong>${totMargin.textContent}</strong></div>
+                    <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Envelope Status</span><strong>${escapeHtml(statusBanner.textContent)}</strong></div>
+                </div>
+
+                <h2 style="font-size:16px;margin:25px 0 10px 0;">Center of Gravity Envelope</h2>
+                <div style="text-align: center; margin-bottom: 30px; background-color: #fafafa; border: 1px solid #eee; padding: 15px 0; border-radius: 6px;">
+                    ${svgContent}
+                </div>
+
+                <h2 style="font-size:16px;margin:25px 0 10px 0;">Range &amp; Endurance</h2>
+                <div style="display:flex;gap:30px;font-size:14px;">
+                    <div><strong>Usable Fuel:</strong> ${resUsableFuel.textContent}</div>
+                    <div><strong>Endurance:</strong> ${resEndurance.textContent}</div>
+                    <div><strong>Still-Air Range:</strong> ${resRange.textContent}</div>
+                </div>
+            `;
+
+            const opt = {
+                margin: 0.5,
+                filename: `${(acReg.value || 'FlightPrep')}_Performance_WB.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(printElement).save();
+        });
+
+        // ---------- Theme synchronization via CockpitNav ----------
+        window.addEventListener('altiview-theme-changed', () => {
+            computeWB();
+        });
+
+        // ---------- Init ----------
+        loadState();
+        syncFromFlightPrep(); // Apply cross-tab sync state immediately on load
+        renderSpeeds(); 
+        renderWB();
+        computeWB();
+        computeRange();
+    </script>
+    <script src="aircraft_profiles.js"></script>
+    <script src="flight_dossier.js"></script>
+</body>
+</html>
