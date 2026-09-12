@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="250 190 1432 1432" role="img" aria-label="Altiview">
+  <defs>
+    <linearGradient id="a" x1="0" y1="212" x2="0" y2="990" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#5FE3CF"/><stop offset="1" stop-color="#4BC8B6"/></linearGradient>
+    <linearGradient id="l" x1="0" y1="1120" x2="0" y2="1586" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#43A99B"/><stop offset="1" stop-color="#24665D"/></linearGradient>
+    <radialGradient id="g" cx="966" cy="362" r="120" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#8CF7E4" stop-opacity=".75"/><stop offset=".45" stop-color="#8CF7E4" stop-opacity=".25"/><stop offset="1" stop-color="#8CF7E4" stop-opacity="0"/></radialGradient>
+    <clipPath id="c"><path d="M540 1120 346 1586H602L790 1120ZM1392 1120 1586 1586H1330L1142 1120Z"/></clipPath>
+  </defs>
+  <path d="M966 212 1366 990H566ZM966 540 820 916H1111Z" fill="url(#a)" fill-rule="evenodd"/>
+  <path d="M540 1120 346 1586H602L790 1120ZM1392 1120 1586 1586H1330L1142 1120Z" fill="url(#l)"/>
+  <path d="M381 1250 912 1138H1020L1550 1250V1296L1020 1184H912L381 1296Z" fill="#000" opacity=".22" clip-path="url(#c)"/>
+  <circle cx="966" cy="362" r="120" fill="url(#g)"/>
+  <circle cx="966" cy="362" r="44" fill="#8CF7E4"/>
+  <path d="M966 405 1020 920 1660 1177 1550 1250 1020 1138V1440L1166 1512 966 1473 766 1512 912 1440V1138L381 1250 272 1177 912 920Z" fill="#F8FAFB"/>
+</svg>
