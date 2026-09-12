@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="fr" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Altiview · Préparation et conduite du vol VFR</title>
+<meta name="description" content="Altiview réunit météo, NavLog, carte des espaces aériens, performances, checklists et procédures d'urgence dans une seule application pour pilotes VFR. Prepare, fly, improve.">
+<meta name="theme-color" content="#0A1119">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Altiview · Tout votre vol, une seule application">
+<meta property="og:description" content="Préparation et conduite du vol VFR dans une seule application : météo, NavLog, carte, performances, checklists, urgences.">
+<!-- DEPLOY STEP: remplacer par l'adresse absolue du site en ligne -->
+<meta property="og:url" content="https://example.com/">
+<meta property="og:image" content="https://example.com/assets/og.png">
+<link rel="icon" href="favicon.ico?v=3" sizes="16x16 32x32 48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=3">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png?v=3">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png?v=3">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png?v=3">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="assets/sections.css">
+<script>try{if(localStorage.getItem('altiview-theme')==='day'){document.documentElement.setAttribute('data-theme','day')}}catch(e){}</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="lgA" x1="0" y1="212" x2="0" y2="990" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#5FE3CF"/><stop offset="1" stop-color="#4BC8B6"/></linearGradient>
+    <linearGradient id="lgLeg" x1="0" y1="1120" x2="0" y2="1586" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#43A99B"/><stop offset="1" stop-color="#24665D"/></linearGradient>
+    <radialGradient id="lgGlow" cx="966" cy="362" r="120" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#8CF7E4" stop-opacity=".75"/><stop offset=".45" stop-color="#8CF7E4" stop-opacity=".25"/><stop offset="1" stop-color="#8CF7E4" stop-opacity="0"/></radialGradient>
+    <clipPath id="lgLegs"><path d="M540 1120 346 1586H602L790 1120ZM1392 1120 1586 1586H1330L1142 1120Z"/></clipPath>
+  </defs>
+  <symbol id="logo" viewBox="250 190 1432 1432">
+    <path d="M966 212 1366 990H566ZM966 540 820 916H1111Z" fill="url(#lgA)" fill-rule="evenodd"/>
+    <path d="M540 1120 346 1586H602L790 1120ZM1392 1120 1586 1586H1330L1142 1120Z" fill="url(#lgLeg)"/>
+    <path d="M381 1250 912 1138H1020L1550 1250V1296L1020 1184H912L381 1296Z" fill="#000" opacity=".22" clip-path="url(#lgLegs)"/>
+    <circle cx="966" cy="362" r="120" fill="url(#lgGlow)"/>
+    <circle cx="966" cy="362" r="44" fill="#8CF7E4"/>
+    <path d="M966 405 1020 920 1660 1177 1550 1250 1020 1138V1440L1166 1512 966 1473 766 1512 912 1440V1138L381 1250 272 1177 912 920Z" style="fill:var(--logo-plane,#F8FAFB)"/>
+  </symbol>
+</svg>
+
+<!-- arrival screen: removed from the page by main.js as soon as it has played -->
+<div class="intro" id="intro" role="presentation" aria-hidden="true">
+  <div class="intro-mark">
+    <svg class="intro-logo" aria-hidden="true"><use href="#logo"/></svg>
+    <b class="intro-word">ALTIVIEW</b>
+    <span class="intro-tag">Prepare<i>•</i>Fly<i>•</i>Improve</span>
+  </div>
+  <span class="intro-line"></span>
+</div>
+
+<a class="skip" href="#main">Aller au contenu</a>
+<div class="env" aria-hidden="true"><div class="grid"></div></div>
+
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Altiview, retour en haut de page"><svg aria-hidden="true"><use href="#logo"/></svg><b>ALTIVIEW</b></a>
+    <nav aria-label="Navigation principale">
+      <ul class="nav-links" id="navLinks">
+        <!-- --n = longest label (FR or EN) in characters: every item keeps the same slot in both languages -->
+        <li style="--n:7"><a href="#fonctionnalites">Modules</a></li>
+        <li style="--n:10"><a href="#navigation">Navigation</a></li>
+        <li style="--n:12"><a href="#performances">Performances</a></li>
+        <li style="--n:11"><a href="#apercu">Plateformes</a></li>
+        <li style="--n:11"><a href="#abonnements">Abonnements</a></li>
+        <li style="--n:9"><a href="#questions">Questions</a></li>
+        <li style="--n:7"><a href="#contact">Contact</a></li>
+        <li class="only-m"><a href="https://alti-view.github.io">Se connecter</a></li>
+      </ul>
+    </nav>
+    <div class="nav-ctrl">
+      <button class="theme-switch" id="themeSwitch" type="button" role="switch" aria-checked="false" aria-label="Mode jour">
+        <svg class="ico moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 14.4A8.6 8.6 0 0 1 9.6 3.4a8.6 8.6 0 1 0 11 11z"/></svg>
+        <svg class="ico sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.3"/><path d="M12 2.4v2.3M12 19.3v2.3M2.4 12h2.3M19.3 12h2.3M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M5.2 18.8l1.6-1.6M17.2 6.8l1.6-1.6"/></svg>
+      </button>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navLinks" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
+      <a class="btn btn-primary" href="https://alti-view.github.io">Se connecter</a>
+    </div>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="top" aria-labelledby="h1">
+  <div class="hero-horizon" id="heroHorizon" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="hero-copy">
+      <p class="kicker fade" style="--d:80ms"><span class="wp"></span>Prepare<span class="sep" aria-hidden="true">•</span>Fly<span class="sep" aria-hidden="true">•</span>Improve<span class="trk"></span></p>
+      <h1 class="display" id="h1"><span class="sr-only">Tout votre vol, une seule application</span><span aria-hidden="true"><span class="ln"><span class="w" style="--i:0">Tout</span> <span class="w" style="--i:1">votre</span> <span class="w" style="--i:2">vol,</span></span><span class="ln"><span class="w accent" style="--i:3">une</span> <span class="w accent" style="--i:4">seule</span> <span class="w accent" style="--i:5">application</span></span></span></h1>
+      <p class="lede fade" style="--d:620ms">Carte interactive, calcul automatique des performances, dossier de vol en PDF, checklists et procédures d'urgence. Préparez votre navigation au sol, gardez l'essentiel sous les yeux en vol.</p>
+      <div class="ctas fade" style="--d:780ms">
+        <a class="btn btn-primary" href="#apercu">Voir l'application <span class="arr" aria-hidden="true">→</span></a>
+      </div>
+      <p class="note fade" style="--d:940ms">Pour les pilotes privés, élèves pilotes et instructeurs.</p>
+    </div>
+
+    <div class="hero-stage" id="heroStage">
+      <svg class="fallback" viewBox="0 0 400 400" aria-hidden="true">
+        <defs>
+          <clipPath id="fbAdi"><circle cx="200" cy="200" r="126"/></clipPath>
+          <linearGradient id="fbSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0B3358"/><stop offset="1" stop-color="#2C79B0"/></linearGradient>
+          <linearGradient id="fbGnd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6B4526"/><stop offset="1" stop-color="#2B1B0F"/></linearGradient>
+        </defs>
+        <rect x="36" y="36" width="328" height="328" rx="48" fill="#111B29" stroke="#243141" stroke-width="2"/>
+        <g fill="#0A1119" stroke="#243141" stroke-width="1.5"><circle cx="70" cy="70" r="9"/><circle cx="330" cy="70" r="9"/><circle cx="70" cy="330" r="9"/><circle cx="330" cy="330" r="9"/></g>
+        <circle cx="200" cy="200" r="150" fill="#070C12" stroke="#3A4B5F" stroke-width="3"/>
+        <g clip-path="url(#fbAdi)"><g transform="rotate(-9 200 200) translate(0 8)">
+          <rect x="20" y="20" width="360" height="190" fill="url(#fbSky)"/><rect x="20" y="210" width="360" height="180" fill="url(#fbGnd)"/>
+          <path d="M20 210H380" stroke="#E9EFF3" stroke-width="2.5"/>
+          <g stroke="#E9EFF3" stroke-width="2" opacity=".85"><path d="M172 176h56M184 193h32M172 142h56M184 227h32M172 244h56"/></g>
+        </g></g>
+        <g stroke="#E9EFF3" stroke-width="3" stroke-linecap="round"><path d="M200 56v18M127 76l9 15M273 76l-9 15M84 126l15 9M316 126l-15 9M152 63l3 9M248 63l-3 9"/></g>
+        <path d="M200 78l-8 14h16z" fill="#FFA94D"/>
+        <path d="M126 206h46l28 16 28-16h46" fill="none" stroke="#FFA94D" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="200" cy="204" r="5.5" fill="#FFA94D"/>
+      </svg>
+      <canvas id="heroCanvas" aria-hidden="true"></canvas>
+      <div class="hud hud-a" aria-hidden="true">ASSIETTE<b id="hudPitch">+0,0°</b></div>
+      <div class="hud hud-b" aria-hidden="true">INCLINAISON<b id="hudRoll">0°</b></div>
+    </div>
+  </div>
+  <a class="scroll-cue" href="#constat" aria-label="Défiler vers la suite">DÉFILER<i></i></a>
+</section>
+
+<!-- ============ 01 CONSTAT ============ -->
+<section class="sec" id="constat" aria-labelledby="h-constat">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="rv">
+        <p class="kicker"><span class="wp"></span>01 · Le constat<span class="trk"></span></p>
+        <h2 class="display" id="h-constat">Aujourd'hui, un vol se prépare en morceaux</h2>
+      </div>
+      <p class="lede rv" style="--i:1">Le METAR sur un site, les NOTAM sur un autre, la carte VAC en PDF, le devis de masse et centrage sur un tableur, le log de nav au crayon, la checklist sur papier. Chaque outil fait son travail. Altiview les fait travailler ensemble.</p>
+    </div>
+
+    <div class="field-pin" id="fieldPin">
+      <div class="field rv" id="field" aria-hidden="true">
+        <span class="chip c" style="--sx:-.34;--sy:-.30;--sr:-5deg"><i></i>METAR</span>
+        <span class="chip c" style="--sx:-.05;--sy:-.37;--sr:4deg"><i></i>TAF</span>
+        <span class="chip c" style="--sx:.25;--sy:-.31;--sr:-3deg"><i></i>NOTAM</span>
+        <span class="chip c" style="--sx:.40;--sy:-.10;--sr:5deg"><i></i>Cartes AZBA</span>
+        <span class="chip c" style="--sx:.35;--sy:.13;--sr:-4deg"><i></i>SUP AIP</span>
+        <span class="chip" style="--sx:.21;--sy:.34;--sr:3deg"><i></i>Carte VAC · PDF</span>
+        <span class="chip" style="--sx:-.07;--sy:.38;--sr:-2deg"><i></i>Carte OACI 1:500 000</span>
+        <span class="chip" style="--sx:-.31;--sy:.29;--sr:5deg"><i></i>Devis de masse · tableur</span>
+        <span class="chip" style="--sx:-.40;--sy:.05;--sr:-4deg"><i></i>Log de nav · crayon</span>
+        <span class="chip" style="--sx:-.37;--sy:-.13;--sr:3deg"><i></i>Manuel de vol</span>
+        <span class="chip" style="--sx:.11;--sy:-.12;--sr:-7deg"><i></i>Checklist plastifiée</span>
+        <span class="chip" style="--sx:-.15;--sy:.13;--sr:6deg"><i></i>Calculatrice</span>
+        <span class="chip c" style="--sx:.15;--sy:.12;--sr:-5deg"><i></i>Plan de vol</span>
+        <div class="core"><svg aria-hidden="true"><use href="#logo"/></svg><div><b>ALTIVIEW</b><span>Un seul dossier de vol</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 02 MODULES ============ -->
+<section class="sec" id="fonctionnalites" aria-labelledby="h-feat">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="rv">
+        <p class="kicker"><span class="wp"></span>02 · Modules<span class="trk"></span></p>
+        <h2 class="display" id="h-feat">5 outils, une seule plateforme</h2>
+      </div>
+      <p class="lede rv" style="--i:1">Chaque module reprend les données des autres. Vous chargez votre avion une fois, vous tracez votre route une fois, et tout le reste suit.</p>
+    </div>
+
+    <div class="bento" id="bento">
+      <article class="card wide">
+        <div class="card-top">
+          <svg class="inst" viewBox="0 0 72 72" aria-hidden="true">
+            <rect x="1.5" y="1.5" width="69" height="69" rx="15" fill="var(--panel-2)" stroke="var(--line)"/>
+            <circle cx="36" cy="36" r="26" fill="none" stroke="var(--line-strong)"/>
+            <g class="ndl" style="--to:-60deg">
+              <path d="M36 12v7M36 53v7M12 36h7M53 36h7" stroke="var(--muted)" stroke-width="1.6"/>
+              <path d="M53 19l-3.5 3.5M19 19l3.5 3.5M53 53l-3.5-3.5M19 53l3.5-3.5" stroke="var(--line-strong)" stroke-width="1.3"/>
+              <text x="36" y="27" text-anchor="middle" font-size="8" font-family="IBM Plex Mono,monospace" fill="var(--cyan)">N</text>
+            </g>
+            <path d="M36 30v14M29.5 37h13M33 43.5h6" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+          <span class="code">01 // NAV</span>
+        </div>
+        <h3>Préparation de vol</h3>
+        <p>Log de nav, METAR et TAF décodés, NOTAM triés par catégorie, carburant et briefing avant vol, réunis dans un seul dossier.</p>
+        <ul>
+          <li>Log de nav : altitude, distance, vitesse et temps estimé par branche</li>
+          <li>NOTAM décodés et classés : pistes, navigation, obstacles…</li>
+          <li>Check I.M.S.A.F.E. et documents de bord avant de monter à bord</li>
+          <li>Dossier de vol complet exporté en PDF</li>
+        </ul>
+      </article>
+
+      <article class="card wide">
+        <div class="card-top">
+          <svg class="inst" viewBox="0 0 72 72" aria-hidden="true">
+            <rect x="1.5" y="1.5" width="69" height="69" rx="15" fill="var(--panel-2)" stroke="var(--line)"/>
+            <circle cx="36" cy="36" r="26" fill="none" stroke="var(--line-strong)"/>
+            <circle cx="46" cy="44" r="9" fill="var(--cyan-soft)" stroke="var(--cyan)" stroke-dasharray="2 2"/>
+            <path d="M20 50l10-14 10 4 8-16" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>
+            <g fill="var(--canvas)" stroke="var(--accent)" stroke-width="1.5"><circle cx="20" cy="50" r="2.4"/><circle cx="30" cy="36" r="2.4"/><circle cx="40" cy="40" r="2.4"/><circle cx="48" cy="24" r="2.4"/></g>
+            <g class="ndl" style="--to:150deg"><path d="M36 36L36 11" stroke="var(--cyan)" stroke-width="1.3" opacity=".8"/></g>
+          </svg>
+          <span class="code">02 // MAP</span>
+        </div>
+        <h3>Carte interactive</h3>
+        <p>Carte interactive pour préparer et planifier vos vols. Filtrez vos vols par altitude.</p>
+        <ul>
+          <li>CTR, TMA, zones P, R et D, RMZ, TMZ et secteurs SIV</li>
+          <li>Coupe verticale : votre profil face aux planchers et plafonds</li>
+          <li>Espaces aériens traversés listés branche par branche</li>
+          <li>Vent en altitude repris dans le log de nav</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <div class="card-top">
+          <svg class="inst" viewBox="0 0 72 72" aria-hidden="true">
+            <rect x="1.5" y="1.5" width="69" height="69" rx="15" fill="var(--panel-2)" stroke="var(--line)"/>
+            <circle cx="36" cy="36" r="26" fill="none" stroke="var(--line-strong)"/>
+            <path d="M22.4 55.6A24 24 0 0 1 14.3 26" fill="none" stroke="var(--line-strong)" stroke-width="3"/>
+            <path d="M14.3 26A24 24 0 0 1 50 16.6" fill="none" stroke="var(--cyan)" stroke-width="3"/>
+            <path d="M50 16.6A24 24 0 0 1 58.6 29" fill="none" stroke="var(--accent)" stroke-width="3"/>
+            <path d="M58.6 29l3.2-1" stroke="#FF7A5A" stroke-width="3"/>
+            <g class="ndl" style="--to:120deg"><path d="M36 36L22 48" stroke="var(--text)" stroke-width="2.2" stroke-linecap="round"/></g>
+            <circle cx="36" cy="36" r="3" fill="var(--text)"/>
+          </svg>
+          <span class="code">03 // PERF</span>
+        </div>
+        <h3>Performances aéronef</h3>
+        <p>Masse et centrage. Distances de décollage/atterrissage, vent de travers, autonomie, vitesses caractéristiques…</p>
+        <ul>
+          <li>Centrage vérifié dans l'enveloppe technique</li>
+          <li>Autonomie, réserve finale et distance franchissable</li>
+          <li>Devis de masse et centrage</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <div class="card-top">
+          <svg class="inst" viewBox="0 0 72 72" aria-hidden="true">
+            <rect x="1.5" y="1.5" width="69" height="69" rx="15" fill="var(--panel-2)" stroke="var(--line)"/>
+            <g stroke-linecap="round" stroke-width="1.8">
+              <path d="M17 22l3 3 5-6" stroke="var(--cyan)" fill="none"/><path d="M31 22h24" stroke="var(--muted)"/>
+              <path d="M17 36l3 3 5-6" stroke="var(--cyan)" fill="none"/><path d="M31 36h20" stroke="var(--muted)"/>
+              <rect class="box3" x="17" y="46" width="8" height="8" rx="2" fill="none" stroke="var(--line-strong)"/><path d="M31 50h22" stroke="var(--line-strong)"/>
+              <path class="tick3" d="M18.6 50.2l1.9 1.9 3.3-3.9" stroke="var(--cyan)" fill="none" stroke-dasharray="9" stroke-dashoffset="9"/>
+              <path class="bar3" d="M31 50h22" stroke="var(--accent)" stroke-dasharray="22" stroke-dashoffset="22"/>
+            </g>
+          </svg>
+          <span class="code">04 // CHK</span>
+        </div>
+        <h3>Checklists</h3>
+        <p>Checklists organisées dans l'ordre des phases de vol.</p>
+        <ul>
+          <li>De la visite prévol à l'arrêt moteur</li>
+          <li>Une liste par avion de votre flotte</li>
+          <li>Import et export JSON pour les partager en club</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <div class="card-top">
+          <svg class="inst" viewBox="0 0 72 72" aria-hidden="true">
+            <rect x="1.5" y="1.5" width="69" height="69" rx="15" fill="var(--panel-2)" stroke="var(--line)"/>
+            <rect x="10" y="24" width="52" height="24" rx="5" fill="var(--canvas)" stroke="var(--line-strong)"/>
+            <text class="sq sq-n" x="36" y="41.5" text-anchor="middle" font-size="15" font-weight="500" letter-spacing="2" font-family="IBM Plex Mono,monospace" fill="var(--accent)">7000</text>
+            <text class="sq sq-e" x="36" y="41.5" text-anchor="middle" font-size="15" font-weight="500" letter-spacing="2" font-family="IBM Plex Mono,monospace" fill="#FF7A5A">7700</text>
+            <circle class="ring" cx="17" cy="16" r="3" fill="none" stroke="#FF7A5A" stroke-width="1"/>
+            <circle class="alarm" cx="17" cy="16" r="3" fill="#FF7A5A"/>
+            <path d="M24 16h28" stroke="var(--line-strong)" stroke-width="1.6" stroke-linecap="round"/>
+            <path class="dash" d="M14 56h44" stroke="var(--line-strong)" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="3 4"/>
+          </svg>
+          <span class="code">05 // ALERT</span>
+        </div>
+        <h3>Procédures d'urgence</h3>
+        <p>Actions mémoire, checklists d'urgence rapides, calculateur de plané et message de détresse prêt pour le 121.5 MHz.</p>
+        <ul>
+          <li>Vitesse de finesse maximale toujours visible</li>
+          <li>Distance de plané et temps avant contact sol</li>
+          <li>Des checklists d'urgence à portée de main</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 03 NAVIGATION (3D) ============ -->
+<section class="navsec" id="navigation" aria-labelledby="h-nav">
+  <div class="pin">
+    <div class="stage3d" id="routeStage">
+      <svg class="fallback" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <g fill="none" stroke="var(--line)" stroke-width="1.2">
+          <path d="M520 560c80-60 180-80 260-40s150 20 220-40 120-60 200-40"/><path d="M560 610c90-50 200-60 280-20s160 10 230-50"/>
+          <path d="M600 470c60-50 140-70 210-40s130 10 190-40"/><path d="M660 400c50-40 110-50 170-25s110 5 150-30"/>
+          <path d="M700 330c40-30 90-40 140-20s90 0 120-25"/>
+        </g>
+        <ellipse cx="1010" cy="250" rx="90" ry="46" fill="var(--cyan-soft)" stroke="var(--cyan)" stroke-dasharray="5 5"/>
+        <path d="M600 560L720 440 860 380 960 300 1010 250" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linejoin="round"/>
+        <g fill="var(--canvas)" stroke="var(--accent)" stroke-width="2"><circle cx="600" cy="560" r="6"/><circle cx="720" cy="440" r="6"/><circle cx="860" cy="380" r="6"/><circle cx="960" cy="300" r="6"/><circle cx="1010" cy="250" r="6"/></g>
+      </svg>
+      <canvas id="routeCanvas" aria-hidden="true"></canvas>
+      <div class="labels" id="routeLabels" aria-hidden="true"></div>
+    </div>
+    <div class="shade" aria-hidden="true"></div>
+    <div class="wrap">
+      <div class="copy rv">
+        <p class="kicker"><span class="wp"></span>03 · Navigation<span class="trk"></span></p>
+        <h2 class="display" id="h-nav">Vérification des espaces aériens</h2>
+        <p class="lede">Tracez la navigation sur la carte : Altiview construit le log de nav et vérifie chaque branche avec les espaces aériens, du plancher au plafond.</p>
+      </div>
+      <div class="navlog rv" style="--i:1">
+        <header><span>LOG DE NAV · EXEMPLE</span><b id="nlHead">DR-400 · TAS 105 KT</b></header>
+        <table>
+          <thead><tr><th scope="col">Branche</th><th scope="col">Rm</th><th scope="col">Dist</th><th scope="col">Alt</th><th scope="col">Temps</th></tr></thead>
+          <tbody id="legs">
+            <tr><td>LFBZ → VLP</td><td>047°</td><td>12 NM</td><td>2500 ft</td><td class="lt">7 min</td></tr>
+            <tr><td>VLP → BTZ</td><td>012°</td><td>18 NM</td><td>3500 ft</td><td class="lt">10 min</td></tr>
+            <tr><td>BTZ → SJL</td><td>338°</td><td>15 NM</td><td>3500 ft</td><td class="lt">9 min</td></tr>
+            <tr><td>SJL → LESO</td><td>295°</td><td>9 NM</td><td>2000 ft</td><td class="lt">5 min</td></tr>
+          </tbody>
+          <tfoot><tr><td>Total</td><td></td><td>54 NM</td><td></td><td id="nlTotal">31 min</td></tr></tfoot>
+        </table>
+        <div class="live" aria-hidden="true">
+          <div>BRANCHE<b id="lvLeg">1/4</b></div>
+          <div>ALTITUDE<b id="lvAlt">0 ft</b></div>
+          <div>CARBURANT<b id="lvFuel">0,0 L</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="legend" aria-hidden="true"><span><i></i>Route volée</span><span><i class="pl"></i>Route prévue</span><span><i class="as"></i>Espaces aériens</span></div>
+  </div>
+</section>
+
+<!-- ============ 04 PERFORMANCES (3D fleet) ============ -->
+<section class="sec" id="performances" aria-labelledby="h-perf">
+  <div class="wrap perf">
+    <div class="perf-inst rv">
+      <div class="alt-stage plane-stage" id="planeStage">
+        <svg class="fallback" viewBox="0 0 400 400" aria-hidden="true">
+          <ellipse cx="200" cy="208" rx="170" ry="40" fill="var(--cyan-soft)"/>
+          <ellipse cx="238" cy="212" rx="60" ry="6" fill="#E3E8EC" stroke="var(--line-strong)"/>
+          <ellipse cx="60" cy="195" rx="28" ry="3.5" fill="#E3E8EC" stroke="var(--line-strong)"/>
+          <path d="M352 196C345 186 330 182 312 182L286 180C272 158 238 150 206 158C196 162 190 170 186 176L96 184L72 186L52 150L36 150L44 198C90 206 160 212 230 214C280 214 320 210 352 206Z" fill="#F1F4F6" stroke="var(--line-strong)"/>
+          <path d="M286 180C272 160 240 152 208 159C198 163 192 170 188 176Z" fill="#12222E"/>
+          <path d="M52 150L36 150L44 198L58 196Z" fill="#FFA94D"/>
+          <path d="M340 200L92 194" stroke="#FFA94D" stroke-width="4"/>
+          <path d="M236 214V238M318 208V232" stroke="#9AA9B7" stroke-width="4"/>
+          <ellipse cx="236" cy="244" rx="20" ry="9" fill="#F1F4F6" stroke="var(--line-strong)"/>
+          <ellipse cx="318" cy="238" rx="16" ry="8" fill="#F1F4F6" stroke="var(--line-strong)"/>
+          <path d="M352 190Q374 200 352 210Z" fill="#FFA94D"/>
+          <ellipse cx="358" cy="200" rx="3" ry="64" fill="#E9EFF3" opacity=".25"/>
+        </svg>
+        <canvas id="planeCanvas" aria-hidden="true"></canvas>
+        <div class="ac-hud">
+          <button class="ac-arr" type="button" data-dir="-1" aria-label="Avion précédent">‹</button>
+          <button class="ac-now" type="button" aria-label="Changer d'avion, profil actuel : Robin DR-400">PROFIL<b id="acHud">Robin DR-400</b></button>
+          <button class="ac-arr" type="button" data-dir="1" aria-label="Avion suivant">›</button>
+        </div>
+      </div>
+      <div class="ac-sheet ac-card rv" style="--i:1" id="acSheet">
+        <div class="top"><h3 class="fade-sw" id="acName">Robin DR-400</h3><span class="reg fade-sw" id="acReg">F-HBIQ</span></div>
+        <div class="ac-stats" id="acStats">
+          <div style="--i:0">Vitesse de croisière<b><span data-k="cruise">105</span><small>kt</small></b></div>
+          <div style="--i:1">Masse max<b><span data-k="mtow">900</span><small>kg</small></b></div>
+          <div style="--i:2">Carburant utilisable<b><span data-k="fuel">110</span><small>L</small></b></div>
+          <div style="--i:3">Consommation<b><span data-k="burn">24</span><small>L/h</small></b></div>
+          <div class="hl" style="--i:4">Autonomie<b><span data-k="endur">4 h 35</span></b></div>
+          <div style="--i:5">Distance franchissable<b><span data-k="range">429</span><small>NM</small></b></div>
+        </div>
+        <dl class="fade-sw">
+          <dt>Moteur</dt><dd id="acEngine">Lycoming O-235 · 118 ch</dd>
+          <dt>Places</dt><dd id="acSeats">2 + 2</dd>
+          <dt>Carburant</dt><dd id="acFuelType">AVGAS 100LL</dd>
+        </dl>
+      </div>
+      <p class="sr-only" id="acLive" aria-live="polite"></p>
+    </div>
+
+    <div class="perf-copy">
+      <div class="rv perf-head">
+        <p class="kicker"><span class="wp"></span>04 · Performances<span class="trk"></span></p>
+        <h2 class="display" id="h-perf">Des profils d'avions prédéfinis</h2>
+        <p class="lede">Altiview part des performances de votre aéronef et les applique aux conditions réelles du jour.</p>
+      </div>
+      <div class="fleet fleet-perf rv" style="--i:1">
+        <span class="mono" id="acPickLbl">Profils constructeur prêts</span>
+        <div class="ac-pick" role="radiogroup" aria-labelledby="acPickLbl">
+          <button type="button" role="radio" aria-checked="false" tabindex="-1" data-ac="c172">Cessna 172</button>
+          <button type="button" role="radio" aria-checked="true" tabindex="0" data-ac="dr400">Robin DR-400</button>
+          <button type="button" role="radio" aria-checked="false" tabindex="-1" data-ac="pa28">Piper PA-28</button>
+          <button type="button" role="radio" aria-checked="false" tabindex="-1" data-ac="da40">Diamond DA-40</button>
+          <button type="button" role="radio" aria-checked="false" tabindex="-1" data-ac="c152">Cessna 152</button>
+        </div>
+        <p>Ou créez le profil de votre avion à partir de son manuel de vol, puis partagez-le en JSON.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 05 APERÇU / PLATEFORMES ============ -->
+<section class="sec preview" id="apercu" aria-labelledby="h-prev">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="rv">
+        <p class="kicker"><span class="wp"></span>05 · Aperçu<span class="trk"></span></p>
+        <h2 class="display" id="h-prev">Ordinateur, tablette ou téléphone</h2>
+        <p class="prev-sub">Conçu pour tous les supports</p>
+      </div>
+    </div>
+
+    <div class="tab-scene">
+      <div class="tablet" id="tablet">
+        <div class="screen">
+          <div class="appbar">
+            <span class="brandmini"><svg aria-hidden="true"><use href="#logo"/></svg>ALTIVIEW</span>
+            <span><b class="s-reg">F-HBIQ</b> · <span class="s-short">DR-400</span></span>
+            <span class="sp">QNH <b>1018</b></span>
+            <span class="ok">VFR</span>
+            <span class="utc">14:30 PARIS</span>
+          </div>
+          <div class="side" role="tablist" aria-label="Modules de l'application">
+            <button role="tab" id="t-prep" aria-controls="p-prep" aria-selected="true"><span>01</span>Préparation</button>
+            <button role="tab" id="t-map" aria-controls="p-map" aria-selected="false" tabindex="-1"><span>02</span>Carte</button>
+            <button role="tab" id="t-perf" aria-controls="p-perf" aria-selected="false" tabindex="-1"><span>03</span>Performances</button>
+            <button role="tab" id="t-chk" aria-controls="p-chk" aria-selected="false" tabindex="-1"><span>04</span>Checklists</button>
+            <button role="tab" id="t-alert" aria-controls="p-alert" aria-selected="false" tabindex="-1"><span>05</span>Urgences</button>
+          </div>
+          <div class="panes">
+            <div class="pane on" role="tabpanel" id="p-prep" aria-labelledby="t-prep">
+              <h4>Préparation</h4>
+              <p class="sub">Navigation du 10 septembre · départ 14:30 UTC · 2 POB</p>
+              <div class="g2">
+                <div class="box">
+                  <div class="bh">MÉTÉO DÉPART<b>METAR</b></div>
+                  <div class="metar"><code>LFBZ 101400Z 24008KT 9999 FEW035 19/09 Q1018</code>
+                    <span>Vent</span> 240° 8 kt · <span>Visibilité</span> 10 km et plus<br><span>Nuages</span> quelques-uns à 3 500 ft<br><span>Temp.</span> 19 °C · <span>Rosée</span> 9 °C · <span>QNH</span> 1018 <span class="vfr">VFR</span></div>
+                </div>
+                <div class="box">
+                  <div class="bh">NOTAM<b>6 ACTIFS</b></div>
+                  <table><tbody><tr><td>Pistes et voies de circulation</td><td>1</td></tr><tr><td>Navigation et radio</td><td>1</td></tr><tr><td>Obstacles et dangers</td><td>2</td></tr><tr><td>Information</td><td>2</td></tr></tbody></table>
+                </div>
+              </div>
+              <div class="box">
+                <div class="bh">LOG DE NAV<b>54 NM · <span class="s-nlmin">31</span> MIN · <span class="s-nlfuel">12</span> L</b></div>
+                <table><thead><tr><th>Branche</th><th>Alt</th><th>Rm</th><th>Dist</th><th>GS</th><th>Temps</th></tr></thead>
+                  <tbody><tr><td>LFBZ → VLP</td><td>2500</td><td>047°</td><td>12</td><td class="s-gs">105</td><td class="s-lt">7</td></tr><tr><td>VLP → BTZ</td><td>3500</td><td>012°</td><td>18</td><td class="s-gs">105</td><td class="s-lt">10</td></tr><tr><td>BTZ → SJL</td><td>3500</td><td>338°</td><td>15</td><td class="s-gs">105</td><td class="s-lt">9</td></tr><tr><td>SJL → LESO</td><td>2000</td><td>295°</td><td>9</td><td class="s-gs">105</td><td class="s-lt">5</td></tr></tbody></table>
+              </div>
+            </div>
+
+            <div class="pane" role="tabpanel" id="p-map" aria-labelledby="t-map" hidden>
+              <h4>Carte</h4>
+              <p class="sub">Altitude de croisière 3 500 ft · couches CTR, TMA, P, R, D</p>
+              <div class="g2 gl">
+                <div class="box minimap">
+                  <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                    <rect class="mm-bg" width="400" height="260"/>
+                    <g class="mm-lines"><path d="M0 200c60-30 120-20 180 0s130 10 220-40"/><path d="M0 150c70-30 140-10 200 5s120 0 200-50"/><path d="M0 95c80-20 150 0 210 10s110-10 190-40"/></g>
+                    <circle class="mm-as mm-ctr" cx="318" cy="70" r="46" stroke-dasharray="5 4"/>
+                    <path class="mm-as mm-tma" d="M120 20h170l40 70-60 40H150z" stroke-opacity=".6"/>
+                    <path d="M40 150l30-20 40 40z" fill="rgba(255,122,90,.08)" stroke="#FF7A5A" stroke-dasharray="3 3"/>
+                    <path class="mm-rt" d="M70 225L150 170 205 120 265 95 318 70" stroke-width="2.5" stroke-linejoin="round"/>
+                    <g class="mm-wp" stroke-width="2"><circle cx="70" cy="225" r="4"/><circle cx="150" cy="170" r="4"/><circle cx="205" cy="120" r="4"/><circle cx="265" cy="95" r="4"/><circle cx="318" cy="70" r="4"/></g>
+                    <path class="mm-ac" d="M182 140l10-4-4 10"/>
+                    <g class="mm-txt" font-family="IBM Plex Mono,monospace" font-size="9"><text x="210" y="36">TMA · 4500 ft / FL065</text><text x="330" y="126">CTR · SFC / 1500</text><text x="44" y="190">R · inactive</text></g>
+                  </svg>
+                </div>
+                <div class="box">
+                  <div class="bh">ESPACES TRAVERSÉS<b>3</b></div>
+                  <table><tbody>
+                    <tr><td>TMA · plancher 4500 ft</td><td class="st-ok">Sous</td></tr>
+                    <tr><td>Zone R · SFC / 2500</td><td class="st-mute">Inactive</td></tr>
+                    <tr><td>CTR · SFC / 1500 ft</td><td class="st-warn">Contact</td></tr>
+                  </tbody></table>
+                </div>
+              </div>
+            </div>
+
+            <div class="pane" role="tabpanel" id="p-perf" aria-labelledby="t-perf" hidden>
+              <h4>Performances</h4>
+              <p class="sub">Masse et centrage · autonomie · profil <span class="s-name">Robin DR-400</span></p>
+              <div class="g3">
+                <div class="stat">MASSE AU DÉCOLLAGE<b><span class="s-tow">827</span> kg</b></div>
+                <div class="stat c">MARGE / MTOW<b>73 kg</b></div>
+                <div class="stat a">AUTONOMIE<b class="s-endur">4 h 35</b></div>
+              </div>
+              <div class="g2">
+                <div class="box">
+                  <div class="bh">ENVELOPPE DE CENTRAGE<b>DANS LES LIMITES</b></div>
+                  <svg viewBox="0 0 300 130" style="width:100%;height:auto" aria-hidden="true">
+                    <g class="mm-lines"><path d="M20 20H290M20 60H290M20 100H290"/></g>
+                    <path class="mm-as mm-ctr" d="M60 115L80 30H250L250 115Z"/>
+                    <circle class="mm-pt" cx="170" cy="48" r="5"/><path class="mm-pts" d="M170 48L165 95" stroke-dasharray="3 3"/><circle class="mm-pts" cx="165" cy="95" r="3.5"/>
+                  </svg>
+                </div>
+                <div class="box">
+                  <div class="bh">CARBURANT<b><span class="s-fuel">110</span> L UTILISABLES</b></div>
+                  <table><tbody><tr><td>Consommation</td><td><span class="s-burn">24</span> L/h</td></tr><tr><td>Réserve finale</td><td>30 min</td></tr><tr><td>Navigation prévue</td><td><span class="s-navmin">31</span> min</td></tr></tbody></table>
+                </div>
+              </div>
+            </div>
+
+            <div class="pane" role="tabpanel" id="p-chk" aria-labelledby="t-chk" hidden>
+              <h4>Checklists</h4>
+              <p class="sub">Avant décollage · touchez un item pour le valider</p>
+              <div class="progress"><i></i></div>
+              <div class="box">
+                <div class="bh">AVANT DÉCOLLAGE<b class="chk-count">3 / 8</b></div>
+                <ul class="chk">
+                  <li class="ok"><i></i>Freins<em>SERRÉS</em></li>
+                  <li class="ok"><i></i>Portes et ceintures<em>FERMÉES</em></li>
+                  <li class="ok"><i></i>Commandes de vol<em>LIBRES</em></li>
+                  <li><i></i>Instruments et altimètre<em>CALÉS</em></li>
+                  <li><i></i>Carburant<em>RÉSERVOIR PLEIN</em></li>
+                  <li><i></i>Volets<em>DÉCOLLAGE</em></li>
+                  <li><i></i>Transpondeur<em>ALT</em></li>
+                  <li><i></i>Phares<em>ALLUMÉS</em></li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="pane" role="tabpanel" id="p-alert" aria-labelledby="t-alert" hidden>
+              <h4>Urgences</h4>
+              <div class="alert"><span class="x">!</span><div><b>Panne moteur en vol</b><br><span class="muted">Piloter d'abord, meilleure finesse, puis actions mémoire.</span></div></div>
+              <div class="g3">
+                <div class="stat a">FINESSE MAX<b><span class="s-vg">65</span> kt</b></div>
+                <div class="stat c">DISTANCE DE PLANÉ<b><span class="s-gd">7,4</span> NM</b></div>
+                <div class="stat">AVANT CONTACT SOL<b class="s-gt">6 min 50</b></div>
+              </div>
+              <div class="box">
+                <div class="bh">MESSAGE DE DÉTRESSE<b>121,5 MHz</b></div>
+                <div class="script"><span class="r">MAYDAY, MAYDAY, MAYDAY</span>, <span class="c s-reg">F-HBIQ</span>, <span class="s-name">Robin DR-400</span>, <span class="r">panne moteur</span>,<br>position <span class="c">10 NM sud-ouest de Biarritz</span>, <span class="c">4 500 ft</span> en descente,<br>intention atterrissage en campagne, 2 personnes à bord.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="devices">
+      <div class="dev-copy rv">
+        <p class="lede">Une carte fluide, une interface pensée pour le cockpit, et des informations lisibles d'un coup d'œil.</p>
+      </div>
+      <div class="dev-row">
+        <div class="laptop rv" style="--i:1" role="group" aria-label="Altiview sur ordinateur portable">
+          <div class="lid"><span class="cam" aria-hidden="true"></span><div class="dev-slot" data-pane="1"></div></div>
+          <div class="base" aria-hidden="true"></div>
+        </div>
+        <div class="phone rv" style="--i:2" role="group" aria-label="Altiview sur téléphone">
+          <span class="island" aria-hidden="true"></span>
+          <div class="dev-slot" data-pane="4"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 06 ABONNEMENTS ============ -->
+<section class="sec" id="abonnements" aria-labelledby="h-plans">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="rv">
+        <p class="kicker"><span class="wp"></span>06 · Abonnements<span class="trk"></span></p>
+        <h2 class="display" id="h-plans">Nos abonnements</h2>
+      </div>
+      <p class="lede rv" style="--i:1">Commencez gratuitement pendant votre formation, passez au plan complet quand vous partez en navigation, équipez tout le club quand il le faut.</p>
+    </div>
+
+    <div class="pricing" id="pricing">
+      <article class="plan" aria-labelledby="pl-1">
+        <h3 id="pl-1">Élève &amp; découverte</h3>
+        <p class="price"><span class="drum" data-d="0" aria-hidden="true">0</span><span aria-hidden="true">€</span><span class="sr-only">0 euro</span><small>/ accès anticipé</small></p>
+        <p class="desc">Pour les élèves pilotes et les curieux qui veulent tester Altiview lors de leurs premiers vols.</p>
+        <ul>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>1 profil avion standardisé (C152 ou DR-400)</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>NavLog automatique et calcul de cap</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>METAR et TAF décodés en clair</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Checklists de base</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Consultation sur mobile et tablette</li>
+        </ul>
+        <a class="btn btn-ghost" href="#contact" data-plan="decouverte">Rejoindre la liste</a>
+      </article>
+
+      <article class="plan rec" aria-labelledby="pl-2">
+        <span class="ring" aria-hidden="true"></span>
+        <span class="badge">Recommandé</span>
+        <h3 id="pl-2">Pilote VFR</h3>
+        <p class="price"><span class="drum" data-d="9" aria-hidden="true">9</span><span aria-hidden="true">€</span><span class="sr-only">9 euros par mois</span><small>/ mois</small></p>
+        <p class="desc">L'instrument complet pour préparer et conduire tous vos vols de navigation en toute sérénité.</p>
+        <ul>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg><span><b>Tous les modules inclus</b> : NavLog, météo, carte, centrage, checklists</span></li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Profils avions illimités avec manuels de vol</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Relief 3D et profil de route vertical</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Calculateur de vent traversier et devis de masse</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Alertes NOTAM, SUP AIP et zones AZBA</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Mode hors ligne complet pour la tablette</li>
+        </ul>
+        <a class="btn btn-primary" href="#contact" data-plan="pilote">Prendre place en avant-première</a>
+      </article>
+
+      <article class="plan" aria-labelledby="pl-3">
+        <h3 id="pl-3">Aéroclub &amp; flotte</h3>
+        <p class="price custom">Sur mesure</p>
+        <p class="desc">Pour les aéroclubs, écoles ATO et DTO et propriétaires en copropriété qui veulent équiper leur flotte.</p>
+        <ul>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Gestion centralisée de la flotte d'avions</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Profils machine partagés avec fiches de pesée à jour</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Espaces instructeurs et suivi des élèves</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Exports réglementaires et archivage des dossiers de vol</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Support prioritaire et accompagnement du club</li>
+        </ul>
+        <a class="btn btn-ghost" href="#contact" data-plan="club">Nous contacter</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 07 QUESTIONS ============ -->
+<section class="sec" id="questions" aria-labelledby="h-faq">
+  <div class="wrap faq">
+    <div class="rv">
+      <p class="kicker"><span class="wp"></span>07 · Questions<span class="trk"></span></p>
+      <h2 class="display" id="h-faq">Questions de pilotes</h2>
+    </div>
+    <div class="rv" style="--i:1">
+      <details open><summary>Altiview remplace-t-il la documentation officielle ?</summary><p>Non. Altiview est une aide à la préparation. Les publications officielles (AIP, cartes VAC, NOTAM, SUP AIP), le manuel de vol de l'avion et votre jugement de commandant de bord restent la référence.</p></details>
+      <details><summary>Quels avions sont pris en charge ?</summary><p>Cinq profils constructeur sont prêts : Cessna 172, Robin DR-400, Piper PA-28, Diamond DA-40 et Cessna 152. Vous pouvez créer le profil de votre avion à partir de son manuel de vol, puis l'exporter en JSON pour le partager avec votre aéroclub.</p></details>
+      <details><summary>Sur quel appareil l'utiliser ?</summary><p>Altiview fonctionne dans le navigateur : sur ordinateur pour préparer au sol, sur tablette pour garder l'essentiel sous les yeux en vol.</p></details>
+      <details><summary>D'où viennent les données aéronautiques ?</summary><p>La carte s'appuie sur OpenAIP pour les terrains, points de report, balises et espaces aériens européens. La météo METAR et TAF des terrains de la route est récupérée puis décodée. Les NOTAM se collent depuis votre briefing SOFIA ou Olivia et sont triés automatiquement.</p></details>
+      <details><summary>Que se passe-t-il après mon inscription ?</summary><p>Nous vous écrivons à l'ouverture des premiers accès, et uniquement au sujet d'Altiview. Votre adresse n'est ni revendue ni partagée.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 08 CONTACT ============ -->
+<section class="sec" id="contact" aria-labelledby="h-cta" style="padding-bottom:0">
+  <div class="wrap">
+    <div class="cta rv" id="cta">
+      <div>
+        <p class="kicker"><span class="wp"></span>08 · Contact<span class="trk"></span></p>
+        <h2 class="display" id="h-cta">D'autres questions ? Contactez-nous</h2>
+        <p class="lede">Réservez votre place en avant-première, posez une question sur un abonnement ou présentez-nous votre club. Nous vous répondons par e-mail.</p>      </div>
+      <div>
+        <!-- Envoyer ouvre la messagerie du visiteur (mailto) : objet = « Objet », 1re ligne = « Vous êtes », puis le message. Le site ne collecte rien. -->
+        <form class="wl" id="wl">
+          <div class="row2">
+            <div class="fld"><label for="f-plan">Objet</label>
+              <select id="f-plan" name="objet"><option value="pilote">Abonnement Pilote VFR</option><option value="decouverte">Offre Élève et découverte</option><option value="club">Aéroclub et flotte</option><option value="question">Autre question</option></select></div>
+            <div class="fld"><label for="f-role">Vous êtes</label>
+              <select id="f-role" name="profil"><option>Pilote privé (PPL)</option><option>Pilote LAPL</option><option>Élève pilote</option><option>Instructeur</option><option>Aéroclub ou école</option></select></div>
+          </div>
+          <div class="fld"><label for="f-msg">Message</label><textarea id="f-msg" name="message" rows="5" placeholder="Votre message"></textarea></div>
+          <button class="btn btn-primary" type="submit">Envoyer <span class="arr" aria-hidden="true">→</span></button>
+          <p class="sent-note" id="wlNote" role="status" hidden>Votre messagerie s'ouvre avec le message prêt à partir. Rien ne s'ouvre ? Écrivez-nous directement à <a href="mailto:altiview@outlook.com">altiview@outlook.com</a>.</p>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <a class="brand" href="#top"><svg aria-hidden="true"><use href="#logo"/></svg><b>ALTIVIEW</b></a>
+        <p>Prepare • Fly • Improve.<br>La préparation et la conduite du vol VFR, dans une seule application.</p>
+      </div>
+      <div><h4>Produit</h4><ul><li><a href="#fonctionnalites">Modules</a></li><li><a href="#apercu">Plateformes</a></li><li><a href="#abonnements">Abonnements</a></li><li><a href="#contact">Contact</a></li></ul></div>
+      <div><h4>Légal</h4><ul><li><a href="legal.html#mentions">Mentions légales</a></li><li><a href="legal.html#confidentialite">Confidentialité</a></li></ul></div>
+      <div><h4>Contact</h4><ul class="social">
+        <li><a href="mailto:altiview@outlook.com">altiview@outlook.com</a></li>
+        <li><a href="https://www.instagram.com/altiview.eu/" target="_blank" rel="noopener" aria-label="Instagram @altiview.eu (nouvel onglet)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle class="dot" cx="17.4" cy="6.6" r="1.1"/></svg>@altiview.eu</a></li>
+        <li><a href="https://x.com/altivieweu" target="_blank" rel="noopener" aria-label="X @altivieweu (nouvel onglet)"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M3.5 3.5h4.6l12.4 17h-4.6z"/><path d="M20 3.5l-6.6 7.4M10.4 13.3L4 20.5"/></svg>@altivieweu</a></li>
+        <li><a href="https://www.tiktok.com/@altiview2" target="_blank" rel="noopener" aria-label="TikTok @altiview2 (nouvel onglet)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.2 3v11.6a3.7 3.7 0 1 1-3.7-3.7"/><path d="M14.2 3c.5 2.7 2.4 4.5 5.3 4.8"/></svg>@altiview2</a></li>
+      </ul></div>
+    </div>
+    <div class="disclaimer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/></svg>
+      <span>Altiview est une aide à la préparation du vol. Il ne remplace ni la documentation aéronautique officielle (AIP, cartes VAC, NOTAM), ni le manuel de vol de l'avion, ni le jugement du commandant de bord.</span>
+    </div>
+    <div class="bottom"><span>© 2026 ALTIVIEW</span><span>CONÇU POUR LES PILOTES VFR</span></div>
+  </div>
+</footer>
+
+<script src="assets/main.js" defer></script>
+<script src="assets/i18n.js" defer></script>
+<script src="assets/three-kit.js" defer></script>
+<script src="assets/fleet-models.js" defer></script>
+<script src="assets/scene-hero.js" defer></script>
+<script src="assets/scene-route.js" defer></script>
+<script src="assets/scene-fleet.js" defer></script>
+</body>
+</html>
