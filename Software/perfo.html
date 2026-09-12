@@ -851,15 +851,6 @@
             }
         }
         @media (max-width: 900px) {
-            .main-layout { flex-direction: column; }
-            .sidebar {
-                width: 100%;
-                min-width: 0;
-                max-width: none;
-                flex-basis: auto;
-                border-right: none;
-                border-bottom: 2px solid var(--border-color);
-            }
             .top-bar {
                 flex-direction: column;
                 height: auto;
@@ -977,6 +968,17 @@
         :root table.wb-table td.item-name { width: 34%; }
         :root table.wb-table td input { padding: 6px 6px !important; }
         :root table.wb-table td.item-name input { text-overflow: ellipsis; }
+
+        @media (max-width: 600px) {
+            /* telephone : entete et tableau masse/centrage tiennent dans la largeur */
+            :root .page-heading-actions, :root .unit-selector-toolbar { width: 100%; flex-wrap: wrap; }
+            :root .wb-panel { overflow-x: auto !important; }
+            :root table.wb-table { min-width: 360px; }
+            :root table.wb-table th, :root table.wb-table td { padding: 6px 7px !important; font-size: 12px !important; }
+            :root table.wb-table td input { padding: 4px 4px !important; font-size: 12px !important; }
+            :root table.wb-table td.item-name { width: 40%; }
+            :root .speed-row { flex-wrap: wrap; }
+        }
     </style>
 </head>
 <body>
@@ -984,7 +986,7 @@
     <!-- 1. TABLET HUD BAR -->
     <header class="tablet-hud">
         <div class="hud-left">
-            <a href="index.html" class="hud-brand" title="ALTIVIEW — Préparation du Vol">
+            <a href="flg_prep.html" class="hud-brand" title="ALTIVIEW — Préparation du Vol">
                 <svg class="hud-logo-svg" viewBox="250 190 1432 1432" width="26" height="26" aria-hidden="true">
                     <defs>
                         <linearGradient id="lgA-perfo" x1="0" y1="212" x2="0" y2="990" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#5FE3CF"/><stop offset="1" stop-color="#4BC8B6"/></linearGradient>

@@ -883,12 +883,109 @@
         }
 
         /* Printable kneeboard */
+        /* Kneeboard : un document d'impression dedie, construit au clic */
+        #emgPrintDoc { display: none; }
         @media print {
-            :root .tablet-hud, :root .tablet-sidebar, :root .search-toolbar, :root .page-heading-actions, :root .modal-overlay { display: none !important; }
-            :root body, :root .main-layout, :root .content-section { height: auto !important; overflow: visible !important; background: #fff !important; color: #000 !important; padding: 0 !important; margin: 0 !important; }
-            :root .emergency-banner, :root .speed-card, :root .tool-panel, :root .proc-card { background: #fff !important; border: 1px solid #000 !important; color: #000 !important; break-inside: avoid; }
-            :root .proc-card-header, :root .proc-card.memory-item .proc-card-header { background: #eee !important; }
-            :root .procedures-grid { grid-template-columns: 1fr 1fr !important; }
+            body > *:not(#emgPrintDoc) { display: none !important; }
+            html, body { height: auto !important; overflow: visible !important; background: #fff !important; }
+            #emgPrintDoc { display: block !important; color: #0C1620; font-family: 'IBM Plex Sans', Arial, sans-serif; padding: 0; }
+            .pk-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #0C1620; padding-bottom: 6px; margin-bottom: 8px; font-size: 11px; }
+            .pk-head strong { font-family: 'Big Shoulders Display', Arial Narrow, sans-serif; font-size: 17px; letter-spacing: .06em; }
+            .pk-speeds { display: flex; flex-wrap: wrap; gap: 6px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 9px; text-transform: uppercase;
+                         border: 1px solid #B3123A; border-left: 4px solid #B3123A; border-radius: 6px; padding: 6px 9px; margin-bottom: 10px; color: #B3123A; }
+            .pk-speeds b { font-size: 11px; }
+            .pk-cols { column-count: 2; column-gap: 12px; }
+            .pk-card { break-inside: avoid; border: 1px solid #0C1620; border-radius: 7px; margin-bottom: 9px; overflow: hidden; }
+            .pk-card.mem { border-color: #B3123A; }
+            .pk-card h3 { margin: 0; background: #0C1620; color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; font-weight: 600;
+                          letter-spacing: .1em; text-transform: uppercase; padding: 4px 8px; }
+            .pk-card.mem h3 { background: #B3123A; }
+            .pk-card h3 em { font-style: normal; opacity: .85; }
+            .pk-card ul { list-style: none; margin: 0; padding: 4px 8px 6px; }
+            .pk-card li { display: flex; justify-content: space-between; gap: 8px; font-size: 9px; padding: 2px 0; border-bottom: 1px dotted #D7DDE3; }
+            .pk-card li:last-child { border-bottom: none; }
+            .pk-card li b { font-family: 'IBM Plex Mono', monospace; white-space: nowrap; }
+            .pk-card.mem li b { color: #B3123A; }
+            .pk-card table { width: 100%; border-collapse: collapse; font-size: 8.5px; }
+            .pk-card table th, .pk-card table td { border-bottom: 1px solid #D7DDE3; padding: 3px 6px; text-align: left; }
+            .pk-card .tool-panel-header { padding: 4px 8px; background: #0C1620; color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; text-transform: uppercase; }
+            .pk-card .tool-panel-title { color: #fff !important; }
+            .pk-foot { border-top: 1px solid #D7DDE3; margin-top: 8px; padding-top: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 7.5px; color: #5A6672; }
+            @page { size: A4 portrait; margin: 10mm; }
+        }
+
+        /* =============================================================
+           URGENCES — mise en page de travail : la liste choisit, la procédure
+           s'affiche en grand (mêmes principes que la page Checklists).
+        ============================================================= */
+        :root .emg-topline { display: grid; grid-template-columns: 1.25fr 1fr; gap: 14px; align-items: stretch; }
+        :root .emg-speeds { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; align-content: center; }
+        :root .emg-speed { position: relative; border: 1px solid var(--line); border-radius: 12px; padding: 8px 11px; background: var(--panel); display: flex; flex-direction: column; gap: 2px; }
+        :root .emg-speed .k { font-family: var(--f-mono); font-size: 9.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--text-secondary); }
+        :root .emg-speed .v { font-family: var(--f-display); font-size: 26px; font-weight: 800; line-height: 1; letter-spacing: .02em; color: var(--text); }
+        :root .emg-speed.crit { border-color: color-mix(in srgb, var(--danger) 45%, transparent); background: color-mix(in srgb, var(--danger) 7%, var(--panel)); }
+        :root .emg-speed.crit .k, :root .emg-speed.crit .v { color: var(--danger); }
+
+        :root .emg-work { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 14px; align-items: start; }
+
+        /* colonne de gauche : recherche, filtres, liste */
+        :root .emg-list-pane { display: flex; flex-direction: column; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 12px; position: sticky; top: 0; }
+        :root .emg-search { display: flex; align-items: center; gap: 8px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 0 10px; }
+        :root .emg-search svg { color: var(--muted); flex-shrink: 0; }
+        :root .emg-search input { flex: 1; min-width: 0; background: transparent !important; border: 0 !important; box-shadow: none !important; color: var(--text) !important; font-family: var(--f-body) !important; font-size: 13px !important; padding: 9px 0 !important; }
+        :root .emg-list { display: flex; flex-direction: column; gap: 3px; max-height: 52vh; overflow-y: auto; margin: 0 -4px; padding: 0 4px; }
+        :root .emg-row { display: grid; grid-template-columns: 6px minmax(0, 1fr) auto; align-items: center; gap: 9px; width: 100%; text-align: left;
+                         background: transparent; border: 1px solid transparent; border-radius: 10px; padding: 8px 10px; cursor: pointer; font: inherit; color: var(--text); }
+        :root .emg-row:hover { background: var(--panel-hover); }
+        :root .emg-row .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--line-strong); }
+        :root .emg-row.mem .dot { background: var(--danger); }
+        :root .emg-row .t { font-size: 13px; font-weight: 600; line-height: 1.3; }
+        :root .emg-row .c { font-family: var(--f-mono); font-size: 10.5px; color: var(--muted); }
+        :root .emg-row .c.done { color: var(--success); font-weight: 700; }
+        :root .emg-row.active { background: var(--panel-2); border-color: var(--line-strong); }
+        :root .emg-row.active.mem { border-color: color-mix(in srgb, var(--danger) 55%, transparent); background: var(--danger-soft); }
+        :root .emg-list-foot { font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 2px 2px 0; border-top: 1px solid var(--line); padding-top: 8px; }
+        :root .emg-empty { padding: 18px 10px; text-align: center; font-size: 12.5px; color: var(--text-secondary); }
+
+        /* colonne de droite : la procédure en cours */
+        :root .emg-detail { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; min-height: 320px; }
+        :root .emg-detail.mem { border-color: color-mix(in srgb, var(--danger) 50%, transparent); }
+        :root .emg-detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 16px 18px 12px; }
+        :root .emg-detail.mem .emg-detail-head { background: var(--danger-soft); }
+        :root .emg-detail-head h2 { font-family: var(--f-display); font-size: 27px; font-weight: 800; text-transform: uppercase; letter-spacing: .02em; line-height: 1.1; color: var(--text); margin: 6px 0 0; }
+        :root .emg-badge { font-family: var(--f-mono); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; border-radius: 20px; padding: 3px 9px; border: 1px solid var(--line-strong); color: var(--text-secondary); }
+        :root .emg-badge.mem { background: var(--danger-fill); border-color: var(--danger-fill); color: #fff; }
+        :root .emg-detail-actions { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
+        :root .emg-count { font-family: var(--f-mono); font-size: 12px; font-weight: 600; color: var(--text-secondary); border: 1px solid var(--line); border-radius: 20px; padding: 3px 10px; }
+        :root .emg-count.done { color: var(--success); border-color: color-mix(in srgb, var(--success) 45%, transparent); background: var(--success-soft); }
+        :root .emg-bar { height: 3px; background: var(--line); }
+        :root .emg-bar i { display: block; height: 100%; background: var(--danger); transition: width .25s ease; }
+        :root .emg-bar.done i { background: var(--success); }
+        :root .emg-items { list-style: none; margin: 0; padding: 4px 0 8px; }
+        :root .emg-item { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--line); cursor: pointer; }
+        :root .emg-item:last-child { border-bottom: 0; }
+        :root .emg-item:hover { background: var(--panel-hover); }
+        :root .emg-item input[type="checkbox"] { width: 21px; height: 21px; flex-shrink: 0; accent-color: var(--danger); cursor: pointer; }
+        :root .emg-detail:not(.mem) .emg-item input[type="checkbox"] { accent-color: var(--success); }
+        :root .emg-item .txt { flex: 0 1 auto; font-size: 15px; color: var(--text); }
+        :root .emg-item .lead { flex: 1 1 auto; min-width: 10px; border-bottom: 2px dotted var(--muted); opacity: .4; transform: translateY(-5px); }
+        :root .emg-item .val { flex: 0 1 auto; max-width: 55%; text-align: right; font-family: var(--f-mono); font-size: 13px; font-weight: 600; letter-spacing: .03em; color: var(--cyan); }
+        :root .emg-detail.mem .emg-item .val { color: var(--danger); }
+        :root .emg-item.checked .txt, :root .emg-item.checked .val { color: var(--muted); text-decoration: line-through; }
+        :root .emg-detail-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 18px; border-top: 1px solid var(--line); background: var(--panel-2);
+                                 font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-secondary); }
+
+        @media (max-width: 1100px) {
+            :root .emg-topline { grid-template-columns: 1fr; }
+            :root .emg-work { grid-template-columns: 1fr; }
+            :root .emg-list-pane { position: static; }
+            :root .emg-list { max-height: 220px; }
+        }
+        @media (max-width: 600px) {
+            :root .emg-detail-head h2 { font-size: 22px; }
+            :root .emg-speed .v { font-size: 22px; }
+            :root .emg-item { padding: 11px 14px; gap: 10px; }
+            :root .emg-item .val { max-width: 48%; font-size: 12px; }
         }
     </style>
 </head>
@@ -971,7 +1068,7 @@
             <div class="page-heading">
                 <div>
                     <h1>Urgences</h1>
-                    <p>Actions immédiates, vitesses critiques, items mémoire et message de détresse, réunis sur une seule page.</p>
+                    <p>Choisissez la procédure à gauche : elle s'affiche en grand, prête à dérouler. Outils et références plus bas.</p>
                 </div>
                 <div class="page-heading-actions">
                     <a href="checklists.html" class="ghost-btn">&larr; Checklists normales</a>
@@ -981,68 +1078,52 @@
                 </div>
             </div>
 
-            <!-- IMMEDIATE ACTION PROTOCOL -->
-            <div class="emergency-banner">
-                <div class="emergency-banner-left">
-                    <div class="emergency-sign" aria-hidden="true">!</div>
-                    <div class="emergency-banner-titles">
-                        <h2>Actions immédiates</h2>
-                        <p>Garder le contrôle de l'avion, prendre la vitesse de finesse max, puis dérouler les items mémoire.</p>
+            <!-- Rappel permanent : ordre des priorités et vitesses critiques -->
+            <div class="emg-topline">
+                <div class="emergency-banner">
+                    <div class="emergency-banner-left">
+                        <div class="emergency-sign" aria-hidden="true">!</div>
+                        <div class="emergency-banner-titles">
+                            <h2>Actions immédiates</h2>
+                            <p>Garder le contrôle de l'avion, prendre la vitesse de finesse max, puis dérouler les items mémoire.</p>
+                        </div>
                     </div>
+                    <ol class="rule-of-three">
+                        <li><b>1</b><strong>Aviate</strong><span>Piloter</span></li>
+                        <li><b>2</b><strong>Navigate</strong><span>Naviguer</span></li>
+                        <li><b>3</b><strong>Communicate</strong><span>Communiquer</span></li>
+                    </ol>
                 </div>
-                <ol class="rule-of-three">
-                    <li><b>1</b><strong>Aviate</strong><span>Piloter</span></li>
-                    <li><b>2</b><strong>Navigate</strong><span>Naviguer</span></li>
-                    <li><b>3</b><strong>Communicate</strong><span>Communiquer</span></li>
-                </ol>
-            </div>
 
-            <!-- CRITICAL SPEEDS (synced from the Performances page) -->
-            <div class="emergency-speeds-grid" id="emergencySpeedsContainer">
-                <div class="speed-card critical">
-                    <div class="speed-card-title">Finesse max · Vg</div>
-                    <div class="speed-card-val" id="vgVal">70 KT</div>
-                    <div class="speed-card-desc">Distance max, moteur réduit</div>
-                </div>
-                <div class="speed-card critical">
-                    <div class="speed-card-title">Décrochage lisse · Vs1</div>
-                    <div class="speed-card-val" id="vs1Val">47 KT</div>
-                    <div class="speed-card-desc">Configuration lisse</div>
-                </div>
-                <div class="speed-card critical">
-                    <div class="speed-card-title">Décrochage atterr. · Vs0</div>
-                    <div class="speed-card-val" id="vs0Val">40 KT</div>
-                    <div class="speed-card-desc">Volets sortis en grand</div>
-                </div>
-                <div class="speed-card">
-                    <div class="speed-card-title">Ne jamais dépasser · Vne</div>
-                    <div class="speed-card-val" id="vneVal">172 KT</div>
-                    <div class="speed-card-desc">Trait rouge</div>
-                </div>
-                <div class="speed-card">
-                    <div class="speed-card-title">Manœuvre · Va</div>
-                    <div class="speed-card-val" id="vaVal">99 KT</div>
-                    <div class="speed-card-desc">Max en air turbulent</div>
+                <div class="emg-speeds" id="emergencySpeedsContainer">
+                    <div class="emg-speed crit"><span class="k">Finesse max · Vg</span><span class="v" id="vgVal">70 KT</span></div>
+                    <div class="emg-speed crit"><span class="k">Décrochage lisse · Vs1</span><span class="v" id="vs1Val">47 KT</span></div>
+                    <div class="emg-speed crit"><span class="k">Décrochage atterr. · Vs0</span><span class="v" id="vs0Val">40 KT</span></div>
+                    <div class="emg-speed"><span class="k">Ne jamais dépasser · Vne</span><span class="v" id="vneVal">172 KT</span></div>
+                    <div class="emg-speed"><span class="k">Manœuvre · Va</span><span class="v" id="vaVal">99 KT</span></div>
                 </div>
             </div>
 
-            <!-- SEARCH & CATEGORY FILTER -->
-            <div class="search-toolbar">
-                <div class="search-box-wrap">
-                    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                    <input type="text" id="emergencySearchInput" class="search-input" placeholder="Rechercher une procédure, un élément, un symptôme… (touche /)">
-                </div>
-                <div class="filter-tags" role="group" aria-label="Filtrer par catégorie">
-                    <button type="button" class="filter-tag active" data-cat="all">Toutes</button>
-                    <button type="button" class="filter-tag filter-memory" data-cat="memory">★ Items mémoire</button>
-                    <button type="button" class="filter-tag" data-cat="engine">Moteur &amp; plané</button>
-                    <button type="button" class="filter-tag" data-cat="fire">Feu &amp; fumée</button>
-                    <button type="button" class="filter-tag" data-cat="systems">Électrique &amp; systèmes</button>
-                    <button type="button" class="filter-tag" data-cat="landing">Atterrissage</button>
-                </div>
+            <!-- Zone de travail : la liste sélectionne, la procédure s'affiche en grand -->
+            <div class="emg-work">
+                <aside class="emg-list-pane">
+                    <div class="emg-search">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.2" y2="16.2"/></svg>
+                        <input type="text" id="emergencySearchInput" placeholder="Rechercher une procédure (touche /)" autocomplete="off">
+                    </div>
+                    <div class="filter-tags" role="group" aria-label="Filtrer par catégorie">
+                        <button type="button" class="filter-tag active" data-cat="all">Toutes</button>
+                        <button type="button" class="filter-tag filter-memory" data-cat="memory">★ Mémoire</button>
+                        <button type="button" class="filter-tag" data-cat="engine">Moteur</button>
+                        <button type="button" class="filter-tag" data-cat="fire">Feu</button>
+                        <button type="button" class="filter-tag" data-cat="systems">Systèmes</button>
+                        <button type="button" class="filter-tag" data-cat="landing">Atterrissage</button>
+                    </div>
+                    <div class="emg-list" id="procList"></div>
+                    <div class="emg-list-foot" id="procCount"></div>
+                </aside>
+
+                <section class="emg-detail" id="procDetail"></section>
             </div>
 
             <!-- TOOLS: GLIDE CALCULATOR & DISTRESS CALL -->
@@ -1108,17 +1189,6 @@ Transponder: <span class="distress-word">Squawking 7700</span></div>
 
             </div>
 
-            <!-- PROCEDURES -->
-            <div class="procedures-section">
-                <div class="procedures-section-header">
-                    <h2>Procédures</h2>
-                    <span class="proc-section-meta" id="procCount"></span>
-                </div>
-                <div class="procedures-grid" id="proceduresGrid">
-                    <!-- Populated via JavaScript -->
-                </div>
-            </div>
-
             <!-- REFERENCE TABLES: SQUAWKS & LIGHT SIGNALS (SERA / ICAO Annex 2) -->
             <div class="reference-tables-grid">
 
@@ -1169,6 +1239,7 @@ Transponder: <span class="distress-word">Squawking 7700</span></div>
         </section>
     </main>
 
+
     <!-- ADD CUSTOM PROCEDURE MODAL -->
     <div class="modal-overlay" id="customProcModal" role="dialog" aria-modal="true" aria-labelledby="customProcModalTitle">
         <div class="modal-card">
@@ -1205,6 +1276,8 @@ Transponder: <span class="distress-word">Squawking 7700</span></div>
             </div>
         </div>
     </div>
+
+
 
     <!-- SCRIPT LOGIC -->
     <script>
@@ -1488,78 +1561,120 @@ Transponder: <span class="distress-word">Squawking 7700</span></div>
             document.getElementById('posWord').textContent = pos;
         }
 
-        // Render Procedures Matching Checklists Dot-Leader Design
-        function renderProcedures() {
-            const container = document.getElementById('proceduresGrid');
-            container.innerHTML = '';
+        // ---------------------------------------------------------------
+        // Liste des procédures (gauche) et procédure affichée (droite)
+        // ---------------------------------------------------------------
+        let selectedProcId = null;
 
-            const searchTerm = document.getElementById('emergencySearchInput').value.toLowerCase().trim();
-
-            const filtered = procedures.filter(proc => {
-                // Category filter
+        function filteredProcedures() {
+            const term = (document.getElementById('emergencySearchInput').value || '').toLowerCase().trim();
+            return procedures.filter(proc => {
                 if (currentFilter === 'memory' && !proc.isMemory) return false;
                 if (currentFilter !== 'all' && currentFilter !== 'memory' && proc.category !== currentFilter) return false;
-
-                // Search term
-                if (searchTerm) {
-                    const matchTitle = proc.title.toLowerCase().includes(searchTerm);
-                    const matchItems = proc.items.some(i => i.text.toLowerCase().includes(searchTerm) || i.value.toLowerCase().includes(searchTerm));
-                    return matchTitle || matchItems;
-                }
-                return true;
+                if (!term) return true;
+                return proc.title.toLowerCase().includes(term)
+                    || proc.items.some(i => (i.text || '').toLowerCase().includes(term) || (i.value || '').toLowerCase().includes(term));
             });
+        }
 
-            const countEl = document.getElementById('procCount');
-            if (countEl) countEl.textContent = filtered.length === procedures.length
-                ? `${procedures.length} procédures`
-                : `${filtered.length} sur ${procedures.length} procédures`;
+        function procProgress(proc) {
+            const done = proc.items.filter((_, idx) => checkedItems.has(`${proc.id}_${idx}`)).length;
+            return { done, total: proc.items.length, complete: proc.items.length > 0 && done === proc.items.length };
+        }
 
-            if (filtered.length === 0) {
-                container.innerHTML = `<div class="proc-empty">Aucune procédure ne correspond ${searchTerm ? `à « ${escapeHtml(searchTerm)} »` : 'à ce filtre'}.</div>`;
+        function renderProcList() {
+            const list = document.getElementById('procList');
+            const count = document.getElementById('procCount');
+            const shown = filteredProcedures();
+
+            if (!shown.some(p => p.id === selectedProcId)) selectedProcId = shown.length ? shown[0].id : null;
+
+            list.innerHTML = '';
+            if (!shown.length) {
+                const empty = document.createElement('div');
+                empty.className = 'emg-empty';
+                empty.textContent = 'Aucune procédure ne correspond.';
+                list.appendChild(empty);
+            } else {
+                shown.forEach(proc => {
+                    const p = procProgress(proc);
+                    const row = document.createElement('button');
+                    row.type = 'button';
+                    row.className = 'emg-row' + (proc.isMemory ? ' mem' : '') + (proc.id === selectedProcId ? ' active' : '');
+                    row.innerHTML = `<span class="dot"></span><span class="t"></span><span class="c${p.complete ? ' done' : ''}">${p.done}/${p.total}</span>`;
+                    row.querySelector('.t').textContent = proc.title;
+                    row.title = proc.isMemory ? 'Item mémoire' : 'Lire et faire';
+                    row.addEventListener('click', () => { selectedProcId = proc.id; renderProcList(); renderProcDetail(); });
+                    list.appendChild(row);
+                });
+            }
+
+            count.textContent = `${shown.length} sur ${procedures.length} procédures`;
+        }
+
+        function renderProcDetail() {
+            const box = document.getElementById('procDetail');
+            const proc = procedures.find(p => p.id === selectedProcId);
+            if (!proc) {
+                box.className = 'emg-detail';
+                box.innerHTML = '<div class="emg-empty" style="padding:60px 20px;">Sélectionnez une procédure dans la liste.</div>';
                 return;
             }
 
-            filtered.forEach(proc => {
-                const card = document.createElement('div');
-                card.className = `proc-card ${proc.isMemory ? 'memory-item' : ''}`;
-
-                const itemsHtml = proc.items.map((item, idx) => {
-                    const itemKey = `${proc.id}_${idx}`;
-                    const isChecked = checkedItems.has(itemKey);
-                    return `
-                        <li class="proc-item-row ${isChecked ? 'checked' : ''}" onclick="toggleItemCheck('${itemKey}')">
-                            <input type="checkbox" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); toggleItemCheck('${itemKey}')">
-                            <span class="item-text">${escapeHtml(item.text)}</span>
-                            <span class="item-leader"></span>
-                            <span class="item-value">${escapeHtml(item.value)}</span>
-                        </li>
-                    `;
-                }).join('');
-
-                const doneCount = proc.items.filter((_, idx) => checkedItems.has(`${proc.id}_${idx}`)).length;
-                card.innerHTML = `
-                    <div class="proc-card-header">
-                        <div class="proc-title">${escapeHtml(proc.title)}</div>
-                        <div class="proc-card-meta">
-                            <span class="proc-count${doneCount === proc.items.length ? ' done' : ''}">${doneCount}/${proc.items.length}</span>
-                            <span class="proc-badge ${proc.isMemory ? '' : 'ref'}">${proc.isMemory ? '★ Item mémoire' : 'Lire &amp; faire'}</span>
-                        </div>
+            const p = procProgress(proc);
+            box.className = 'emg-detail' + (proc.isMemory ? ' mem' : '');
+            box.innerHTML = `
+                <div class="emg-detail-head">
+                    <div>
+                        <span class="emg-badge${proc.isMemory ? ' mem' : ''}">${proc.isMemory ? '★ Item mémoire' : 'Lire &amp; faire'}</span>
+                        <h2></h2>
                     </div>
-                    <div class="proc-card-body">
-                        <ul class="proc-items-list">
-                            ${itemsHtml}
-                        </ul>
+                    <div class="emg-detail-actions">
+                        <span class="emg-count${p.complete ? ' done' : ''}">${p.done}/${p.total}</span>
+                        <button type="button" class="ghost-btn" id="btnResetProc">↺ Décocher</button>
                     </div>
-                `;
+                </div>
+                <div class="emg-bar${p.complete ? ' done' : ''}"><i style="width:${p.total ? Math.round(p.done / p.total * 100) : 0}%"></i></div>
+                <ul class="emg-items"></ul>
+                <div class="emg-detail-foot">
+                    <span>${proc.isMemory ? 'À connaître par cœur — dérouler sans lire' : 'Lire puis appliquer'}</span>
+                    <span>121.500 MHz · 7700</span>
+                </div>`;
+            box.querySelector('h2').textContent = proc.title;
 
-                container.appendChild(card);
+            const ul = box.querySelector('.emg-items');
+            proc.items.forEach((item, idx) => {
+                const key = `${proc.id}_${idx}`;
+                const done = checkedItems.has(key);
+                const li = document.createElement('li');
+                li.className = 'emg-item' + (done ? ' checked' : '');
+                li.innerHTML = `<input type="checkbox"${done ? ' checked' : ''}><span class="txt"></span><span class="lead"></span><span class="val"></span>`;
+                li.querySelector('.txt').textContent = item.text || '';
+                li.querySelector('.val').textContent = item.value || '';
+                li.addEventListener('click', ev => {
+                    if (ev.target.tagName !== 'INPUT') ev.preventDefault();
+                    toggleItemCheck(key);
+                });
+                ul.appendChild(li);
             });
+
+            box.querySelector('#btnResetProc').addEventListener('click', () => {
+                proc.items.forEach((_, idx) => checkedItems.delete(`${proc.id}_${idx}`));
+                renderProcList();
+                renderProcDetail();
+            });
+        }
+
+        function renderProcedures() {
+            renderProcList();
+            renderProcDetail();
         }
 
         window.toggleItemCheck = function(key) {
             if (checkedItems.has(key)) checkedItems.delete(key);
             else checkedItems.add(key);
-            renderProcedures();
+            renderProcList();
+            renderProcDetail();
         };
 
         function resetAllChecks() {
@@ -1641,8 +1756,35 @@ Transponder: <span class="distress-word">Squawking 7700</span></div>
             document.getElementById('resetChecksBtn').addEventListener('click', resetAllChecks);
 
             // Print Kneeboard
+            // Kneeboard : toutes les procédures sur papier, en deux colonnes
             document.getElementById('printKneeboardBtn').addEventListener('click', () => {
-                window.print();
+                const old = document.getElementById('emgPrintDoc');
+                if (old) old.remove();
+
+                const speeds = [...document.querySelectorAll('.emg-speed')]
+                    .map(s => `<span class="pk-speed">${escapeHtml(s.querySelector('.k').textContent)} <b>${escapeHtml(s.querySelector('.v').textContent)}</b></span>`).join('');
+
+                const cards = procedures.map(proc => `
+                    <div class="pk-card${proc.isMemory ? ' mem' : ''}">
+                        <h3>${escapeHtml(proc.title)}${proc.isMemory ? ' <em>★ mémoire</em>' : ''}</h3>
+                        <ul>${proc.items.map(i => `<li><span>${escapeHtml(i.text || '')}</span><b>${escapeHtml(i.value || '')}</b></li>`).join('')}</ul>
+                    </div>`).join('');
+
+                const refs = [...document.querySelectorAll('.reference-tables-grid .tool-panel')]
+                    .map(p => `<div class="pk-card">${p.innerHTML}</div>`).join('');
+
+                const doc = document.createElement('div');
+                doc.id = 'emgPrintDoc';
+                doc.innerHTML = `
+                    <div class="pk-head">
+                        <div><strong>ALTIVIEW</strong> · Procédures d'urgence</div>
+                        <div>${escapeHtml((document.getElementById('hudAircraftTag') || {}).textContent || '')} · ${new Date().toLocaleDateString('fr-FR')}</div>
+                    </div>
+                    <div class="pk-speeds">${speeds}</div>
+                    <div class="pk-cols">${cards}${refs}</div>
+                    <div class="pk-foot">Document de travail — vérifier le manuel de vol de l'appareil. Détresse 121.500 MHz · transpondeur 7700.</div>`;
+                document.body.appendChild(doc);
+                setTimeout(() => { window.print(); setTimeout(() => doc.remove(), 800); }, 120);
             });
 
             // Pan-Pan vs Mayday toggle
