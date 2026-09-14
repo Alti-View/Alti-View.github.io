@@ -52,18 +52,12 @@
   if (!intro || reducedMQ.matches || location.hash) { if (intro) { intro.remove(); intro = null; } startHero(); }
   else {
     root.style.overflow = 'hidden';                    /* no scrolling while it plays */
-    setTimeout(endIntro, 2000);
+    setTimeout(endIntro, 3650);   /* the instrument sequence runs 2.9s, then the screen fades out over .75s */
     intro.addEventListener('click', endIntro);         /* a click or any key skips it */
     addEventListener('keydown', endIntro, { once: true });
   }
 
-  /* ---------- price drums and check stagger, built before the entrances fire ---------- */
-  $$('.drum').forEach(function (d) {
-    var n = +d.getAttribute('data-d') || 0, col = document.createElement('span');
-    [7, 8, 9, 10].forEach(function (o) { var g = document.createElement('i'); g.textContent = (n + o) % 10; col.appendChild(g); });
-    d.textContent = ''; d.appendChild(col);
-    d.style.setProperty('--n', 3);                     /* a short roll of four digits landing on the price: nothing tall hides inside the card */
-  });
+  /* ---------- check stagger, set before the entrances fire ---------- */
   $$('.plan').forEach(function (p) { $$('li', p).forEach(function (li, i) { li.style.setProperty('--k', i); }); });
 
   /* ---------- entrances (IntersectionObserver), stagger retired after ---------- */
@@ -81,6 +75,26 @@
   /* the recommended plan's border light only runs while the section is on screen */
   var pricing = $('#pricing');
   new IntersectionObserver(function (es) { pricing.classList.toggle('live', es[es.length - 1].isIntersecting); }).observe(pricing);
+
+  /* ---------- monthly / annual: a year costs ten months instead of twelve ---------- */
+  var billBtns = $$('.bill-opt');   /* the nudge button also carries data-cycle, but it is not one of the two tabs */
+  function fmtPrice(v) { return v % 1 ? v.toFixed(2).replace('.', isEN() ? '.' : ',') : String(v); }
+  function setCycle(c) {
+    var yr = c === 'year';
+    pricing.classList.toggle('annual', yr);
+    billBtns.forEach(function (b) {
+      var on = b.getAttribute('data-cycle') === c;
+      b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    $$('.m-only').forEach(function (el) { el.hidden = yr; });
+    $$('.y-only').forEach(function (el) { el.hidden = !yr; });
+    pricing.classList.add('swapping');                 /* the figures fade out, change, and come back */
+    setTimeout(function () {
+      $$('.price .amount[data-m]').forEach(function (el) { el.textContent = fmtPrice(+el.getAttribute(yr ? 'data-y' : 'data-m')); });
+      pricing.classList.remove('swapping');
+    }, reducedMQ.matches ? 0 : 200);
+  }
+  $$('[data-cycle]').forEach(function (b) { b.addEventListener('click', function () { setCycle(b.getAttribute('data-cycle')); }); });
 
   /* ---------- scroll drives: nav state, pinned convergence field, tablet ---------- */
   var pin = $('#fieldPin'), field = $('#field'), tablet = $('#tablet');
@@ -209,6 +223,7 @@
   /* language switch: numbers and the labels this script owns are re-rendered */
   document.addEventListener('altiview:lang', function () {
     renderStats(shown); hudLabel(); live.textContent = '';   /* a one-off announcement, never left in the old language */
+    setCycle(pricing.classList.contains('annual') ? 'year' : 'month');   /* the decimal separator follows the language */
     updateScreens(FLEET[acIdx]);
     menuBtn.setAttribute('aria-label', nav.classList.contains('open') ? L('Fermer le menu', 'Close menu') : L('Ouvrir le menu', 'Open menu'));
   });
