@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="assets/cockpit.css">
     <script src="assets/cockpit-nav.js"></script>
     <script src="assets/data-sources.js"></script>
+    <script src="assets/app-header.js"></script>
     <script src="assets/pdf-preview.js"></script>
 
     <!-- PDF & Canvas Libraries for Dossier Export -->
@@ -795,6 +796,9 @@
 
         /* tools */
         :root .interactive-tools-grid, :root .reference-tables-grid { gap: 16px; }
+        /* la distance de plane ferme la page : outil de calcul, pas une urgence */
+        :root .glide-tool-wrap { margin-top: 16px; }
+        :root .glide-tool-wrap .tool-panel { max-width: 720px; }
         :root .tool-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; box-shadow: none; color: var(--text); }
         :root .tool-panel-header { background: transparent; border-bottom: 1px solid var(--line); padding: 12px 18px; gap: 12px; min-height: 50px; }
         :root .tool-panel-title { font-family: var(--f-mono); font-size: 11.5px; font-weight: 600; letter-spacing: .16em; color: var(--cyan); }
@@ -925,7 +929,10 @@
            URGENCES — mise en page de travail : la liste choisit, la procédure
            s'affiche en grand (mêmes principes que la page Checklists).
         ============================================================= */
-        :root .emg-topline { display: grid; grid-template-columns: 1.25fr 1fr; gap: 14px; align-items: stretch; }
+        :root .emg-topline { display: block; }
+        :root .emg-speeds-block { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+        :root .emg-speeds-title { font-family: var(--f-mono); font-size: 10px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;
+                                  color: var(--text-secondary); margin-bottom: 9px; }
         :root .emg-speeds { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; align-content: center; }
         :root .emg-speed { position: relative; border: 1px solid var(--line); border-radius: 12px; padding: 8px 11px; background: var(--panel); display: flex; flex-direction: column; gap: 2px; }
         :root .emg-speed .k { font-family: var(--f-mono); font-size: 9.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--text-secondary); }
@@ -963,6 +970,11 @@
         :root .emg-badge { font-family: var(--f-mono); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; border-radius: 20px; padding: 3px 9px; border: 1px solid var(--line-strong); color: var(--text-secondary); }
         :root .emg-badge.mem { background: var(--danger-fill); border-color: var(--danger-fill); color: #fff; }
         :root .emg-detail-actions { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
+        :root .emg-check-all { font-family: var(--f-mono); font-size: 9.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+                               padding: 5px 10px; border-radius: 20px; cursor: pointer; border: 1px solid var(--line-strong);
+                               background: transparent; color: var(--text-secondary); transition: color .15s, border-color .15s, background .15s; }
+        :root .emg-check-all:hover { color: var(--cyan); border-color: var(--cyan); background: var(--cyan-soft); }
+        :root .emg-check-all.done { color: var(--success); border-color: color-mix(in srgb, var(--success) 45%, transparent); background: var(--success-soft); }
         :root .emg-count { font-family: var(--f-mono); font-size: 12px; font-weight: 600; color: var(--text-secondary); border: 1px solid var(--line); border-radius: 20px; padding: 3px 10px; }
         :root .emg-count.done { color: var(--success); border-color: color-mix(in srgb, var(--success) 45%, transparent); background: var(--success-soft); }
         :root .emg-bar { height: 3px; background: var(--line); }
@@ -983,7 +995,7 @@
                                  font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-secondary); }
 
         @media (max-width: 1100px) {
-            :root .emg-topline { grid-template-columns: 1fr; }
+            :root .emg-speeds-block { margin-top: 14px; }
             :root .emg-work { grid-template-columns: 1fr; }
             :root .emg-list-pane { position: static; }
             :root .emg-list { max-height: 220px; }
@@ -1035,24 +1047,31 @@
     <main class="main-layout">
         <!-- Numbered Tablet Sidebar Navigation -->
         <nav class="tablet-sidebar">
-            <a href="flg_prep.html" class="sidebar-item">
+            <a href="VFR.html" class="sidebar-item" data-nav="map">
                 <span class="num">01</span>
-                <span class="label">Préparation</span>
-            </a>
-            <a href="VFR.html" class="sidebar-item">
-                <span class="num">02</span>
                 <span class="label">Carte</span>
             </a>
-            <a href="perfo.html" class="sidebar-item">
+            <a href="flg_prep.html#weather" class="sidebar-item" data-nav="wx">
+                <span class="num">02</span>
+                <span class="label">Météo</span>
+            </a>
+            <a href="flg_prep.html#flight-fuel" class="sidebar-item" data-nav="info">
                 <span class="num">03</span>
+                <span class="label">Infos de vol</span>
+            </a>
+            <a href="perfo.html" class="sidebar-item" data-nav="perf">
+                <span class="num">04</span>
                 <span class="label">Performances</span>
             </a>
-            <a href="checklists.html" class="sidebar-item">
-                <span class="num">04</span>
+            <a href="flg_prep.html#readiness" class="sidebar-item" data-nav="dep">
+                <span class="num">05</span>
+                <span class="label">Départ en vol</span>
+            </a>
+            <div class="sidebar-sep" aria-hidden="true"></div>
+            <a href="checklists.html" class="sidebar-item no-num" data-nav="check" data-mini="CHK">
                 <span class="label">Checklists</span>
             </a>
-            <a href="emergency.html" class="sidebar-item active">
-                <span class="num">05</span>
+            <a href="emergency.html" class="sidebar-item no-num active" data-nav="emg" data-mini="URG">
                 <span class="label">Urgences</span>
             </a>
 
@@ -1092,7 +1111,6 @@
                         <div class="emergency-sign" aria-hidden="true">!</div>
                         <div class="emergency-banner-titles">
                             <h2>Actions immédiates</h2>
-                            <p>Garder le contrôle de l'avion, prendre la vitesse de finesse max, puis dérouler les items mémoire.</p>
                         </div>
                     </div>
                     <ol class="rule-of-three">
@@ -1101,7 +1119,10 @@
                         <li><b>3</b><strong>Communicate</strong><span>Communiquer</span></li>
                     </ol>
                 </div>
+            </div>
 
+            <div class="emg-speeds-block">
+                <div class="emg-speeds-title">Vitesses critiques</div>
                 <div class="emg-speeds" id="emergencySpeedsContainer">
                     <div class="emg-speed crit"><span class="k">Finesse max · Vg</span><span class="v" id="vgVal">70 KT</span></div>
                     <div class="emg-speed crit"><span class="k">Décrochage lisse · Vs1</span><span class="v" id="vs1Val">47 KT</span></div>
@@ -1134,68 +1155,6 @@
             </div>
 
             <!-- TOOLS: GLIDE CALCULATOR & DISTRESS CALL -->
-            <div class="interactive-tools-grid">
-
-                <div class="tool-panel">
-                    <div class="tool-panel-header">
-                        <div class="tool-panel-title">Distance de plané</div>
-                        <span class="tool-badge">Vg <span id="calcVgDisplay">70</span> KT</span>
-                    </div>
-                    <div class="tool-panel-body">
-                        <div class="calc-form">
-                            <div class="calc-field">
-                                <label for="glideAltInput">Hauteur (ft sol)</label>
-                                <input type="number" id="glideAltInput" class="calc-input" value="4500" step="500" min="500" max="25000">
-                            </div>
-                            <div class="calc-field">
-                                <label for="glideRatioInput">Finesse (L/D)</label>
-                                <input type="number" id="glideRatioInput" class="calc-input" value="9.0" step="0.5" min="5" max="18">
-                            </div>
-                        </div>
-                        <div class="glide-results">
-                            <div class="glide-res-item">
-                                <div class="val" id="glideDistVal">6.7 NM</div>
-                                <div class="lbl">Distance max</div>
-                            </div>
-                            <div class="glide-res-item">
-                                <div class="val" id="glideTimeVal">5m 43s</div>
-                                <div class="lbl">Temps avant le sol</div>
-                            </div>
-                            <div class="glide-res-item">
-                                <div class="val" id="glideRodVal">780 FPM</div>
-                                <div class="lbl">Taux de descente</div>
-                            </div>
-                        </div>
-                        <p class="tool-note">Règle du pouce, vent nul : hauteur en milliers de ft &times; 1,5 &asymp; distance en NM. Gardez 20&nbsp;% de marge pour l'inspection du champ et le circuit.</p>
-                    </div>
-                </div>
-
-                <div class="tool-panel">
-                    <div class="tool-panel-header">
-                        <div class="tool-panel-title">Message de détresse · 121.500 MHz</div>
-                        <div class="tool-panel-actions">
-                            <button type="button" class="ghost-btn btn-sm" id="toggleCallTypeBtn" title="Basculer Mayday / Pan-Pan">Pan-Pan</button>
-                            <button type="button" class="ghost-btn btn-sm" id="copyDistressBtn" title="Copier le message">Copier</button>
-                        </div>
-                    </div>
-                    <div class="tool-panel-body">
-                        <div class="radio-distress-box" id="distressScriptBox"><span class="distress-word" id="distressTypeWord">MAYDAY, MAYDAY, MAYDAY</span>
-<span class="distress-field" id="callsignWord">F-HAERO</span>, Cessna 172
-<span class="distress-word">ENGINE FAILURE IN FLIGHT</span>
-Position: <span class="distress-field" id="posWord">15 NM North of Pontoise (LFPT)</span>
-Altitude: <span class="distress-field" id="altWord">4,500 ft AMSL</span>, descending
-Intentions: Forced landing in open fields
-Persons on board: <span class="distress-field" id="pobWord">2</span> &bull; Fuel remaining: <span class="distress-field" id="fuelWord">3.5 hrs</span>
-Transponder: <span class="distress-word">Squawking 7700</span></div>
-                        <div class="tool-foot">
-                            <span>Fréquence de détresse <strong>121.500 MHz</strong> · Transpondeur <strong>7700</strong></span>
-                            <span id="copyToast" class="copy-toast" style="display: none;">Copié</span>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
             <!-- REFERENCE TABLES: SQUAWKS & LIGHT SIGNALS (SERA / ICAO Annex 2) -->
             <div class="reference-tables-grid">
 
@@ -1241,6 +1200,43 @@ Transponder: <span class="distress-word">Squawking 7700</span></div>
                     <p class="ref-note">* Les autorisations d'atterrir et de circuler seront données en temps utile. Accusé de réception en vol : de jour, balancer les ailes (sauf en étape de base et en finale) ; de nuit, allumer et éteindre deux fois les phares. Au sol : de jour, bouger ailerons ou gouverne de direction ; de nuit, allumer et éteindre deux fois les phares.</p>
                 </div>
 
+            </div>
+
+            <!-- DISTANCE DE PLANÉ : outil de calcul, en bas de page -->
+            <div class="glide-tool-wrap">
+                <div class="tool-panel">
+                    <div class="tool-panel-header">
+                        <div class="tool-panel-title">Distance de plané</div>
+                        <span class="tool-badge">Vg <span id="calcVgDisplay">70</span> KT</span>
+                    </div>
+                    <div class="tool-panel-body">
+                        <div class="calc-form">
+                            <div class="calc-field">
+                                <label for="glideAltInput">Hauteur (ft sol)</label>
+                                <input type="number" id="glideAltInput" class="calc-input" value="4500" step="500" min="500" max="25000">
+                            </div>
+                            <div class="calc-field">
+                                <label for="glideRatioInput">Finesse (L/D)</label>
+                                <input type="number" id="glideRatioInput" class="calc-input" value="9.0" step="0.5" min="5" max="18">
+                            </div>
+                        </div>
+                        <div class="glide-results">
+                            <div class="glide-res-item">
+                                <div class="val" id="glideDistVal">6.7 NM</div>
+                                <div class="lbl">Distance max</div>
+                            </div>
+                            <div class="glide-res-item">
+                                <div class="val" id="glideTimeVal">5m 43s</div>
+                                <div class="lbl">Temps avant le sol</div>
+                            </div>
+                            <div class="glide-res-item">
+                                <div class="val" id="glideRodVal">780 FPM</div>
+                                <div class="lbl">Taux de descente</div>
+                            </div>
+                        </div>
+                        <p class="tool-note">Règle du pouce, vent nul : hauteur en milliers de ft &times; 1,5 &asymp; distance en NM. Gardez 20&nbsp;% de marge pour l'inspection du champ et le circuit.</p>
+                    </div>
+                </div>
             </div>
 
         </section>
@@ -1562,10 +1558,8 @@ Transponder: <span class="distress-word">Squawking 7700</span></div>
                 } catch(e) {}
             }
 
-            document.getElementById('callsignWord').textContent = callsign;
-            document.getElementById('pobWord').textContent = pob;
-            document.getElementById('fuelWord').textContent = fuel;
-            document.getElementById('posWord').textContent = pos;
+            // le message de detresse est desormais rappele dans le pied de procedure
+            void callsign; void pob; void fuel; void pos;
         }
 
         // ---------------------------------------------------------------
@@ -1637,6 +1631,7 @@ Transponder: <span class="distress-word">Squawking 7700</span></div>
                         <h2></h2>
                     </div>
                     <div class="emg-detail-actions">
+                        <button type="button" class="emg-check-all${p.complete ? ' done' : ''}" id="btnCheckAllProc">${p.complete ? 'Tout décocher' : 'Tout cocher'}</button>
                         <span class="emg-count${p.complete ? ' done' : ''}">${p.done}/${p.total}</span>
                         <button type="button" class="ghost-btn" id="btnResetProc">↺ Décocher</button>
                     </div>
@@ -1644,7 +1639,7 @@ Transponder: <span class="distress-word">Squawking 7700</span></div>
                 <div class="emg-bar${p.complete ? ' done' : ''}"><i style="width:${p.total ? Math.round(p.done / p.total * 100) : 0}%"></i></div>
                 <ul class="emg-items"></ul>
                 <div class="emg-detail-foot">
-                    <span>${proc.isMemory ? 'À connaître par cœur — dérouler sans lire' : 'Lire puis appliquer'}</span>
+                    <span>${proc.isMemory ? '<strong>À connaître par cœur</strong>' : 'Lire puis appliquer'}</span>
                     <span>121.500 MHz · 7700</span>
                 </div>`;
             box.querySelector('h2').textContent = proc.title;
@@ -1663,6 +1658,16 @@ Transponder: <span class="distress-word">Squawking 7700</span></div>
                     toggleItemCheck(key);
                 });
                 ul.appendChild(li);
+            });
+
+            box.querySelector('#btnCheckAllProc').addEventListener('click', () => {
+                const all = proc.items.every((_, idx) => checkedItems.has(`${proc.id}_${idx}`));
+                proc.items.forEach((_, idx) => {
+                    const key = `${proc.id}_${idx}`;
+                    if (all) checkedItems.delete(key); else checkedItems.add(key);
+                });
+                renderProcList();
+                renderProcDetail();
             });
 
             box.querySelector('#btnResetProc').addEventListener('click', () => {
@@ -1713,7 +1718,6 @@ Transponder: <span class="distress-word">Squawking 7700</span></div>
             document.getElementById('glideDistVal').textContent = `${distNM.toFixed(1)} NM`;
             document.getElementById('glideTimeVal').textContent = `${minutes}m ${seconds.toString().padStart(2, '0')}s`;
             document.getElementById('glideRodVal').textContent = `${rod} FPM`;
-            document.getElementById('altWord').textContent = `${altAGL.toLocaleString()} ft AGL`;
         }
 
         // Copy Squawk code
@@ -1802,32 +1806,6 @@ Transponder: <span class="distress-word">Squawking 7700</span></div>
                     document.body.appendChild(doc);
                     setTimeout(() => { window.print(); setTimeout(() => doc.remove(), 800); }, 120);
                 }
-            });
-
-            // Pan-Pan vs Mayday toggle
-            let isMayday = true;
-            document.getElementById('toggleCallTypeBtn').addEventListener('click', (e) => {
-                isMayday = !isMayday;
-                const typeWord = document.getElementById('distressTypeWord');
-                if (isMayday) {
-                    typeWord.textContent = 'MAYDAY, MAYDAY, MAYDAY';
-                    typeWord.style.color = 'var(--danger)';
-                    e.target.textContent = 'Pan-Pan';
-                } else {
-                    typeWord.textContent = 'PAN-PAN, PAN-PAN, PAN-PAN';
-                    typeWord.style.color = 'var(--warning)';
-                    e.target.textContent = 'Mayday';
-                }
-            });
-
-            // Copy Distress message
-            document.getElementById('copyDistressBtn').addEventListener('click', () => {
-                const text = document.getElementById('distressScriptBox').innerText;
-                navigator.clipboard.writeText(text).then(() => {
-                    const toast = document.getElementById('copyToast');
-                    toast.style.display = 'inline';
-                    setTimeout(() => { toast.style.display = 'none'; }, 2500);
-                });
             });
 
             // Keyboard shortcut '/' to search

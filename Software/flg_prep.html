@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="assets/cockpit.css">
     <script src="assets/cockpit-nav.js"></script>
     <script src="assets/data-sources.js"></script>
+    <script src="assets/app-header.js"></script>
     <script src="aero_data.js"></script>
 
     <style>
@@ -2220,6 +2221,17 @@
             background: #FFFFFF;
             border-color: #C8D2DB;
         }
+        /* bouton "tout cocher" des categories Go / No-Go */
+        .cat-check-all {
+            font-family: var(--f-mono); font-size: 9.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+            padding: 4px 9px; border-radius: 20px; cursor: pointer;
+            border: 1px solid var(--line-strong); background: transparent; color: var(--text-secondary);
+            transition: color .15s ease, border-color .15s ease, background .15s ease;
+        }
+        .cat-check-group { display: inline-flex; align-items: center; gap: 8px; }
+        .cat-check-all:hover { color: var(--cyan); border-color: var(--cyan); background: var(--cyan-soft); }
+        .cat-check-all.done { color: var(--success); border-color: color-mix(in srgb, var(--success) 45%, transparent); background: var(--success-soft); }
+
         /* =============================================================
            ALTIVIEW · Préparation, theme pass: night and day both read from the
            tokens (inks readable on panels and tinted chips). ":root" + !important
@@ -2316,24 +2328,31 @@
             <div class="tablet-body">
                 <!-- Left Numbered Navigation Sidebar -->
                 <nav class="tablet-sidebar">
-                    <a href="flg_prep.html" class="sidebar-item active">
+                    <a href="VFR.html" class="sidebar-item" data-nav="map">
                         <span class="num">01</span>
-                        <span class="label">Préparation</span>
-                    </a>
-                    <a href="VFR.html" class="sidebar-item">
-                        <span class="num">02</span>
                         <span class="label">Carte</span>
                     </a>
-                    <a href="perfo.html" class="sidebar-item">
+                    <a href="flg_prep.html#weather" class="sidebar-item" data-nav="wx">
+                        <span class="num">02</span>
+                        <span class="label">Météo</span>
+                    </a>
+                    <a href="flg_prep.html#flight-fuel" class="sidebar-item active" data-nav="info">
                         <span class="num">03</span>
+                        <span class="label">Infos de vol</span>
+                    </a>
+                    <a href="perfo.html" class="sidebar-item" data-nav="perf">
+                        <span class="num">04</span>
                         <span class="label">Performances</span>
                     </a>
-                    <a href="checklists.html" class="sidebar-item">
-                        <span class="num">04</span>
+                    <a href="flg_prep.html#readiness" class="sidebar-item" data-nav="dep">
+                        <span class="num">05</span>
+                        <span class="label">Départ en vol</span>
+                    </a>
+                    <div class="sidebar-sep" aria-hidden="true"></div>
+                    <a href="checklists.html" class="sidebar-item no-num" data-nav="check" data-mini="CHK">
                         <span class="label">Checklists</span>
                     </a>
-                    <a href="emergency.html" class="sidebar-item">
-                        <span class="num">05</span>
+                    <a href="emergency.html" class="sidebar-item no-num" data-nav="emg" data-mini="URG">
                         <span class="label">Urgences</span>
                     </a>
 
@@ -2391,27 +2410,22 @@
                     <!-- Segmented Workflow Navigation Bar -->
                     <div class="prep-workflow-nav" role="tablist" aria-label="Étapes de préparation du vol">
                         <button class="prep-tab-btn active" id="tabBtn-flight-fuel" type="button" role="tab" onclick="switchPrepTab('flight-fuel')">
-                            <span class="tab-num">01</span>
                             <span class="tab-text">Vol &amp; Carburant</span>
                             <span class="tab-status-chip" id="chipFuelStatus">--</span>
                         </button>
                         <button class="prep-tab-btn" id="tabBtn-navlog" type="button" role="tab" onclick="switchPrepTab('navlog')">
-                            <span class="tab-num">02</span>
                             <span class="tab-text">NavLog VFR</span>
                             <span class="tab-status-chip" id="chipNavlogStatus">54 NM</span>
                         </button>
                         <button class="prep-tab-btn" id="tabBtn-weather" type="button" role="tab" onclick="switchPrepTab('weather')">
-                            <span class="tab-num">03</span>
                             <span class="tab-text">Météo (METAR/TAF)</span>
                             <span class="tab-status-chip" id="chipWeatherStatus">VFR</span>
                         </button>
                         <button class="prep-tab-btn" id="tabBtn-notams" type="button" role="tab" onclick="switchPrepTab('notams')">
-                            <span class="tab-num">04</span>
                             <span class="tab-text">NOTAMs &amp; OPS</span>
                             <span class="tab-status-chip" id="chipNotamStatus">6 Actifs</span>
                         </button>
                         <button class="prep-tab-btn" id="tabBtn-readiness" type="button" role="tab" onclick="switchPrepTab('readiness')">
-                            <span class="tab-num">05</span>
                             <span class="tab-text">Go / No-Go</span>
                             <span class="tab-status-chip" id="chipReadinessStatus">0%</span>
                         </button>
@@ -2431,7 +2445,7 @@
                             <div class="dash-panel" id="briefing-section">
                                 <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                                     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                                        <span class="code">01 // FLIGHT.OPS</span>
+                                        <span class="code">FLIGHT.OPS</span>
                                         <h2>Vol, Appareil &amp; Carburant</h2>
                                         <span class="live-indicator"><span class="pulse-dot"></span> PARAMÈTRES DU VOL</span>
                                     </div>
@@ -2529,7 +2543,7 @@
                             <div class="navlog-section" id="navlog-section">
                                 <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                                     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                                        <span class="code">02 // NAVLOG</span>
+                                        <span class="code">NAVLOG</span>
                                         <h2>Log de navigation VFR</h2>
                                         <span class="live-indicator"><span class="pulse-dot"></span> SYNCHRONISÉ CARTE</span>
                                     </div>
@@ -2585,7 +2599,7 @@
                             <div class="dash-panel weather-panel" id="weather-section">
                                 <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                                     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                                        <span class="code">03 // WX.METAR</span>
+                                        <span class="code">WX.METAR</span>
                                         <h2>Météo aérodromes (METAR / TAF)</h2>
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
@@ -2663,7 +2677,7 @@
                             <div class="dash-panel notam-panel" id="notam-section">
                                 <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                                     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                                        <span class="code">04 // NOTAM.OPS</span>
+                                        <span class="code">NOTAM.OPS</span>
                                         <h2>NOTAM aérodromes &amp; route</h2>
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 10px;">
@@ -2716,7 +2730,7 @@
                             <div class="dash-panel" id="readiness-section">
                                 <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                                     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                                        <span class="code">05 // GO.NOGO</span>
+                                        <span class="code">GO.NOGO</span>
                                         <h2>Checklist Readiness &amp; Décision Vol</h2>
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 8px;">
@@ -3175,6 +3189,8 @@ TAF LFPO 101100Z 1012/1118 27006KT CAVOK
                 ordered.forEach(p => { if (p.offsetTop <= mark) current = p; });
                 const id = current.id.replace('pane-', '');
                 document.querySelectorAll('.prep-tab-btn').forEach(btn => btn.classList.toggle('active', btn.id === `tabBtn-${id}`));
+                const nav = { weather: 'wx', notams: 'wx', 'flight-fuel': 'info', navlog: 'info', readiness: 'dep', summary: 'info' }[id];
+                if (nav && window.CockpitNav && CockpitNav.syncSidebarActive) CockpitNav.syncSidebarActive(nav);
             };
             ws.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(sync); } }, { passive: true });
             sync();
@@ -3970,6 +3986,46 @@ TAF LFPO 101100Z 1012/1118 27006KT CAVOK
                 });
             }
         });
+        // Un bouton par categorie : coche (ou decoche) tous ses criteres d'un coup
+        (function initCategoryToggles() {
+            const groups = [
+                ['catBadgePilot', ['chk_imsafe_illness', 'chk_imsafe_medication', 'chk_imsafe_stress', 'chk_imsafe_alcohol', 'chk_imsafe_fatigue', 'chk_imsafe_emotion', 'chk_pilot_currency']],
+                ['catBadgeWx', ['chk_wx_ceiling_vis', 'chk_wx_wind', 'chk_wx_hazards', 'chk_wx_alts']],
+                ['catBadgeAc', ['chk_doc_license', 'chk_doc_medical', 'chk_doc_arow', 'chk_ac_wb', 'chk_ac_preflight', 'chk_ac_fuel']],
+                ['catBadgeNav', ['chk_doc_charts', 'chk_nav_notams', 'chk_nav_equipment', 'chk_nav_briefing']]
+            ];
+            groups.forEach(([badgeId, ids]) => {
+                const badge = document.getElementById(badgeId);
+                if (!badge) return;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'cat-check-all';
+                const boxes = () => ids.map(i => document.getElementById(i)).filter(Boolean);
+                const sync = () => {
+                    const all = boxes().every(b => b.checked);
+                    btn.textContent = all ? 'Tout décocher' : 'Tout cocher';
+                    btn.classList.toggle('done', all);
+                };
+                btn.addEventListener('click', () => {
+                    const target = !boxes().every(b => b.checked);
+                    boxes().forEach(b => {
+                        if (b.checked !== target) {
+                            b.checked = target;
+                            b.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    });
+                    sync();
+                });
+                boxes().forEach(b => b.addEventListener('change', sync));
+                const group = document.createElement('span');
+                group.className = 'cat-check-group';
+                badge.parentElement.insertBefore(group, badge);
+                group.appendChild(btn);
+                group.appendChild(badge);
+                sync();
+            });
+        })();
+
         readinessChkIds.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
@@ -8305,6 +8361,21 @@ E) LOSS OF COMMS IN LONDON TMA: SQUAWK 7600 AND COMPLY WITH STANDARD UK AIP ENR 
         // Single continuous page: every stage stays on screen, the strip only navigates
         document.body.classList.add('view-continuous');
         initStageSpy();
+
+        // Le menu de gauche pointe ici pour Meteo, Infos de vol et Depart en vol :
+        // l'ancre ouvre directement la bonne etape, sans animation a l'arrivee.
+        function goToStageFromHash(smooth) {
+            const stage = (location.hash || '').replace('#', '');
+            if (!stage || !document.getElementById('pane-' + stage)) return false;
+            if (smooth) { switchPrepTab(stage); return true; }
+            const pane = document.getElementById('pane-' + stage);
+            const ws = document.getElementById('prepMainWorkspace');
+            document.querySelectorAll('.prep-tab-btn').forEach(b => b.classList.toggle('active', b.id === 'tabBtn-' + stage));
+            if (ws) ws.scrollTop = Math.max(0, pane.offsetTop - 12);
+            return true;
+        }
+        requestAnimationFrame(() => goToStageFromHash(false));
+        window.addEventListener('hashchange', () => goToStageFromHash(true));
         updateMissionHud();
 
         // Sync subtitle, navlog fuel and mission HUD when briefing values change

@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="assets/cockpit.css">
     <script src="assets/cockpit-nav.js"></script>
     <script src="assets/data-sources.js"></script>
+    <script src="assets/app-header.js"></script>
 
     <style>
         :root {
@@ -523,24 +524,31 @@
     <main class="main-layout">
         <!-- Numbered Tablet Sidebar Navigation -->
         <nav class="tablet-sidebar">
-            <a href="flg_prep.html" class="sidebar-item">
+            <a href="VFR.html" class="sidebar-item" data-nav="map">
                 <span class="num">01</span>
-                <span class="label">Préparation</span>
-            </a>
-            <a href="VFR.html" class="sidebar-item">
-                <span class="num">02</span>
                 <span class="label">Carte</span>
             </a>
-            <a href="perfo.html" class="sidebar-item">
+            <a href="flg_prep.html#weather" class="sidebar-item" data-nav="wx">
+                <span class="num">02</span>
+                <span class="label">Météo</span>
+            </a>
+            <a href="flg_prep.html#flight-fuel" class="sidebar-item" data-nav="info">
                 <span class="num">03</span>
+                <span class="label">Infos de vol</span>
+            </a>
+            <a href="perfo.html" class="sidebar-item" data-nav="perf">
+                <span class="num">04</span>
                 <span class="label">Performances</span>
             </a>
-            <a href="checklists.html" class="sidebar-item active">
-                <span class="num">04</span>
+            <a href="flg_prep.html#readiness" class="sidebar-item" data-nav="dep">
+                <span class="num">05</span>
+                <span class="label">Départ en vol</span>
+            </a>
+            <div class="sidebar-sep" aria-hidden="true"></div>
+            <a href="checklists.html" class="sidebar-item no-num active" data-nav="check" data-mini="CHK">
                 <span class="label">Checklists</span>
             </a>
-            <a href="emergency.html" class="sidebar-item">
-                <span class="num">05</span>
+            <a href="emergency.html" class="sidebar-item no-num" data-nav="emg" data-mini="URG">
                 <span class="label">Urgences</span>
             </a>
 
@@ -910,6 +918,18 @@
             nextBtn.disabled = currentIndex === count - 1;
             nextBtn.addEventListener('click', () => selectChecklist(activeAircraft, activeAircraft.checklists[currentIndex + 1].id));
 
+            const checkAllBtn = document.createElement('button');
+            checkAllBtn.type = 'button';
+            checkAllBtn.className = 'ghost-btn';
+            checkAllBtn.textContent = '✓ Tout cocher';
+            checkAllBtn.title = 'Cocher tous les éléments de cette checklist';
+            checkAllBtn.disabled = current.items.length === 0 || current.items.every(i => i.checked);
+            checkAllBtn.addEventListener('click', () => {
+                current.items.forEach(i => { i.checked = true; });
+                saveState();
+                renderChecklistsPanel();
+            });
+
             const resetBtn = document.createElement('button');
             resetBtn.type = 'button';
             resetBtn.className = 'ghost-btn';
@@ -929,7 +949,7 @@
             exportBtn.title = 'Toutes les checklists de cet avion, en kneeboard A4';
             exportBtn.addEventListener('click', () => generatePDF(activeAircraft));
 
-            actions.append(prevBtn, nextBtn, resetBtn, exportBtn);
+            actions.append(prevBtn, nextBtn, checkAllBtn, resetBtn, exportBtn);
             toolbar.appendChild(actions);
             panel.appendChild(toolbar);
 

@@ -21,7 +21,7 @@
             type: 'C172',
             model: 'Cessna 172S Skyhawk',
             reg: 'F-HVGN',
-            description: '180 HP Lycoming IO-360-L2A, 4-seat touring aircraft with Garmin avionics.',
+            description: 'Lycoming IO-360-L2A 180 ch, quadriplace de voyage, avionique Garmin.',
             units: { weight: 'kg', arm: 'cm', fuel: 'L' },
             profile: {
                 reg: 'F-HVGN',
@@ -130,7 +130,7 @@
             type: 'DR400',
             model: 'Robin DR400/120',
             reg: 'F-GKQX',
-            description: '118 HP Lycoming O-235, high-efficiency French wooden airframe, outstanding forward visibility.',
+            description: 'Lycoming O-235 118 ch, cellule bois française très efficace, excellente visibilité vers l\'avant.',
             units: { weight: 'kg', arm: 'cm', fuel: 'L' },
             profile: {
                 reg: 'F-GKQX',
@@ -218,7 +218,7 @@
             type: 'PA28',
             model: 'Piper PA-28-181 Archer',
             reg: 'N28181',
-            description: '180 HP Lycoming O-360-A4M, rugged all-metal low-wing aircraft, stable IFR platform.',
+            description: 'Lycoming O-360-A4M 180 ch, aile basse tout métal robuste, plateforme IFR stable.',
             units: { weight: 'kg', arm: 'cm', fuel: 'L' },
             profile: {
                 reg: 'N28181',
@@ -308,7 +308,7 @@
             type: 'DA40',
             model: 'Diamond DA40 NG',
             reg: 'OE-DNG',
-            description: '168 HP Austro Engine AE300 Jet-A1 turbo-diesel with EECU FADEC single-lever control.',
+            description: 'Austro AE300 168 ch, turbo-diesel Jet-A1, commande monomanette FADEC.',
             units: { weight: 'kg', arm: 'cm', fuel: 'L' },
             profile: {
                 reg: 'OE-DNG',
@@ -396,7 +396,7 @@
             type: 'C152',
             model: 'Cessna 152',
             reg: 'F-GAZZ',
-            description: '110 HP Lycoming O-235-L2C, beloved 2-seat basic VFR trainer, economical and forgiving.',
+            description: 'Lycoming O-235-L2C 110 ch, biplace école VFR, économique et tolérant.',
             units: { weight: 'kg', arm: 'cm', fuel: 'L' },
             profile: {
                 reg: 'F-GAZZ',
@@ -790,24 +790,25 @@
                     <div style="display:flex; align-items:center; gap:10px;">
                         <span style="font-size:24px;"></span>
                         <div>
-                            <h3 style="margin:0; font-size:17px; font-weight:800; color:var(--text-color);">Aircraft Profile Manager</h3>
-                            <span style="font-size:12px; color:var(--muted-text);">Import, export, and synchronize fleet profiles across all flight prep modules</span>
+                            <h3 style="margin:0; font-size:17px; font-weight:800; color:var(--text-color);">Profils avion</h3>
+                            <span style="font-size:12px; color:var(--muted-text);">Choisissez, modifiez ou importez un avion ; le profil est partagé par tous les modules</span>
                         </div>
                     </div>
                     <button class="profile-modal-close" onclick="AircraftProfiles.closeModal()">&times;</button>
                 </div>
 
                 <div class="profile-modal-tabs">
-                    <button class="profile-tab-btn active" data-tab="presets">Built-in Presets</button>
-                    <button class="profile-tab-btn" data-tab="import">Import File / JSON</button>
-                    <button class="profile-tab-btn" data-tab="export">Export Active Profile</button>
+                    <button class="profile-tab-btn active" data-tab="presets">Modèles constructeur</button>
+                    <button class="profile-tab-btn" data-tab="fleet">Mes avions</button>
+                    <button class="profile-tab-btn" data-tab="import">Importer</button>
+                    <button class="profile-tab-btn" data-tab="export">Exporter</button>
                 </div>
 
                 <div class="profile-modal-body">
                     <!-- PRESETS TAB -->
                     <div class="profile-tab-pane active" id="pane-presets">
                         <div style="font-size:13px; color:var(--muted-text); margin-bottom:14px;">
-                            Select a verified manufacturer POH aircraft profile to immediately configure Speeds, Weight &amp; Balance, Consumption, and Checklists:
+                            Partez d&rsquo;un modèle constructeur vérifié (manuel de vol) : vitesses, masse et centrage, consommation et check-lists sont configurés d&rsquo;un coup. Bouton <strong>Modifier</strong> pour en faire votre propre avion.
                         </div>
                         <div class="preset-grid">
                             ${Object.keys(AIRCRAFT_PRESETS).map(key => {
@@ -820,19 +821,53 @@
                                                 <strong class="preset-title">${escapeHtml(p.name)}</strong>
                                                 <div class="preset-sub">${escapeHtml(p.reg)} &bull; ${escapeHtml(p.type)}</div>
                                             </div>
-                                            <span class="preset-tag">POH PRESET</span>
+                                            <span class="preset-tag">CONSTRUCTEUR</span>
                                         </div>
                                         <div class="preset-desc">${escapeHtml(p.description)}</div>
                                         <div class="preset-specs">
-                                            <span><strong>Cruise:</strong> ${vCruise} kt</span>
-                                            <span><strong>Burn:</strong> ${p.range.fuelBurn} L/h</span>
-                                            <span><strong>MTOW:</strong> ${p.profile.mtow} kg</span>
-                                            <span><strong>Fuel:</strong> ${p.profile.fuelCapacity} L</span>
+                                            <span><strong>Croisière :</strong> ${vCruise} kt</span>
+                                            <span><strong>Conso :</strong> ${p.range.fuelBurn} L/h</span>
+                                            <span><strong>MTOW :</strong> ${p.profile.mtow} kg</span>
+                                            <span><strong>Carburant :</strong> ${p.profile.fuelCapacity} L</span>
                                         </div>
-                                        <button class="btn-action primary small" style="width:100%; margin-top:10px;">Load ${escapeHtml(p.type)} Profile</button>
+                                        <div style="display:flex; gap:8px; margin-top:10px;">
+                                            <button class="btn-action primary small" style="flex:1;">Charger ${escapeHtml(p.type)}</button>
+                                            <button class="btn-action small" onclick="event.stopPropagation(); AircraftProfiles.editProfile('preset', '${key}')">Modifier</button>
+                                        </div>
                                     </div>
                                 `;
                             }).join('')}
+                        </div>
+                    </div>
+
+                    <!-- MES AVIONS : profils personnels, modifiables -->
+                    <div class="profile-tab-pane" id="pane-fleet">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+                            <div style="font-size:13px; color:var(--muted-text);">Vos avions, modifiables à volonté. Un profil enregistré ici garde vos valeurs (masses, vitesses, consommation).</div>
+                            <button class="btn-action primary small" onclick="AircraftProfiles.newFromActive()">+ Créer depuis le profil actif</button>
+                        </div>
+                        <div class="preset-grid" id="fleetGrid"></div>
+                    </div>
+
+                    <!-- EDITEUR DE PROFIL -->
+                    <div class="profile-tab-pane" id="pane-edit">
+                        <div style="font-size:13px; color:var(--muted-text); margin-bottom:12px;" id="editIntro">Modifiez les valeurs de l'avion, puis enregistrez.</div>
+                        <div class="profile-edit-grid">
+                            <label>Nom<input type="text" id="editName"></label>
+                            <label>Immatriculation<input type="text" id="editReg"></label>
+                            <label>Type<input type="text" id="editType"></label>
+                            <label>MTOW (kg)<input type="number" id="editMtow" step="1"></label>
+                            <label>Carburant utilisable (L)<input type="number" id="editFuelCap" step="1"></label>
+                            <label>Consommation (L/h)<input type="number" id="editBurn" step="0.5"></label>
+                            <label>Vitesse de croisière (kt)<input type="number" id="editCruise" step="1"></label>
+                            <label>Masse à vide (kg)<input type="number" id="editEmpty" step="1"></label>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:16px;">
+                            <button class="btn-action small" onclick="AircraftProfiles.cancelEdit()">Annuler</button>
+                            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                <button class="btn-action small" onclick="AircraftProfiles.saveEdit(false)">Enregistrer</button>
+                                <button class="btn-action primary small" onclick="AircraftProfiles.saveEdit(true)">Enregistrer et charger</button>
+                            </div>
                         </div>
                     </div>
 
@@ -840,36 +875,36 @@
                     <div class="profile-tab-pane" id="pane-import">
                         <div class="profile-dropzone" id="profileDropzone">
                             <span style="font-size:32px; margin-bottom:8px; display:block;"></span>
-                            <strong>Drag &amp; drop an aircraft profile (.json) here</strong>
-                            <div style="font-size:12px; color:var(--muted-text); margin:6px 0 12px 0;">or browse from your computer</div>
+                            <strong>Déposez ici un profil avion (.json)</strong>
+                            <div style="font-size:12px; color:var(--muted-text); margin:6px 0 12px 0;">ou parcourez votre ordinateur</div>
                             <input type="file" id="profileFileInput" accept=".json,application/json" style="display:none;">
-                            <button class="btn-action small" onclick="document.getElementById('profileFileInput').click()">Choose JSON File</button>
+                            <button class="btn-action small" onclick="document.getElementById('profileFileInput').click()">Choisir un fichier JSON</button>
                         </div>
 
                         <div style="margin: 18px 0 8px 0; font-size:12.5px; font-weight:700; color:var(--text-color);">
-                            Or Paste Profile JSON Code:
+                            Ou collez le code JSON du profil :
                         </div>
-                        <textarea id="profilePasteArea" class="profile-paste-box" placeholder='Paste aircraft profile JSON here...'></textarea>
+                        <textarea id="profilePasteArea" class="profile-paste-box" placeholder='Collez ici le JSON du profil avion...'></textarea>
                         
                         <div id="importErrorBox" class="profile-error-box" style="display:none;"></div>
 
                         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px;">
-                            <button class="btn-action" onclick="AircraftProfiles.closeModal()">Cancel</button>
-                            <button class="btn-action primary" onclick="AircraftProfiles.handlePastedImport()">Apply Aircraft Profile</button>
+                            <button class="btn-action" onclick="AircraftProfiles.closeModal()">Annuler</button>
+                            <button class="btn-action primary" onclick="AircraftProfiles.handlePastedImport()">Appliquer le profil</button>
                         </div>
                     </div>
 
                     <!-- EXPORT TAB -->
                     <div class="profile-tab-pane" id="pane-export">
                         <div style="font-size:13px; color:var(--muted-text); margin-bottom:14px;">
-                            Export your current configured aircraft profile with all custom speeds, weight &amp; balance stations, fuel burn, and flight procedures:
+                            Exportez l&rsquo;avion actif avec ses vitesses, ses stations de centrage, sa consommation et ses procédures :
                         </div>
 
                         <div class="profile-summary-box" id="profileExportSummary"></div>
 
                         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-                            <button class="btn-action" onclick="AircraftProfiles.copyJsonToClipboard()">Copy JSON to Clipboard</button>
-                            <button class="btn-action primary" onclick="AircraftProfiles.exportAndDownload()">Download .JSON File</button>
+                            <button class="btn-action" onclick="AircraftProfiles.copyJsonToClipboard()">Copier le JSON</button>
+                            <button class="btn-action primary" onclick="AircraftProfiles.exportAndDownload()">Télécharger le fichier .json</button>
                         </div>
                     </div>
                 </div>
@@ -917,6 +952,21 @@
         } else {
             injectGlobalProfileButtonCss();
         }
+    }
+
+    function injectProfileEditCss() {
+        if (document.getElementById('profileEditCss')) return;
+        const st = document.createElement('style');
+        st.id = 'profileEditCss';
+        st.textContent = `
+            .profile-edit-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; }
+            .profile-edit-grid label { display:flex; flex-direction:column; gap:5px; font-family:var(--f-mono); font-size:10.5px;
+                                       font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--text-secondary); }
+            .profile-edit-grid input { background:var(--panel-2) !important; border:1px solid var(--line) !important; border-radius:8px !important;
+                                       color:var(--text) !important; font-family:var(--f-mono) !important; font-size:13.5px !important; padding:9px 11px !important; }
+            :root .btn-delete-profile { border-color:color-mix(in srgb, var(--danger) 45%, transparent) !important; }
+        `;
+        document.head.appendChild(st);
     }
 
     function injectProfileModalCss() {
@@ -1041,6 +1091,7 @@
             }
         `;
         document.head.appendChild(style);
+        injectProfileEditCss();
     }
 
     function initModalDom() {
@@ -1131,6 +1182,155 @@
             showError(err.message);
         }
     }
+
+    // ---------------------------------------------------------------
+    // Profils personnels : chaque avion peut etre modifie et conserve
+    // ---------------------------------------------------------------
+    const CUSTOM_KEY = 'flightprep_custom_aircraft_v1';
+    let editingDraft = null;
+
+    function getCustomProfiles() {
+        try { return JSON.parse(localStorage.getItem(CUSTOM_KEY) || '[]'); } catch (e) { return []; }
+    }
+    function setCustomProfiles(list) {
+        try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(list)); } catch (e) {}
+    }
+    function activeProfileObject() {
+        let perf = {};
+        try { perf = JSON.parse(localStorage.getItem(PERF_STORAGE_KEY) || '{}'); } catch (e) {}
+        const base = JSON.parse(JSON.stringify(AIRCRAFT_PRESETS[Object.keys(AIRCRAFT_PRESETS)[0]]));
+        base.name = (perf.profile && perf.profile.type) ? ('Mon ' + perf.profile.type) : 'Mon avion';
+        base.reg = (perf.profile && (perf.profile.reg || perf.profile.registration)) || base.reg;
+        base.type = (perf.profile && perf.profile.type) || base.type;
+        base.description = 'Profil personnel enregistré depuis les performances en cours.';
+        if (perf.profile) base.profile = Object.assign({}, base.profile, perf.profile);
+        if (Array.isArray(perf.speeds) && perf.speeds.length) base.speeds = perf.speeds;
+        if (Array.isArray(perf.wbRows) && perf.wbRows.length) base.wbRows = perf.wbRows;
+        if (perf.range) base.range = Object.assign({}, base.range, perf.range);
+        if (perf.fuelFlow) base.range.fuelBurn = perf.fuelFlow;
+        return base;
+    }
+
+    function renderFleet() {
+        const grid = document.getElementById('fleetGrid');
+        if (!grid) return;
+        const list = getCustomProfiles();
+        if (!list.length) {
+            grid.innerHTML = '<div style="padding:22px; border:1px dashed var(--line-strong); border-radius:12px; text-align:center; color:var(--muted-text); font-size:13px;">Aucun avion enregistré. Partez d\'un modèle constructeur (bouton Modifier) ou du profil actif.</div>';
+            return;
+        }
+        grid.innerHTML = list.map(item => {
+            const d = item.data || {};
+            const cruise = (d.speeds || []).find(sp => sp.name === 'Vc');
+            return `
+                <div class="preset-card">
+                    <div class="preset-header">
+                        <div>
+                            <strong class="preset-title">${escapeHtml(d.name || 'Avion')}</strong>
+                            <div class="preset-sub">${escapeHtml(d.reg || '')} &bull; ${escapeHtml(d.type || '')}</div>
+                        </div>
+                        <span class="preset-tag">MON AVION</span>
+                    </div>
+                    <div class="preset-specs">
+                        <span><strong>Croisière :</strong> ${cruise ? cruise.value : '—'} kt</span>
+                        <span><strong>Conso :</strong> ${(d.range && d.range.fuelBurn) || '—'} L/h</span>
+                        <span><strong>MTOW :</strong> ${(d.profile && d.profile.mtow) || '—'} kg</span>
+                        <span><strong>À vide :</strong> ${(d.profile && d.profile.emptyWeight) || '—'} kg</span>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-top:10px;">
+                        <button class="btn-action primary small" style="flex:1;" onclick="AircraftProfiles.loadCustom('${item.id}')">Charger</button>
+                        <button class="btn-action small" onclick="AircraftProfiles.editProfile('custom', '${item.id}')">Modifier</button>
+                        <button class="btn-action small btn-danger btn-delete-profile" onclick="AircraftProfiles.deleteCustom('${item.id}')">Supprimer</button>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    function goToTab(tab) {
+        const modal = document.getElementById('aircraftProfileModal');
+        if (!modal) return;
+        // l'editeur n'a pas d'onglet propre : on garde Mes avions en surbrillance
+        const lit = tab === 'edit' ? 'fleet' : tab;
+        modal.querySelectorAll('.profile-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === lit));
+        modal.querySelectorAll('.profile-tab-pane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + tab));
+    }
+
+    function editProfile(source, id) {
+        let data = null;
+        if (source === 'preset') data = JSON.parse(JSON.stringify(AIRCRAFT_PRESETS[id] || {}));
+        else if (source === 'custom') {
+            const item = getCustomProfiles().find(x => x.id === id);
+            data = item ? JSON.parse(JSON.stringify(item.data)) : null;
+        } else data = activeProfileObject();
+        if (!data || !data.profile) return;
+        editingDraft = { id: source === 'custom' ? id : null, data: data };
+        const cruise = (data.speeds || []).find(sp => sp.name === 'Vc');
+        const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val === undefined || val === null ? '' : val; };
+        set('editName', data.name); set('editReg', data.reg); set('editType', data.type);
+        set('editMtow', data.profile.mtow); set('editFuelCap', data.profile.fuelCapacity);
+        set('editBurn', data.range && data.range.fuelBurn); set('editCruise', cruise && cruise.value);
+        set('editEmpty', data.profile.emptyWeight);
+        const intro = document.getElementById('editIntro');
+        if (intro) intro.textContent = source === 'custom'
+            ? 'Modification de votre avion. Les valeurs remplacent celles enregistrées.'
+            : "Copie du modèle constructeur : vos modifications seront enregistrées dans Mes avions, le modèle d'origine reste intact.";
+        goToTab('edit');
+    }
+
+    function cancelEdit() { editingDraft = null; renderFleet(); goToTab('fleet'); }
+
+    function saveEdit(alsoLoad) {
+        if (!editingDraft) return;
+        const num = elId => { const el = document.getElementById(elId); const v = el ? parseFloat(el.value) : NaN; return isNaN(v) ? null : v; };
+        const txt = elId => { const el = document.getElementById(elId); return el ? el.value.trim() : ''; };
+        const d = editingDraft.data;
+        d.name = txt('editName') || d.name;
+        d.reg = txt('editReg') || d.reg;
+        d.type = txt('editType') || d.type;
+        if (num('editMtow') !== null) d.profile.mtow = num('editMtow');
+        if (num('editFuelCap') !== null) d.profile.fuelCapacity = num('editFuelCap');
+        d.range = d.range || {};
+        if (num('editBurn') !== null) d.range.fuelBurn = num('editBurn');
+        const cruise = (d.speeds || []).find(sp => sp.name === 'Vc');
+        if (cruise && num('editCruise') !== null) cruise.value = num('editCruise');
+        if (num('editEmpty') !== null) d.profile.emptyWeight = num('editEmpty');
+
+        const list = getCustomProfiles();
+        if (editingDraft.id) {
+            const item = list.find(x => x.id === editingDraft.id);
+            if (item) item.data = d; else list.push({ id: editingDraft.id, data: d });
+        } else {
+            editingDraft.id = 'ac-' + Date.now().toString(36);
+            list.push({ id: editingDraft.id, data: d });
+        }
+        setCustomProfiles(list);
+        renderFleet();
+        if (alsoLoad) {
+            const normalized = importAircraftProfile(d);
+            showSuccessAndReload('Avion enregistré et chargé : ' + normalized.name);
+        } else {
+            showToast('Avion enregistré dans Mes avions');
+            editingDraft = null;
+            goToTab('fleet');
+        }
+    }
+
+    function loadCustom(id) {
+        const item = getCustomProfiles().find(x => x.id === id);
+        if (!item) return;
+        const normalized = importAircraftProfile(item.data);
+        showSuccessAndReload('Avion chargé : ' + normalized.name);
+    }
+
+    function deleteCustom(id) {
+        const item = getCustomProfiles().find(x => x.id === id);
+        if (!item) return;
+        if (!confirm('Supprimer « ' + ((item.data && item.data.name) || 'cet avion') + ' » ?')) return;
+        setCustomProfiles(getCustomProfiles().filter(x => x.id !== id));
+        renderFleet();
+    }
+
+    function newFromActive() { editProfile('active'); }
 
     function loadPreset(presetKey) {
         const preset = AIRCRAFT_PRESETS[presetKey];
@@ -1233,10 +1433,10 @@
             navigator.clipboard.writeText(jsonStr).then(() => {
                 showToast('Aircraft profile JSON copied to clipboard!', 'success');
             }).catch(() => {
-                showToast('Could not copy to clipboard. Please use Download button.', 'error');
+                showToast('Copie impossible. Utilisez le bouton Télécharger.', 'error');
             });
         } else {
-            showToast('Clipboard access not supported. Please use Download button.', 'error');
+            showToast('Presse-papiers indisponible. Utilisez le bouton Télécharger.', 'error');
         }
     }
 
@@ -1323,6 +1523,7 @@
         modal.style.opacity = '1';
 
         // Select default tab
+        renderFleet();
         const tabBtn = modal.querySelector(`.profile-tab-btn[data-tab="${defaultTab}"]`);
         if (tabBtn) tabBtn.click();
     }
@@ -1354,6 +1555,12 @@
         importProfile: importAircraftProfile,
         validateProfile: validateAndNormalizeAircraftProfile,
         openModal: openModal,
+        editProfile: editProfile,
+        saveEdit: saveEdit,
+        cancelEdit: cancelEdit,
+        loadCustom: loadCustom,
+        deleteCustom: deleteCustom,
+        newFromActive: newFromActive,
         closeModal: closeModal,
         loadPreset: loadPreset,
         handlePastedImport: handlePastedImport,

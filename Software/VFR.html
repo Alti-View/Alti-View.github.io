@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="assets/cockpit.css">
     <script src="assets/cockpit-nav.js"></script>
     <script src="assets/data-sources.js"></script>
+    <script src="assets/app-header.js"></script>
     
     <!-- PDF & Canvas Libraries (Deferred to eliminate initial page blocking) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous" defer></script>
@@ -1345,6 +1346,73 @@
 
         /* Fold button of the Flight Deck: mirror of the left menu's "Replier" button,
            same size and same line (16px under the top bar), chevron pointing outwards */
+        /* Prise en main de la carte : rappel du parcours de preparation */
+        .map-intro-overlay {
+            position: fixed; inset: 0; z-index: 5000;
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+            background: color-mix(in srgb, var(--canvas) 78%, transparent);
+            backdrop-filter: blur(4px);
+        }
+        .map-intro-overlay[hidden] { display: none !important; }
+        .map-intro-card {
+            width: min(560px, 100%); max-height: 88vh; overflow-y: auto;
+            background: var(--panel); border: 1px solid var(--line-strong); border-radius: 18px;
+            box-shadow: 0 28px 70px -30px rgba(0, 0, 0, .8);
+        }
+        .map-intro-head {
+            display: flex; align-items: flex-start; justify-content: space-between; gap: 14px;
+            padding: 20px 22px 14px; border-bottom: 1px solid var(--line);
+        }
+        .map-intro-kicker {
+            font-family: var(--f-mono); font-size: 10px; font-weight: 600; letter-spacing: .18em;
+            text-transform: uppercase; color: var(--cyan);
+        }
+        .map-intro-head h2 {
+            margin: 6px 0 0; font-family: var(--f-display); font-size: 21px; font-weight: 800;
+            letter-spacing: .01em; color: var(--text);
+        }
+        .map-intro-close {
+            flex-shrink: 0; width: 30px; height: 30px; border-radius: 8px; cursor: pointer;
+            border: 1px solid var(--line); background: transparent; color: var(--text-secondary);
+            font-size: 20px; line-height: 1;
+        }
+        .map-intro-close:hover { color: var(--danger); border-color: var(--danger); }
+        .map-intro-steps { list-style: none; margin: 0; padding: 16px 22px 4px; display: flex; flex-direction: column; gap: 14px; }
+        .map-intro-steps li { display: flex; gap: 13px; align-items: flex-start; }
+        .map-intro-steps .n {
+            flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--cyan-soft); color: var(--cyan);
+            font-family: var(--f-mono); font-size: 11px; font-weight: 700;
+        }
+        .map-intro-steps li > div > strong { display: block; font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+        .map-intro-steps p strong { color: var(--text); font-weight: 700; }
+        .map-intro-steps p { margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--text-secondary); }
+        .map-intro-steps em { font-style: normal; font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .04em; color: var(--cyan); }
+        .map-intro-steps kbd {
+            font-family: var(--f-mono); font-size: 11px; padding: 1px 6px; border-radius: 5px;
+            border: 1px solid var(--line-strong); background: var(--panel-2); color: var(--text);
+        }
+        .map-intro-foot {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+            padding: 16px 22px 20px; margin-top: 8px; border-top: 1px solid var(--line);
+        }
+        .map-intro-skip { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12.5px; color: var(--text-secondary); }
+        .map-intro-skip input { accent-color: var(--cyan); width: 15px; height: 15px; }
+        .map-intro-go {
+            font-family: var(--f-mono); font-size: 11.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+            padding: 10px 20px; border-radius: 10px; cursor: pointer; border: 1px solid var(--accent);
+            background: var(--accent); color: var(--on-accent); transition: background .15s ease, transform .15s ease;
+        }
+        .map-intro-go:hover { background: var(--accent-hover); transform: translateY(-1px); }
+        @media (max-width: 600px) {
+            .map-intro-card { border-radius: 14px; }
+            .map-intro-head { padding: 16px 16px 12px; }
+            .map-intro-head h2 { font-size: 18px; }
+            .map-intro-steps { padding: 14px 16px 2px; gap: 12px; }
+            .map-intro-foot { padding: 14px 16px 18px; }
+        }
+
         .dock-fold-btn {
             display: flex;
             align-items: center;
@@ -2664,6 +2732,22 @@
             .map-vignette { box-shadow: inset 0 0 90px 10px rgba(4, 10, 16, .3); }
         }
 
+        /* ---- Bouton de localisation ---- */
+        #btnCenterRoute.locating { color: var(--cyan); animation: locatePulse 1s ease-in-out infinite; }
+        @keyframes locatePulse { 50% { opacity: .45; } }
+
+        /* ---- APT reprend le bleu des secteurs d'information ---- */
+        .layer-btn.active#btnLayerAirports { color: var(--as-siv); background: color-mix(in srgb, var(--as-siv) 15%, transparent); }
+
+        /* ---- iPad : la barre des calques passe en haut a droite ---- */
+        /* iPad : la barre des calques est deplacee en haut a droite et passe a l'horizontale */
+        .chart-ctrl-cluster.topright { top: 74px; right: 18px; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+        .chart-ctrl-cluster.topright .chart-layer-controls {
+            flex-direction: row; align-items: center; flex-wrap: wrap; justify-content: flex-end;
+            width: auto; max-width: min(560px, calc(100vw - 130px)); padding: 3px 5px;
+        }
+        .chart-ctrl-cluster.topright .chart-layer-controls .chart-ctrl-divider { width: 1px; height: 22px; margin: 0 2px; }
+
         /* ---- Inspecteur d'espaces aériens : masquable, et simplifié sur téléphone ---- */
         body.inspector-off .airspace-mini-card { display: none !important; }
         #btnInspectorToggle[aria-pressed="false"] { color: var(--muted); }
@@ -2805,24 +2889,31 @@
     <main class="main-layout">
         <!-- Numbered Tablet Sidebar Navigation -->
         <nav class="tablet-sidebar">
-            <a href="flg_prep.html" class="sidebar-item">
+            <a href="VFR.html" class="sidebar-item active" data-nav="map">
                 <span class="num">01</span>
-                <span class="label">Préparation</span>
-            </a>
-            <a href="VFR.html" class="sidebar-item active">
-                <span class="num">02</span>
                 <span class="label">Carte</span>
             </a>
-            <a href="perfo.html" class="sidebar-item">
+            <a href="flg_prep.html#weather" class="sidebar-item" data-nav="wx">
+                <span class="num">02</span>
+                <span class="label">Météo</span>
+            </a>
+            <a href="flg_prep.html#flight-fuel" class="sidebar-item" data-nav="info">
                 <span class="num">03</span>
+                <span class="label">Infos de vol</span>
+            </a>
+            <a href="perfo.html" class="sidebar-item" data-nav="perf">
+                <span class="num">04</span>
                 <span class="label">Performances</span>
             </a>
-            <a href="checklists.html" class="sidebar-item">
-                <span class="num">04</span>
+            <a href="flg_prep.html#readiness" class="sidebar-item" data-nav="dep">
+                <span class="num">05</span>
+                <span class="label">Départ en vol</span>
+            </a>
+            <div class="sidebar-sep" aria-hidden="true"></div>
+            <a href="checklists.html" class="sidebar-item no-num" data-nav="check" data-mini="CHK">
                 <span class="label">Checklists</span>
             </a>
-            <a href="emergency.html" class="sidebar-item">
-                <span class="num">05</span>
+            <a href="emergency.html" class="sidebar-item no-num" data-nav="emg" data-mini="URG">
                 <span class="label">Urgences</span>
             </a>
 
@@ -2864,17 +2955,8 @@
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                             </button>
                             <div class="chart-ctrl-divider"></div>
-                            <button class="chart-ctrl-btn" id="btnResetNorth" title="Reset North / Align View" aria-label="Reset North">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8" opacity="0.35"/>
-                                    <polygon points="12,3 15,12 9,12" fill="#ef4444"/>
-                                    <polygon points="12,21 9,12 15,12" fill="currentColor" opacity="0.35"/>
-                                    <circle cx="12" cy="12" r="1.5" fill="#ef4444"/>
-                                </svg>
-                                <span class="compass-n">N</span>
-                            </button>
                             <div class="chart-ctrl-divider"></div>
-                            <button class="chart-ctrl-btn" id="btnCenterRoute" title="Center on Flight Track" aria-label="Center flight track">
+                            <button class="chart-ctrl-btn" id="btnCenterRoute" title="Centrer sur ma position" aria-label="Centrer sur ma position">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                     <circle cx="12" cy="12" r="7"></circle>
                                     <line x1="12" y1="2" x2="12" y2="5"></line>
@@ -2895,9 +2977,6 @@
                             <button class="chart-ctrl-btn" id="btnMapFullscreen" type="button" aria-pressed="false" title="Carte en plein écran" aria-label="Carte en plein écran">
                                 <svg class="fs-enter" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
                                 <svg class="fs-exit" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>
-                            </button>
-                            <button class="chart-ctrl-btn" id="btnKbdHelp" type="button" aria-pressed="false" title="Raccourcis clavier (touche ?)" aria-label="Raccourcis clavier">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></svg>
                             </button>
                             <button class="chart-ctrl-btn" id="btnInspectorToggle" type="button" aria-pressed="true" title="Afficher ou masquer les espaces aériens survolés" aria-label="Inspecteur d'espaces aériens">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg>
@@ -2951,13 +3030,14 @@
                                 <span class="ctrl-micro-lbl">NAV</span>
                             </label>
 
-                            <div class="chart-ctrl-divider" style="height:2px; background:var(--line);"></div>
 
                             <!-- Controlled Airspace (CTR, TMA) Toggle -->
-                            <label class="chart-ctrl-btn layer-btn active ctrl-theme-ctr" id="btnLayerCtrl" data-tip="Controlled (CTR, TMA, CTA)">
+                            <label class="chart-ctrl-btn layer-btn active ctrl-theme-ctr" id="btnLayerCtrl" data-tip="Zones contrôlées et secteurs d'information (CTR, TMA, CTA, SIV)">
                                 <input type="checkbox" id="chkLayerCtrlAirspaces" checked style="display:none;">
+                                <!-- les secteurs d'information (SIV) suivent les zones controlees -->
+                                <input type="checkbox" id="chkLayerFisAirspaces" checked style="display:none;">
                                 <span class="ctrl-badge-icon" style="font-weight:800; font-size:9.5px; font-family:'IBM Plex Mono',monospace;">CTR</span>
-                                <span class="ctrl-micro-lbl">ZONE</span>
+                                <span class="ctrl-micro-lbl">SIV</span>
                             </label>
 
                             <div class="chart-ctrl-divider"></div>
@@ -2980,12 +3060,6 @@
 
                             <div class="chart-ctrl-divider"></div>
 
-                            <!-- Flight Info Sectors (FIS / SIV) Toggle -->
-                            <label class="chart-ctrl-btn layer-btn active ctrl-theme-fis" id="btnLayerFis" data-tip="Flight Info Sectors (FIS / SIV)">
-                                <input type="checkbox" id="chkLayerFisAirspaces" checked style="display:none;">
-                                <span class="ctrl-badge-icon" style="font-weight:800; font-size:9px; font-family:'IBM Plex Mono',monospace;">SIV</span>
-                                <span class="ctrl-micro-lbl">INFO</span>
-                            </label>
 
                             <div class="chart-ctrl-divider" style="height:2px; background:var(--line);"></div>
 
@@ -3517,16 +3591,29 @@
         // Avionics Navigation Cluster Controls
         const btnZoomIn = document.getElementById('btnZoomIn');
         const btnZoomOut = document.getElementById('btnZoomOut');
-        const btnResetNorth = document.getElementById('btnResetNorth');
         const btnCenterRoute = document.getElementById('btnCenterRoute');
 
         if (btnZoomIn) btnZoomIn.addEventListener('click', () => map.zoomIn());
         if (btnZoomOut) btnZoomOut.addEventListener('click', () => map.zoomOut());
-        if (btnResetNorth) btnResetNorth.addEventListener('click', () => {
-            const center = map.getCenter();
-            map.setView(center, map.getZoom(), { animate: true });
+        // Centrer sur la position du pilote ; a defaut, sur la route
+        let meMarker = null;
+        if (btnCenterRoute) btnCenterRoute.addEventListener('click', () => {
+            if (!navigator.geolocation) { centerOnRoute(); return; }
+            btnCenterRoute.classList.add('locating');
+            navigator.geolocation.getCurrentPosition(pos => {
+                btnCenterRoute.classList.remove('locating');
+                const lat = pos.coords.latitude, lng = pos.coords.longitude;
+                map.flyTo([lat, lng], Math.max(map.getZoom(), 11), { animate: true });
+                if (meMarker) map.removeLayer(meMarker);
+                meMarker = L.circleMarker([lat, lng], { radius: 7, weight: 2, color: '#4FD8C4', fillColor: '#4FD8C4', fillOpacity: .45 }).addTo(map);
+                meMarker.bindTooltip('Ma position · précision ' + Math.round(pos.coords.accuracy) + ' m', { direction: 'top' });
+            }, () => {
+                btnCenterRoute.classList.remove('locating');
+                centerOnRoute();
+                btnCenterRoute.title = 'Position indisponible — recentré sur la route';
+                setTimeout(() => { btnCenterRoute.title = 'Centrer sur ma position'; }, 4000);
+            }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 });
         });
-        if (btnCenterRoute) btnCenterRoute.addEventListener('click', () => centerOnRoute());
 
         // =========================================================================
         // OVERLAY LAYERS
@@ -3546,6 +3633,12 @@
         document.getElementById('chkLayerCtrlAirspaces').addEventListener('change', e => {
             if (e.target.checked) ctrlAirspacesLayer.addTo(map);
             else map.removeLayer(ctrlAirspacesLayer);
+            // les secteurs d'information (SIV) suivent le meme interrupteur
+            const fis = document.getElementById('chkLayerFisAirspaces');
+            if (fis && fis.checked !== e.target.checked) {
+                fis.checked = e.target.checked;
+                fis.dispatchEvent(new Event('change', { bubbles: true }));
+            }
             scheduleViewportUpdate();
         });
         document.getElementById('chkLayerSpecialAirspaces').addEventListener('change', e => {
@@ -6404,6 +6497,28 @@
         }
         updateSearchCenter();
         window.addEventListener('resize', updateSearchCenter);
+
+        // iPad : les calques rejoignent le coin haut droit ; ailleurs ils restent a gauche
+        function placeLayerBar() {
+            const bar = document.getElementById('chartLayerControls');
+            const wrap = document.querySelector('.map-wrapper');
+            const home = document.querySelector('.chart-ctrl-cluster.topleft');
+            if (!bar || !wrap || !home) return;
+            const tablet = window.innerWidth > 600 && window.innerWidth <= 1100;
+            let right = wrap.querySelector('.chart-ctrl-cluster.topright');
+            if (tablet) {
+                if (!right) {
+                    right = document.createElement('div');
+                    right.className = 'chart-ctrl-cluster topright';
+                    wrap.appendChild(right);
+                }
+                if (bar.parentElement !== right) right.appendChild(bar);
+            } else if (bar.parentElement !== home) {
+                home.appendChild(bar);
+            }
+        }
+        placeLayerBar();
+        window.addEventListener('resize', placeLayerBar);
         ['transitionend', 'click'].forEach(ev => document.addEventListener(ev, () => setTimeout(updateSearchCenter, 60)));
 
         applyInspectorState();
@@ -6422,28 +6537,24 @@
         // La référence légale reste la carte OACI et l'AIP du SIA.
 
         // =====================================================================
-        // RACCOURCIS CLAVIER (carte). Ignorés dès qu'un champ de saisie a le focus.
-        // « ? » ouvre le rappel des touches, également accessible par le bouton dédié.
         // =====================================================================
+        // RACCOURCIS CLAVIER (carte) — touches réglables dans Paramètres.
+        // Ignorés dès qu'un champ de saisie a le focus.
+        // =====================================================================
+        const SHORTCUT_ACTIONS = {
+            fit: () => MapShortcuts.click('#hudFitBtn'),
+            fullscreen: () => MapShortcuts.click('#btnMapFullscreen'),
+            layers: () => MapShortcuts.click('#btnToolsToggle'),
+            dock: () => MapShortcuts.click('#dockCollapseHandle'),
+            menu: () => MapShortcuts.click('.sidebar-collapse-btn'),
+            basemap: () => MapShortcuts.nextBasemap(),
+            ruler: () => MapShortcuts.click('#btnRulerNavToggle'),
+            invert: () => MapShortcuts.click('#hudReverseBtn'),
+            search: () => { const i = document.getElementById('spotlightInput'); if (i) { i.focus(); i.select(); } },
+            help: () => MapShortcuts.toggleHelp()
+        };
+
         const MapShortcuts = {
-            list: [
-                ['F', 'Recentrer sur la route'],
-                ['P', 'Plein écran'],
-                ['C', 'Couches et fonds'],
-                ['N', 'Panneau Flight Deck'],
-                ['M', 'Menu de gauche'],
-                ['B', 'Fond de carte suivant'],
-                ['R', 'Règle (cap et distance)'],
-                ['I', 'Inverser la route'],
-                ['+ / −', 'Zoom avant / arrière'],
-                ['/', 'Recherche'],
-                ['↑ ↓', 'Parcourir les résultats'],
-                ['Entrée', 'Ajouter à la route'],
-                ['Maj+Entrée', 'Terrain de départ'],
-                ['Alt+Entrée', "Terrain d'arrivée"],
-                ['?', 'Ce rappel'],
-                ['Échap', 'Fermer / quitter le plein écran']
-            ],
             click(sel) { const el = document.querySelector(sel); if (el) el.click(); },
             nextBasemap() {
                 const ids = ['btnBaseChart', 'btnBaseOsm', 'btnBaseSatellite'];
@@ -6454,21 +6565,22 @@
             toggleHelp(force) {
                 const box = document.getElementById('kbdHelp');
                 if (!box) return;
-                const open = force !== undefined ? force : !box.classList.contains('open');
-                box.classList.toggle('open', open);
-                const btn = document.getElementById('btnKbdHelp');
-                if (btn) btn.setAttribute('aria-pressed', open ? 'true' : 'false');
+                box.classList.toggle('open', force !== undefined ? force : !box.classList.contains('open'));
             },
+            // le rappel reprend les touches réglées dans Paramètres
             build() {
                 const box = document.getElementById('kbdHelp');
                 if (!box) return;
-                box.querySelector('.kbd-help-grid').innerHTML = this.list
+                const list = (window.AltiviewSettings ? window.AltiviewSettings.getShortcuts() : []);
+                const rows = list.map(s => [s.key === ' ' ? 'Espace' : s.key, s.label]);
+                rows.push(['+ / −', 'Zoom avant / arrière'], ['Échap', 'Fermer / quitter le plein écran']);
+                box.querySelector('.kbd-help-grid').innerHTML = rows
                     .map(([k, label]) => `<div class="kbd-row"><span class="kbd-key">${k}</span><span>${label}</span></div>`).join('');
             }
         };
 
         MapShortcuts.build();
-        document.getElementById('btnKbdHelp')?.addEventListener('click', () => MapShortcuts.toggleHelp());
+        window.addEventListener('altiview-shortcuts-changed', () => MapShortcuts.build());
         document.getElementById('kbdHelpClose')?.addEventListener('click', () => MapShortcuts.toggleHelp(false));
 
         document.addEventListener('keydown', (e) => {
@@ -6476,23 +6588,15 @@
             if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return;
             if (e.ctrlKey || e.metaKey || e.altKey) return;
 
-            switch (e.key) {
-                case '?': e.preventDefault(); MapShortcuts.toggleHelp(); break;
-                case 'Escape': MapShortcuts.toggleHelp(false); break;
-                case 'f': case 'F': e.preventDefault(); MapShortcuts.click('#hudFitBtn'); break;
-                case 'p': case 'P': e.preventDefault(); MapShortcuts.click('#btnMapFullscreen'); break;
-                case 'c': case 'C': e.preventDefault(); MapShortcuts.click('#btnToolsToggle'); break;
-                case 'n': case 'N': e.preventDefault(); MapShortcuts.click('#dockCollapseHandle'); break;
-                case 'm': case 'M': e.preventDefault(); MapShortcuts.click('.sidebar-collapse-btn'); break;
-                case 'b': case 'B': e.preventDefault(); MapShortcuts.nextBasemap(); break;
-                case 'r': case 'R': e.preventDefault(); MapShortcuts.click('#btnRulerNavToggle'); break;
-                case 'i': case 'I': e.preventDefault(); MapShortcuts.click('#hudReverseBtn'); break;
-                case '+': case '=': e.preventDefault(); map.zoomIn(); break;
-                case '-': case '_': e.preventDefault(); map.zoomOut(); break;
-            }
+            if (e.key === 'Escape') { MapShortcuts.toggleHelp(false); return; }
+            if (e.key === '+' || e.key === '=') { e.preventDefault(); map.zoomIn(); return; }
+            if (e.key === '-' || e.key === '_') { e.preventDefault(); map.zoomOut(); return; }
+
+            const list = (window.AltiviewSettings ? window.AltiviewSettings.getShortcuts() : []);
+            const hit = list.find(s => (s.key || '').toLowerCase() === e.key.toLowerCase());
+            if (hit && SHORTCUT_ACTIONS[hit.id]) { e.preventDefault(); SHORTCUT_ACTIONS[hit.id](); }
         });
 
-        // =====================================================================
         const AirspaceFeed = {
             statics: null,
             loadedBox: null,
@@ -6637,9 +6741,95 @@
         syncTasFromPerf();
         updateUI();
 
+
+        // ---------------------------------------------------------------
+        // Prise en main : rappel du parcours de preparation a l'arrivee
+        // ---------------------------------------------------------------
+        function initMapIntro() {
+            const KEY = 'altiview-map-intro-seen';
+            const overlay = document.getElementById('mapIntro');
+            if (!overlay) return;
+            let seen = false;
+            try { seen = localStorage.getItem(KEY) === '1'; } catch (e) {}
+
+            function close(remember) {
+                overlay.hidden = true;
+                document.removeEventListener('keydown', onKey);
+                if (remember) { try { localStorage.setItem(KEY, '1'); } catch (e) {} }
+                if (map && map.invalidateSize) setTimeout(() => map.invalidateSize(), 60);
+            }
+            function onKey(e) { if (e.key === 'Escape') close(document.getElementById('mapIntroSkip').checked); }
+            function open() {
+                overlay.hidden = false;
+                document.addEventListener('keydown', onKey);
+                const btn = document.getElementById('mapIntroStart');
+                if (btn) btn.focus({ preventScroll: true });
+            }
+
+            document.getElementById('mapIntroClose').addEventListener('click', () => close(document.getElementById('mapIntroSkip').checked));
+            document.getElementById('mapIntroStart').addEventListener('click', () => close(document.getElementById('mapIntroSkip').checked));
+            overlay.addEventListener('click', e => { if (e.target === overlay) close(document.getElementById('mapIntroSkip').checked); });
+
+            const kbd = document.getElementById('mapIntroSearchKey');
+            if (kbd && window.AltiviewSettings && AltiviewSettings.keyFor) kbd.textContent = AltiviewSettings.keyFor('search') || '/';
+
+            window.AltiviewMapIntro = { open: open, close: close };
+            if (!seen) setTimeout(open, 350);
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initMapIntro);
+        else initMapIntro();
+
         window.addEventListener('resize', alignAirspaceInspectorBar);
         setTimeout(alignAirspaceInspectorBar, 150);
     </script>
+
+    <!-- Premiere visite : comment preparer un vol depuis la carte -->
+    <div class="map-intro-overlay" id="mapIntro" role="dialog" aria-modal="true" aria-labelledby="mapIntroTitle" hidden>
+        <div class="map-intro-card">
+            <div class="map-intro-head">
+                <div>
+                    <span class="map-intro-kicker">Prise en main</span>
+                    <h2 id="mapIntroTitle">Préparer un vol depuis la carte</h2>
+                </div>
+                <button type="button" class="map-intro-close" id="mapIntroClose" aria-label="Fermer">&times;</button>
+            </div>
+            <ol class="map-intro-steps">
+                <li>
+                    <span class="n">1</span>
+                    <div>
+                        <strong>Posez le départ et l'arrivée</strong>
+                        <p>Ouvrez la recherche (touche <kbd id="mapIntroSearchKey">/</kbd>), tapez un code OACI ou un nom de terrain, puis choisissez « Départ » ou « Arrivée ». Un clic sur la carte ajoute un point tournant.</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="n">2</span>
+                    <div>
+                        <strong>Vérifiez la route</strong>
+                        <p>Le Flight Deck, à droite, donne les branches, les caps, les distances et le temps estimé. Survolez une zone pour lire les espaces traversés et leurs limites d'altitude.</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="n">3</span>
+                    <div>
+                        <strong>Complétez la préparation</strong>
+                        <p>La route est partagée avec les autres modules : <em>Météo</em> pour les METAR/TAF et NOTAM, <em>Infos de vol</em> pour le log de navigation et le carburant, <em>Performances</em> pour la masse et le centrage.</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="n">4</span>
+                    <div>
+                        <strong>Décidez, puis emportez</strong>
+                        <p><em>Départ en vol</em> déroule la décision Go / No-Go, et le bouton <strong>PDF</strong> sort le dossier de vol complet.</p>
+                    </div>
+                </li>
+            </ol>
+            <div class="map-intro-foot">
+                <label class="map-intro-skip"><input type="checkbox" id="mapIntroSkip"><span>Ne plus afficher</span></label>
+                <button type="button" class="map-intro-go" id="mapIntroStart">Commencer</button>
+            </div>
+        </div>
+    </div>
+
     <script src="aircraft_profiles.js"></script>
     <script src="flight_dossier.js"></script>
 </body>
