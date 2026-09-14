@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ALTIVIEW — Masse &amp; Performances</title>
     <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="assets/cockpit.css">
     <script src="assets/cockpit-nav.js"></script>
     <script src="assets/data-sources.js"></script>
+    <script src="assets/pdf-preview.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous"></script>
 
@@ -2161,7 +2162,19 @@
                 jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
             };
 
-            html2pdf().set(opt).from(printElement).save();
+            // aperçu avant export, comme pour le dossier de vol
+            if (window.AltiviewPdfPreview) {
+                window.AltiviewPdfPreview.open({
+                    title: 'Masse, centrage et performances',
+                    subtitle: 'Vérifiez la feuille avant de l\'imprimer ou de la télécharger.',
+                    html: printElement.innerHTML,
+                    filename: opt.filename,
+                    jsPDF: opt.jsPDF,
+                    margin: opt.margin
+                });
+            } else {
+                html2pdf().set(opt).from(printElement).save();
+            }
         });
 
         // ---------- Theme synchronization via CockpitNav ----------

@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ALTIVIEW — Checklists Normales</title>
     <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
@@ -767,7 +767,10 @@
         }
 
         function renderChecklistsPanel() {
-            const panel = document.getElementById('checklistsPanel');
+            const panel = document.getElementById("checklistsPanel");
+            // la reconstruction vide le panneau : on garde la position de lecture
+            const scroller = document.querySelector(".content-section");
+            const keepScroll = scroller ? scroller.scrollTop : 0;
             const prevMenu = panel.querySelector('.phase-menu');
             const prevMenuScroll = prevMenu ? prevMenu.scrollLeft : 0;
             panel.innerHTML = '';
@@ -931,6 +934,7 @@
             panel.appendChild(toolbar);
 
             panel.appendChild(renderChecklistCard(activeAircraft, current, currentIndex));
+            if (scroller) scroller.scrollTop = keepScroll;
         }
 
         function renderChecklistCard(aircraftObj, checklist, index) {

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ALTIVIEW — Carte VFR Interactive</title>
     <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
@@ -105,11 +105,14 @@
 
         /* Spotlight Search Bar */
         .spotlight-search-wrap {
-            position: relative;
-            flex: 1;
-            max-width: 480px;
-            min-width: 260px;
+            /* centree sur la zone carte : le decalage suit le repli des menus */
+            position: absolute;
+            left: calc(50% + var(--map-shift, 0px));
+            transform: translateX(-50%);
+            width: min(420px, 38vw);
+            min-width: 240px;
             z-index: 3100;
+            transition: left .22s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .spotlight-input-box {
@@ -2620,6 +2623,62 @@
         .airspace-mini-card { bottom: 14px; right: 14px; padding: 7px 12px; border-radius: 12px; max-width: min(560px, calc(100% - 440px)); }
         .airspace-mini-name { max-width: 260px; }
 
+        /* ---- Habillage de la carte : cadre d'angles, vignettage, contrôles ---- */
+        .map-frame {
+            position: absolute; inset: 12px; z-index: 620; pointer-events: none; border-radius: 16px;
+            background:
+                linear-gradient(90deg, var(--cyan), var(--cyan)) 0 0 / 26px 2px no-repeat,
+                linear-gradient(180deg, var(--cyan), var(--cyan)) 0 0 / 2px 26px no-repeat,
+                linear-gradient(90deg, var(--cyan), var(--cyan)) 100% 0 / 26px 2px no-repeat,
+                linear-gradient(180deg, var(--cyan), var(--cyan)) 100% 0 / 2px 26px no-repeat,
+                linear-gradient(90deg, var(--cyan), var(--cyan)) 0 100% / 26px 2px no-repeat,
+                linear-gradient(180deg, var(--cyan), var(--cyan)) 0 100% / 2px 26px no-repeat,
+                linear-gradient(90deg, var(--cyan), var(--cyan)) 100% 100% / 26px 2px no-repeat,
+                linear-gradient(180deg, var(--cyan), var(--cyan)) 100% 100% / 2px 26px no-repeat;
+            opacity: .45;
+        }
+        .map-vignette {
+            position: absolute; inset: 0; z-index: 610; pointer-events: none;
+            box-shadow: inset 0 0 140px 18px rgba(4, 10, 16, .38);
+        }
+        html:not(.dark-mode) .map-vignette, [data-theme="day"] .map-vignette {
+            box-shadow: inset 0 0 130px 16px rgba(20, 45, 70, .10);
+        }
+        html:not(.dark-mode) .map-frame, [data-theme="day"] .map-frame { opacity: .35; }
+        html.map-focus .map-frame, html.map-focus .map-vignette { inset: 0; border-radius: 0; }
+
+        /* contrôles : verre plus net, séparateurs fins, survol cyan */
+        .chart-nav-controls .chart-ctrl-btn + .chart-ctrl-btn { border-top: 1px solid var(--line); }
+        .chart-ctrl-btn { transition: color .15s ease, background .15s ease; }
+        .chart-ctrl-btn:hover { color: var(--cyan); background: color-mix(in srgb, var(--cyan) 12%, transparent); }
+        .basemap-pill-btn { transition: color .15s ease, background .15s ease; }
+        .basemap-pill-btn.active { box-shadow: inset 0 -2px 0 var(--accent); }
+
+        /* la carte de vol porte un filet ambre : c'est le vol en cours */
+        .flight-deck-hud { border-top: 2px solid var(--accent) !important; }
+        /* l'inspecteur reprend la couleur de la zone la plus basse (définie en JS) */
+        .airspace-mini-card { border-left-width: 3px !important; }
+
+        @media (max-width: 600px) {
+            .map-frame { display: none; }
+            .map-vignette { box-shadow: inset 0 0 90px 10px rgba(4, 10, 16, .3); }
+        }
+
+        /* ---- Inspecteur d'espaces aériens : masquable, et simplifié sur téléphone ---- */
+        body.inspector-off .airspace-mini-card { display: none !important; }
+        #btnInspectorToggle[aria-pressed="false"] { color: var(--muted); }
+        @media (max-width: 600px) {
+            /* le tableau de route vit dans le Flight Deck : inutile de le doubler sur la carte */
+            .flight-deck-hud { display: none !important; }
+            .airspace-mini-card { bottom: 26px !important; padding: 7px 10px !important; max-width: calc(100% - 24px); }
+            .airspace-mini-head { margin-bottom: 3px; }
+            .airspace-mini-count { display: none; }
+            .airspace-mini-row { gap: 6px; padding: 2px 3px; }
+            .airspace-mini-row .airspace-mini-name { font-size: 11.5px; }
+            .airspace-mini-row .airspace-mini-alt { font-size: 9.5px; }
+            .airspace-mini-badge { font-size: 8.5px; padding: 1px 5px; }
+        }
+
         /* ---- Onglet d'ouverture du Flight Deck (telephone, iPad vertical) ---- */
         .dock-open-tab { display: none; }
         @media (max-width: 900px) {
@@ -2696,7 +2755,7 @@
 <body>
 
     <!-- 1. TABLET HUD BAR -->
-    <header class="tablet-hud" style="z-index: 3000; padding: 0 16px;">
+    <header class="tablet-hud" style="z-index: 3000;">
         <div class="hud-left">
             <a href="flg_prep.html" class="hud-brand" title="ALTIVIEW — Préparation du Vol">
                 <svg class="hud-logo-svg" viewBox="250 190 1432 1432" width="26" height="26" aria-hidden="true">
@@ -2718,11 +2777,10 @@
         </div>
 
         <!-- Global Spotlight Search Bar -->
-        <div class="spotlight-search-wrap" style="flex: 1; max-width: 380px; margin: 0 14px;">
+        <div class="spotlight-search-wrap">
             <div class="spotlight-input-box">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 <input type="text" id="spotlightInput" class="spotlight-input" placeholder="Recherche aéroports, CTR, TMA, VOR..." autocomplete="off">
-                <span class="kbd-shortcut">/</span>
             </div>
             <div id="spotlightDropdown" class="spotlight-dropdown"></div>
         </div>
@@ -2790,6 +2848,8 @@
                 <!-- Leaflet Map Container (full bleed: the chart takes the whole workspace) -->
                 <div class="map-wrapper">
                     <div id="map"></div>
+                        <div class="map-vignette" aria-hidden="true"></div>
+                        <div class="map-frame" aria-hidden="true"></div>
 
                     <!-- Honest data status: the local base is not an official, AIRAC-cycled source -->
 
@@ -2838,6 +2898,9 @@
                             </button>
                             <button class="chart-ctrl-btn" id="btnKbdHelp" type="button" aria-pressed="false" title="Raccourcis clavier (touche ?)" aria-label="Raccourcis clavier">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></svg>
+                            </button>
+                            <button class="chart-ctrl-btn" id="btnInspectorToggle" type="button" aria-pressed="true" title="Afficher ou masquer les espaces aériens survolés" aria-label="Inspecteur d'espaces aériens">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg>
                             </button>
                         </div>
 
@@ -4043,7 +4106,21 @@
 
         // Every airspace under the pointer is listed, lowest floor first, with its vertical limits
         const MINI_MAX_ROWS = 6;
+        const miniRowLimit = () => (window.innerWidth <= 600 ? 2 : MINI_MAX_ROWS);
+        const INSPECTOR_KEY = 'altiview-airspace-inspector';
+        let inspectorOn = true;
+        try { inspectorOn = localStorage.getItem(INSPECTOR_KEY) !== 'off'; } catch (e) {}
+        function applyInspectorState() {
+            document.body.classList.toggle('inspector-off', !inspectorOn);
+            const btn = document.getElementById('btnInspectorToggle');
+            if (btn) {
+                btn.setAttribute('aria-pressed', inspectorOn ? 'true' : 'false');
+                btn.title = inspectorOn ? "Masquer les espaces aériens survolés" : "Afficher les espaces aériens survolés";
+            }
+        }
+
         function setMiniAirspace(sp, stackedList) {
+            if (!inspectorOn) return;
             const card = document.getElementById('airspaceMiniCard');
             const list = document.getElementById('airspaceMiniList');
             const titleEl = document.getElementById('airspaceMiniTitle');
@@ -4069,7 +4146,7 @@
             countEl.textContent = stack.length > 1 ? `${stack.length} zones` : '1 zone';
             card.style.borderColor = getAirspaceThemeColor(stack[0]);
 
-            stack.slice(0, MINI_MAX_ROWS).forEach(s => {
+            stack.slice(0, miniRowLimit()).forEach(s => {
                 const color = getAirspaceThemeColor(s);
                 const row = document.createElement('div');
                 row.className = 'airspace-mini-row';
@@ -4085,10 +4162,10 @@
                 list.appendChild(row);
             });
 
-            if (stack.length > MINI_MAX_ROWS) {
+            if (stack.length > miniRowLimit()) {
                 const more = document.createElement('div');
                 more.className = 'airspace-mini-more';
-                more.textContent = `+ ${stack.length - MINI_MAX_ROWS} autres · cliquer pour la liste complète`;
+                more.textContent = `+ ${stack.length - miniRowLimit()} autres · cliquer pour la liste complète`;
                 list.appendChild(more);
             }
         }
@@ -6316,6 +6393,26 @@
             });
         });
         map.on('mouseout', resetInspectorSoon);
+
+        // la recherche reste au centre de la carte quand on replie un panneau
+        function updateSearchCenter() {
+            const side = document.querySelector('.tablet-sidebar');
+            const dock = document.getElementById('navlogDock');
+            const sideW = (side && window.innerWidth > 900) ? side.getBoundingClientRect().width : 0;
+            const dockW = dock ? dock.getBoundingClientRect().width : 0;
+            document.documentElement.style.setProperty('--map-shift', ((sideW - dockW) / 2) + 'px');
+        }
+        updateSearchCenter();
+        window.addEventListener('resize', updateSearchCenter);
+        ['transitionend', 'click'].forEach(ev => document.addEventListener(ev, () => setTimeout(updateSearchCenter, 60)));
+
+        applyInspectorState();
+        document.getElementById('btnInspectorToggle')?.addEventListener('click', () => {
+            inspectorOn = !inspectorOn;
+            try { localStorage.setItem(INSPECTOR_KEY, inspectorOn ? 'on' : 'off'); } catch (e) {}
+            applyInspectorState();
+            if (!inspectorOn) currentSelectedAirspaces = [];
+        });
 
         // =====================================================================
         // ESPACES AÉRIENS À JOUR — OpenAIP (clé gratuite + passerelle locale)

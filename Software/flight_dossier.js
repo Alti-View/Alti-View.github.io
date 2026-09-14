@@ -217,7 +217,7 @@
     // ==========================================
     function generateRouteMinimapSVG(waypoints) {
         const svgW = 720;
-        const svgH = 320;
+        const svgH = 300;
 
         if (!Array.isArray(waypoints) || waypoints.length === 0) {
             return `
@@ -341,7 +341,7 @@
 
         return `
             <div style="width: 100%; height: ${svgH}px; position: relative; background: #faf8f5; border: 1.5px solid #000; border-radius: 4px; overflow: hidden; box-sizing: border-box;">
-                <svg viewBox="0 0 ${svgW} ${svgH}" width="100%" height="${svgH}" style="display:block; width:100%; height:100%; font-family:'Inter', -apple-system, sans-serif;">
+                <svg viewBox="0 0 ${svgW} ${svgH}" width="100%" height="${svgH}" style="display:block; width:100%; height:auto; font-family:'IBM Plex Sans', Arial, sans-serif;" preserveAspectRatio="xMidYMid meet">
                     <!-- Grid Lines -->
                     ${gridLines.join('')}
 
@@ -385,15 +385,6 @@
                         <polygon points="0,-12 -4,0 4,0" fill="#111111" />
                         <polygon points="0,12 -4,0 4,0" fill="#bbbbbb" />
                         <text x="0" y="-15" font-size="9" font-weight="900" fill="#111111" text-anchor="middle">N</text>
-                    </g>
-
-                    <!-- Scale Bar -->
-                    <g transform="translate(20, ${svgH - 22})">
-                        <rect x="-4" y="-12" width="${scaleBarPx + 64}" height="22" rx="3" fill="#ffffff" stroke="#999999" stroke-width="0.8" />
-                        <line x1="0" y1="0" x2="${scaleBarPx}" y2="0" stroke="#111111" stroke-width="3" />
-                        <line x1="0" y1="-4" x2="0" y2="4" stroke="#111111" stroke-width="2" />
-                        <line x1="${scaleBarPx}" y1="-4" x2="${scaleBarPx}" y2="4" stroke="#111111" stroke-width="2" />
-                        <text x="${scaleBarPx + 8}" y="3.5" font-size="9.5" font-weight="800" fill="#111111">${scaleNm} NM</text>
                     </g>
 
                     <!-- Header Watermark -->
@@ -542,6 +533,69 @@
             .dsr-tight .dsr-foot { margin-top:6px; }
             .dsr-tight .dsr-chk { margin-bottom:7px; }
             .dsr-tight .dsr-card { padding:9px 11px; }
+            /* html2canvas coupe les mots quand la typo d'affichage porte un interlettrage : on l'annule dans le document */
+            .dsr-brand, .dsr-title, .dsr-route, .dsr-tile .v, .dsr-wx-icao, .dsr-hero-date { letter-spacing: normal !important; }
+            .dsr-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+            .dsr-head-title { text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600;
+                              letter-spacing: .24em; text-transform: uppercase; color: #F3B26B !important; }
+            .dsr-head-end { }
+            .dsr-hero { align-items: center; padding: 9px 14px; }
+            .dsr-route { font-size: 27px; }
+            .dsr-hero-date { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; color: var(--soft); white-space: nowrap; }
+            .dsr-tiles { margin-bottom: 12px; }
+            .dsr-sum { margin-bottom: 13px; table-layout: fixed; width: 100%; border: 1px solid var(--hair); border-radius: 10px; overflow: hidden; border-collapse: separate; border-spacing: 0; }
+            .dsr-sum th { width: 17%; padding: 8px 11px; vertical-align: middle; text-align: left; background: var(--band) !important; color: var(--teal) !important;
+                          font-family: 'IBM Plex Mono', monospace; font-size: 7.8px; font-weight: 600; letter-spacing: .13em; text-transform: uppercase;
+                          border-right: 1px solid var(--hair); border-bottom: 1px solid var(--hair); }
+            .dsr-sum td { width: 33%; padding: 6px 12px; border-bottom: 1px solid var(--hair); border-right: 1px solid var(--hair);
+                          font-family: 'Big Shoulders Display', 'Arial Narrow', sans-serif; font-size: 19px; font-weight: 800; letter-spacing: normal; line-height: 1.15; }
+            .dsr-sum td small { font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; font-weight: 500; color: var(--soft); margin-left: 3px; letter-spacing: .06em; }
+            .dsr-sum tr:last-child th, .dsr-sum tr:last-child td { border-bottom: 0; }
+            .dsr-sum td:last-child { border-right: 0; }
+            .dsr-sum td.amber { color: var(--amber) !important; }
+            .dsr-sum td.teal { color: var(--teal) !important; }
+            .dsr-body { display: flex; flex-direction: column; }
+            .dsr-notes { flex: 1 1 auto; display: flex; flex-direction: column; }
+            .dsr-notes > div:last-child { flex: 1 1 auto; }
+            .dsr-tiles .dsr-tile { padding: 6px 9px; border-radius: 8px; }
+            .dsr-tiles .dsr-tile .k { font-size: 7.2px; }
+            .dsr-tiles .dsr-tile .v { font-size: 18px; }
+            .dsr-tiles .dsr-tile .v small { font-size: 8px; }
+            .dsr-map { padding: 6px !important; margin-bottom: 12px; }
+            .dsr-map { height: 330px; overflow: hidden; display: flex; align-items: center; padding: 5px !important; }
+            .dsr-map svg { display: block !important; width: 100% !important; height: 100% !important; max-height: 320px; }
+            /* annexe Go / No-Go */
+            .dsr-gng { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+            .dsr-gng-list { list-style: none; margin: 0; padding: 2px 0 0; }
+            .dsr-gng-list li { display: flex; align-items: center; gap: 8px; font-size: 10px; padding: 4px 0; border-bottom: 1px dotted var(--hair); }
+            .dsr-gng-list li:last-child { border-bottom: none; }
+            .dsr-box { flex: 0 0 auto; width: 11px; height: 11px; border: 1.5px solid var(--navy); border-radius: 3px; display: inline-block; }
+            .dsr-box.big { width: 15px; height: 15px; vertical-align: -3px; margin-right: 4px; }
+            .dsr-gng-sign { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; border-top: 1px solid var(--hair); padding-top: 10px; font-size: 11px; }
+            .dsr-gng-sign .dsr-h3 { display: block; margin-bottom: 5px; }
+
+            /* ---- Mode sombre : le dossier suit le theme de l'application ---- */
+            .dsr.dsr-dark { --ink:#E9EFF3; --navy:#0D1621; --soft:#93A7B8; --hair:#243141; --band:#111B29; --tint:#16202E;
+                            --amber:#FFA94D; --amber-soft:#2B1E10; --teal:#4FD8C4; --teal-soft:#10241F; --red:#FB6178; --red-soft:#2A1520; --green:#34D399;
+                            background:#0A1119; }
+            .dsr-dark .dsr-page { background:#0A1119 !important; }
+            .dsr-dark .dsr-head { background:#111B29 !important; }
+            .dsr-dark td { background:#0A1119 !important; color:var(--ink) !important; }
+            .dsr-dark th { background:#111B29 !important; color:var(--soft) !important; }
+            .dsr-dark .dsr-sum th, .dsr-dark table.dsr-t th { color:var(--teal) !important; }
+            .dsr-dark .dsr-card, .dsr-dark .dsr-wx, .dsr-dark .dsr-nt, .dsr-dark .dsr-chk { background:#111B29 !important; }
+            .dsr-dark .dsr-tile, .dsr-dark .dsr-hero, .dsr-dark .dsr-raw, .dsr-dark .dsr-empty { background:#16202E !important; }
+            .dsr-dark table.dsr-t tr.alt td { background:#111B29 !important; }
+            .dsr-dark table.dsr-t tr.tot td { background:#16202E !important; }
+            .dsr-dark .dsr-chk > h4 { background:#243141 !important; }
+            .dsr-dark .dsr-chk.emg > h4 { background:#7F1130 !important; }
+            .dsr-dark .dsr-title span.n { background:var(--amber) !important; color:#0A1119 !important; }
+            .dsr-dark .dsr-box { border-color:var(--soft); }
+            .dsr-dark .dsr-nt.crit { background:#2A1520 !important; }
+            .dsr-dark .dsr-nt.warn { background:#2B1E10 !important; }
+            .dsr-dark .dsr-ticks { background: repeating-linear-gradient(90deg, var(--hair) 0 1px, transparent 1px 14px); }
+            /* la mini-carte est dessinee en clair : on l'inverse proprement pour le fond sombre */
+            .dsr-dark .dsr-map svg { filter: invert(0.92) hue-rotate(180deg); }
         </style>`;
     }
 
@@ -648,11 +702,9 @@
         // ---- Fabrique de pages ---------------------------------------------
         const head = () => `
             <header class="dsr-head">
-                <div class="dsr-brand">${DSR_MARK} Altiview <em>Dossier de vol</em></div>
-                <div class="dsr-meta">
-                    <div><strong>${escapeHtml(callsign)}</strong> · ${escapeHtml(aircraft)} · ${escapeHtml(String(pob))} POB</div>
-                    <div>${escapeHtml(dateStr)}${depTime ? ' · ' + escapeHtml(depTime) + 'Z' : ''} · CDB ${escapeHtml(pic)}</div>
-                </div>
+                <div class="dsr-brand">${DSR_MARK}<span>Altiview</span></div>
+                <div class="dsr-head-title">Dossier de vol</div>
+                <div class="dsr-head-end"></div>
             </header>
             <div class="dsr-ticks"></div>`;
         const foot = (n) => `
@@ -670,46 +722,27 @@
                 <div class="dsr-body">
                     ${title('01', 'Synthèse du vol')}
                     <div class="dsr-hero">
-                        <div class="dsr-route">${escapeHtml(dep)} ➔ ${escapeHtml(arr)}
-                            <small>${legs.length} branche${legs.length > 1 ? 's' : ''} · TAS ${tas} kt · vent ${windDir}° / ${windSpd} kt</small>
-                        </div>
-                        <div class="dsr-stamp ${isGo ? 'go' : 'nogo'}">${isGo ? 'GO' : 'NO-GO'} · ${checksDone}/${checksTotal} validés</div>
-                    </div>
-                    <div class="dsr-grid dsr-g4" style="margin-bottom:10px;">
-                        ${tile('Distance', totDist > 0 ? totDist.toFixed(1) : '—', 'NM')}
-                        ${tile('Temps de vol', eteStr, '')}
-                        ${tile('Carburant vol', tripFuel, uF, 'amber')}
-                        ${tile('Autonomie', enduranceStr, '', 'teal')}
-                    </div>
-                    <div class="dsr-grid dsr-g4" style="margin-bottom:12px;">
-                        ${tile('Réserve 45 min', reserveFuel, uF)}
-                        ${tile('Emport carburant', fuelCap || '—', uF)}
-                        ${tile('Masse au décollage', tw > 0 ? tw.toFixed(1) : '—', uW)}
-                        ${tile('Centrage', calcCg, uA)}
+                        <div class="dsr-route">${escapeHtml(dep)} ➔ ${escapeHtml(arr)}</div>
+                        <div class="dsr-hero-date">${escapeHtml(dateStr)}${depTime ? ' · ' + escapeHtml(depTime) + 'Z' : ''}</div>
                     </div>
 
+                    <table class="dsr-t dsr-sum">
+                        <tbody>
+                            <tr><th>Distance</th><td>${totDist > 0 ? totDist.toFixed(1) : '—'}<small>NM</small></td><th>Temps de vol</th><td>${eteStr}</td></tr>
+                            <tr><th>Carburant vol</th><td class="amber">${tripFuel}<small>${uF}</small></td><th>Autonomie</th><td class="teal">${enduranceStr}</td></tr>
+                            <tr><th>Réserve 45 min</th><td>${reserveFuel}<small>${uF}</small></td><th>Emport</th><td>${fuelCap || '—'}<small>${uF}</small></td></tr>
+                            <tr><th>Masse décollage</th><td>${tw > 0 ? tw.toFixed(1) : '—'}<small>${uW}</small></td><th>TAS / vent</th><td>${tas}<small>kt</small> · ${windDir}°/${windSpd}<small>kt</small></td></tr>
+                        </tbody>
+                    </table>
+
                     <div class="dsr-h3">Route</div>
-                    <div class="dsr-card" style="padding:6px; margin-bottom:12px;">
+                    <div class="dsr-card dsr-map">
                         ${generateRouteMinimapSVG(waypoints)}
                     </div>
 
-                    <div class="dsr-grid dsr-g2">
-                        <div class="dsr-card">
-                            <div class="dsr-h3">Aptitude du pilote (IMSAFE)</div>
-                            <div class="dsr-chipline">
-                                ${imsafeItems.map(([l, v]) => `<span class="dsr-chip ${v ? 'on' : 'off'}">${v ? '✓' : '○'} ${escapeHtml(l)}</span>`).join('')}
-                            </div>
-                            <div class="dsr-h3" style="margin-top:9px;">Documents</div>
-                            <div class="dsr-chipline">
-                                ${docItems.map(([l, v]) => `<span class="dsr-chip ${v ? 'on' : 'off'}">${v ? '✓' : '○'} ${escapeHtml(l)}</span>`).join('')}
-                            </div>
-                        </div>
-                        <div class="dsr-card">
-                            <div class="dsr-h3">Notes opérationnelles</div>
-                            <div style="font-size:10px; white-space:pre-wrap; min-height:52px;">${notes ? escapeHtml(notes) : '<span style="color:#8C97A2;">—</span>'}</div>
-                            <div class="dsr-h3" style="margin-top:9px;">Terrains de dégagement</div>
-                            <div style="font-size:10px; color:#8C97A2;">À compléter en vol : <span class="dsr-fill" style="min-width:150px;"></span></div>
-                        </div>
+                    <div class="dsr-card dsr-notes">
+                        <div class="dsr-h3">Notes opérationnelles</div>
+                        <div style="font-size:10px; white-space:pre-wrap; min-height:40px;">${notes ? escapeHtml(notes) : '<span style="color:#8C97A2;">—</span>'}</div>
                     </div>
                 </div>
                 ${foot(1)}
@@ -750,7 +783,7 @@
                         </tbody>
                     </table>
 
-                    <div class="dsr-grid dsr-g3" style="margin-top:14px;">
+                    <div class="dsr-grid dsr-g2" style="margin-top:14px;">
                         <div class="dsr-card">
                             <div class="dsr-h3">Carburant</div>
                             <table class="dsr-t"><tbody>
@@ -759,15 +792,6 @@
                                 <tr><td>Vol</td><td class="m" style="text-align:right;">${tripFuel} ${uF}</td></tr>
                                 <tr><td>Réserve 45 min</td><td class="m" style="text-align:right;">${reserveFuel} ${uF}</td></tr>
                                 <tr><td><strong>Au bloc</strong></td><td class="m" style="text-align:right;"><strong>${(tripFuel !== '—' && reserveFuel !== '—') ? (parseFloat(tripFuel) + parseFloat(reserveFuel)).toFixed(1) : '—'} ${uF}</strong></td></tr>
-                            </tbody></table>
-                        </div>
-                        <div class="dsr-card">
-                            <div class="dsr-h3">Masse & centrage</div>
-                            <table class="dsr-t"><tbody>
-                                ${wbRows.length ? wbRows.slice(0, 4).map(r => `<tr><td>${escapeHtml(r.name || r.label || 'Élément')}</td><td class="m" style="text-align:right;">${(parseFloat(r.weight) || 0).toFixed(1)} ${uW}</td></tr>`).join('') : '<tr><td colspan="2" style="color:#8C97A2;">À calculer dans Performances</td></tr>'}
-                                <tr><td><strong>Masse totale</strong></td><td class="m" style="text-align:right;"><strong>${tw > 0 ? tw.toFixed(1) : '—'} ${uW}</strong></td></tr>
-                                <tr><td>Centrage</td><td class="m" style="text-align:right;">${calcCg} ${uA}</td></tr>
-                                <tr><td>Marge MTOW</td><td class="m" style="text-align:right;">${margin} ${uW}</td></tr>
                             </tbody></table>
                         </div>
                         <div class="dsr-card">
@@ -949,7 +973,45 @@
                 ${foot(6)}
             </section>`;
 
-        return `<div id="dossierPrintContainer" class="dsr">${dossierStyles()}${page1}${page2}${page3}${page4}${page5}${page6}</div>`;
+        // ---- Annexe (hors pagination) : décision Go / No-Go ------------------
+        const goNoGoBlocks = [
+            ['Pilote — IMSAFE', ['Maladie : aucun symptôme', 'Médicaments : aucun traitement gênant', 'Stress maîtrisé', 'Alcool : règle des 8 h respectée', 'Fatigue : repos suffisant', 'Émotions : état stable', 'Aptitude et expérience récente']],
+            ['Documents', ['Licence et qualifications valides', 'Certificat médical valide', 'Documents avion (A.R.O.W.)', 'Cartes VFR et log de navigation à jour', 'Assurance et carnet de route']],
+            ['Aéronef', ['Visite prévol effectuée', 'Carburant contrôlé (quantité et qualité)', 'Masse et centrage dans l\'enveloppe', 'Performances décollage et atterrissage vérifiées', 'Aucune panne reportée en attente']],
+            ['Météo', ['METAR et TAF consultés', 'Plafond et visibilité conformes aux minima', 'Vent traversier dans les limites', 'Aucun phénomène dangereux prévu', 'Terrain de dégagement météo disponible']],
+            ['Navigation et espaces', ['Route tracée et log de nav complété', 'NOTAM et zones actives vérifiés', 'Fréquences et transpondeur préparés', 'Carburant de réserve et alternatives définis']],
+            ['Sécurité', ['Équipements de secours à bord', 'Briefing passagers effectué', 'Procédures d\'urgence revues', 'Téléphone et ELT opérationnels']]
+        ];
+        const annexe = `
+            <section class="dossier-page dsr-page">
+                ${head()}
+                <div class="dsr-body">
+                    ${title('GO', 'Décision Go / No-Go')}
+                    <p class="dsr-note">Annexe à cocher avant le départ. Un seul point non coché impose de reconsidérer le vol.</p>
+                    <div class="dsr-gng">
+                        ${goNoGoBlocks.map(([heading, items]) => `
+                            <div class="dsr-card">
+                                <div class="dsr-h3">${escapeHtml(heading)}</div>
+                                <ul class="dsr-gng-list">
+                                    ${items.map(i => `<li><span class="dsr-box"></span>${escapeHtml(i)}</li>`).join('')}
+                                </ul>
+                            </div>`).join('')}
+                    </div>
+                    <div class="dsr-gng-sign">
+                        <div><span class="dsr-h3">Décision</span><span class="dsr-box big"></span> GO &nbsp;&nbsp; <span class="dsr-box big"></span> NO-GO</div>
+                        <div><span class="dsr-h3">Commandant de bord</span><span class="dsr-fill" style="min-width:150px;"></span></div>
+                        <div><span class="dsr-h3">Date et heure</span><span class="dsr-fill" style="min-width:110px;"></span></div>
+                    </div>
+                </div>
+                <footer class="dsr-foot">
+                    <span>Document de travail — vérifier AIP, NOTAM et météo officiels · généré le ${escapeHtml(generatedAt)}</span>
+                    <span><b>Annexe</b> · hors pagination</span>
+                </footer>
+            </section>`;
+
+        const nightMode = document.documentElement.classList.contains('dark-mode')
+            || document.documentElement.getAttribute('data-theme') === 'night';
+        return `<div id="dossierPrintContainer" class="dsr${nightMode ? ' dsr-dark' : ''}">${dossierStyles()}${page1}${page2}${page3}${page4}${page5}${page6}${annexe}</div>`;
     }
 
     // ==========================================
@@ -1070,12 +1132,13 @@
                     margin: [0.15, 0.15, 0.15, 0.15],
                     filename: filename,
                     image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0 },
+                    html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, letterRendering: true },
                     jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
                     pagebreak: { mode: ['css', 'legacy'], after: '.dossier-page' }
                 };
 
-                window.html2pdf().set(opt).from(container).save().then(() => {
+                const fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+                fontsReady.then(() => window.html2pdf().set(opt).from(container).save()).then(() => {
                     dlBtn.innerHTML = origText;
                     dlBtn.disabled = false;
                 }).catch(err => {

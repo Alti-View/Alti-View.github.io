@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ALTIVIEW — Procédures d'Urgence</title>
     <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="assets/cockpit.css">
     <script src="assets/cockpit-nav.js"></script>
     <script src="assets/data-sources.js"></script>
+    <script src="assets/pdf-preview.js"></script>
 
     <!-- PDF & Canvas Libraries for Dossier Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
@@ -884,11 +885,7 @@
 
         /* Printable kneeboard */
         /* Kneeboard : un document d'impression dedie, construit au clic */
-        #emgPrintDoc { display: none; }
-        @media print {
-            body > *:not(#emgPrintDoc) { display: none !important; }
-            html, body { height: auto !important; overflow: visible !important; background: #fff !important; }
-            #emgPrintDoc { display: block !important; color: #0C1620; font-family: 'IBM Plex Sans', Arial, sans-serif; padding: 0; }
+            .pk-doc { color: #0C1620; font-family: 'IBM Plex Sans', Arial, sans-serif; padding: 0; }
             .pk-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #0C1620; padding-bottom: 6px; margin-bottom: 8px; font-size: 11px; }
             .pk-head strong { font-family: 'Big Shoulders Display', Arial Narrow, sans-serif; font-size: 17px; letter-spacing: .06em; }
             .pk-speeds { display: flex; flex-wrap: wrap; gap: 6px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 9px; text-transform: uppercase;
@@ -910,8 +907,18 @@
             .pk-card table th, .pk-card table td { border-bottom: 1px solid #D7DDE3; padding: 3px 6px; text-align: left; }
             .pk-card .tool-panel-header { padding: 4px 8px; background: #0C1620; color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; text-transform: uppercase; }
             .pk-card .tool-panel-title { color: #fff !important; }
+            /* les encarts repris de la page portent les couleurs de l'application : on les repasse en encre noire */
+            .pk-doc .tool-panel, .pk-doc .table-scroll, .pk-doc .ref-table,
+            .pk-doc .ref-table td, .pk-doc .ref-table th, .pk-doc .ref-note { color: #0C1620 !important; background: #fff !important; border-color: #D7DDE3 !important; }
+            .pk-doc .tool-panel-header { background: #0C1620 !important; border: 0 !important; }
+            .pk-doc .tool-panel-title { color: #fff !important; background: transparent !important; }
+            .pk-doc .ref-table th { color: #5A6672 !important; }
+            .pk-doc .squawk-code { color: #0C1620 !important; background: #fff !important; border: 1px solid #0C1620 !important; }
+            .pk-doc .squawk-code.red { color: #B3123A !important; border-color: #B3123A !important; }
+            .pk-doc .squawk-code.blue { color: #0A6E60 !important; border-color: #0A6E60 !important; }
+            .pk-doc .squawk-code.orange { color: #B35A00 !important; border-color: #B35A00 !important; }
+            .pk-doc .sig { border: 1px solid #8A939C !important; }
             .pk-foot { border-top: 1px solid #D7DDE3; margin-top: 8px; padding-top: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 7.5px; color: #5A6672; }
-            @page { size: A4 portrait; margin: 10mm; }
         }
 
         /* =============================================================
@@ -1756,11 +1763,8 @@ Transponder: <span class="distress-word">Squawking 7700</span></div>
             document.getElementById('resetChecksBtn').addEventListener('click', resetAllChecks);
 
             // Print Kneeboard
-            // Kneeboard : toutes les procédures sur papier, en deux colonnes
+            // Kneeboard : aperçu puis impression ou téléchargement
             document.getElementById('printKneeboardBtn').addEventListener('click', () => {
-                const old = document.getElementById('emgPrintDoc');
-                if (old) old.remove();
-
                 const speeds = [...document.querySelectorAll('.emg-speed')]
                     .map(s => `<span class="pk-speed">${escapeHtml(s.querySelector('.k').textContent)} <b>${escapeHtml(s.querySelector('.v').textContent)}</b></span>`).join('');
 
@@ -1773,9 +1777,7 @@ Transponder: <span class="distress-word">Squawking 7700</span></div>
                 const refs = [...document.querySelectorAll('.reference-tables-grid .tool-panel')]
                     .map(p => `<div class="pk-card">${p.innerHTML}</div>`).join('');
 
-                const doc = document.createElement('div');
-                doc.id = 'emgPrintDoc';
-                doc.innerHTML = `
+                const html = `
                     <div class="pk-head">
                         <div><strong>ALTIVIEW</strong> · Procédures d'urgence</div>
                         <div>${escapeHtml((document.getElementById('hudAircraftTag') || {}).textContent || '')} · ${new Date().toLocaleDateString('fr-FR')}</div>
@@ -1783,8 +1785,23 @@ Transponder: <span class="distress-word">Squawking 7700</span></div>
                     <div class="pk-speeds">${speeds}</div>
                     <div class="pk-cols">${cards}${refs}</div>
                     <div class="pk-foot">Document de travail — vérifier le manuel de vol de l'appareil. Détresse 121.500 MHz · transpondeur 7700.</div>`;
-                document.body.appendChild(doc);
-                setTimeout(() => { window.print(); setTimeout(() => doc.remove(), 800); }, 120);
+
+                if (window.AltiviewPdfPreview) {
+                    window.AltiviewPdfPreview.open({
+                        title: 'Kneeboard urgences',
+                        subtitle: 'Toutes les procédures sur deux colonnes, prêtes à plier.',
+                        sheetClass: 'pk-doc',
+                        html: html,
+                        filename: 'Kneeboard_urgences.pdf',
+                        margin: 0.4
+                    });
+                } else {
+                    const doc = document.createElement('div');
+                    doc.className = 'pk-doc';
+                    doc.innerHTML = html;
+                    document.body.appendChild(doc);
+                    setTimeout(() => { window.print(); setTimeout(() => doc.remove(), 800); }, 120);
+                }
             });
 
             // Pan-Pan vs Mayday toggle
