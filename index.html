@@ -46,12 +46,13 @@
 
 <!-- arrival screen: removed from the page by main.js as soon as it has played -->
 <div class="intro" id="intro" role="presentation" aria-hidden="true">
-  <div class="intro-mark">
+  <div class="intro-stage">
+    <span class="intro-frame"><i style="--dx:-1;--dy:-1"></i><i style="--dx:1;--dy:-1"></i><i style="--dx:-1;--dy:1"></i><i style="--dx:1;--dy:1"></i></span>
     <svg class="intro-logo" aria-hidden="true"><use href="#logo"/></svg>
-    <b class="intro-word">ALTIVIEW</b>
-    <span class="intro-tag">Prepare<i>•</i>Fly<i>•</i>Improve</span>
   </div>
-  <span class="intro-line"></span>
+  <b class="intro-word">ALTIVIEW</b>
+  <span class="intro-tag">Prepare<i>•</i>Fly<i>•</i>Improve</span>
+  <span class="intro-bar"><i></i></span>
 </div>
 
 <a class="skip" href="#main">Aller au contenu</a>
@@ -95,7 +96,7 @@
       <h1 class="display" id="h1"><span class="sr-only">Tout votre vol, une seule application</span><span aria-hidden="true"><span class="ln"><span class="w" style="--i:0">Tout</span> <span class="w" style="--i:1">votre</span> <span class="w" style="--i:2">vol,</span></span><span class="ln"><span class="w accent" style="--i:3">une</span> <span class="w accent" style="--i:4">seule</span> <span class="w accent" style="--i:5">application</span></span></span></h1>
       <p class="lede fade" style="--d:620ms">Carte interactive, calcul automatique des performances, dossier de vol en PDF, checklists et procédures d'urgence. Préparez votre navigation au sol, gardez l'essentiel sous les yeux en vol.</p>
       <div class="ctas fade" style="--d:780ms">
-        <a class="btn btn-primary" href="/Software/flg_prep.html">Voir l'application <span class="arr" aria-hidden="true">→</span></a>
+        <a class="btn btn-primary" href="#apercu">Voir l'application <span class="arr" aria-hidden="true">→</span></a>
       </div>
       <p class="note fade" style="--d:940ms">Pour les pilotes privés, élèves pilotes et instructeurs.</p>
     </div>
@@ -568,13 +569,21 @@
         <p class="kicker"><span class="wp"></span>06 · Abonnements<span class="trk"></span></p>
         <h2 class="display" id="h-plans">Nos abonnements</h2>
       </div>
-      <p class="lede rv" style="--i:1">Commencez gratuitement pendant votre formation, passez au plan complet quand vous partez en navigation, équipez tout le club quand il le faut.</p>
+      <div class="bill rv" style="--i:1">
+        <div class="bill-switch" role="group" aria-label="Choix de la facturation">
+          <button type="button" class="bill-opt on" data-cycle="month" aria-pressed="true">Mensuel</button>
+          <button type="button" class="bill-opt" data-cycle="year" aria-pressed="false">Annuel</button>
+        </div>
+        <button type="button" class="bill-save nudge m-only" data-cycle="year"><span>Passez à l'annuel :</span> <b>2 mois offerts</b></button>
+        <span class="bill-save gift y-only" hidden><svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l1.9 7.1L21 11l-7.1 1.9L12 20l-1.9-7.1L3 11l7.1-1.9z"/></svg>2 mois offerts</span>
+      </div>
     </div>
 
     <div class="pricing" id="pricing">
       <article class="plan" aria-labelledby="pl-1">
         <h3 id="pl-1">Élève &amp; découverte</h3>
-        <p class="price"><span class="drum" data-d="0" aria-hidden="true">0</span><span aria-hidden="true">€</span><span class="sr-only">0 euro</span><small>/ accès anticipé</small></p>
+        <p class="price"><b class="amount">0</b> €<small>/ accès anticipé</small></p>
+        <p class="plan-bill">Gratuit pendant l'accès anticipé</p>
         <p class="desc">Pour les élèves pilotes et les curieux qui veulent tester Altiview lors de leurs premiers vols.</p>
         <ul>
           <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>1 profil avion standardisé (C152 ou DR-400)</li>
@@ -590,7 +599,8 @@
         <span class="ring" aria-hidden="true"></span>
         <span class="badge">Recommandé</span>
         <h3 id="pl-2">Pilote VFR</h3>
-        <p class="price"><span class="drum" data-d="9" aria-hidden="true">9</span><span aria-hidden="true">€</span><span class="sr-only">9 euros par mois</span><small>/ mois</small></p>
+        <p class="price"><s class="was">13 €</s><b class="amount" data-m="13" data-y="10.83">13</b> €<small>/ mois</small></p>
+        <p class="plan-bill"><span class="m-only">Sans engagement</span><span class="y-only" hidden>130 € par an</span></p>
         <p class="desc">L'instrument complet pour préparer et conduire tous vos vols de navigation en toute sérénité.</p>
         <ul>
           <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg><span><b>Tous les modules inclus</b> : NavLog, météo, carte, centrage, checklists</span></li>
@@ -601,6 +611,7 @@
           <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Mode hors ligne complet pour la tablette</li>
         </ul>
         <a class="btn btn-primary" href="#contact" data-plan="pilote">Prendre place en avant-première</a>
+        <p class="plan-save">Économisez 26 € par an</p>
       </article>
 
       <article class="plan" aria-labelledby="pl-3">
@@ -628,7 +639,7 @@
       <h2 class="display" id="h-faq">Questions de pilotes</h2>
     </div>
     <div class="rv" style="--i:1">
-      <details open><summary>Altiview remplace-t-il la documentation officielle ?</summary><p>Non. Altiview est une aide à la préparation. Les publications officielles (AIP, cartes VAC, NOTAM, SUP AIP), le manuel de vol de l'avion et votre jugement de commandant de bord restent la référence.</p></details>
+      <details><summary>Altiview remplace-t-il la documentation officielle ?</summary><p>Non. Altiview est une aide à la préparation. Les publications officielles (AIP, cartes VAC, NOTAM, SUP AIP), le manuel de vol de l'avion et votre jugement de commandant de bord restent la référence.</p></details>
       <details><summary>Quels avions sont pris en charge ?</summary><p>Cinq profils constructeur sont prêts : Cessna 172, Robin DR-400, Piper PA-28, Diamond DA-40 et Cessna 152. Vous pouvez créer le profil de votre avion à partir de son manuel de vol, puis l'exporter en JSON pour le partager avec votre aéroclub.</p></details>
       <details><summary>Sur quel appareil l'utiliser ?</summary><p>Altiview fonctionne dans le navigateur : sur ordinateur pour préparer au sol, sur tablette pour garder l'essentiel sous les yeux en vol.</p></details>
       <details><summary>D'où viennent les données aéronautiques ?</summary><p>La carte s'appuie sur OpenAIP pour les terrains, points de report, balises et espaces aériens européens. La météo METAR et TAF des terrains de la route est récupérée puis décodée. Les NOTAM se collent depuis votre briefing SOFIA ou Olivia et sont triés automatiquement.</p></details>
