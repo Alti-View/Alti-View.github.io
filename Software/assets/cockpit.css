@@ -799,6 +799,19 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:foc
   width: 18px;
 }
 
+/* Checklists et Urgences vivent sous la barre d'espace : pas de numero,
+   l'etiquette prend la place laissee libre. */
+.sidebar-sep {
+  height: 1px;
+  background: var(--line);
+  margin: 12px 20px;
+  flex: 0 0 1px;
+}
+.sidebar-item.no-num { padding-left: 20px; }
+.sidebar-item.no-num .label { margin-left: 30px; }
+html.sidebar-collapsed .sidebar-sep { margin: 12px 16px; }
+html.sidebar-collapsed .sidebar-item.no-num .label { margin-left: 0; }
+
 /* module names set like the website menu: spaced mono capitals */
 .sidebar-item .label {
   font-family: var(--f-mono);
@@ -1621,6 +1634,11 @@ body { height: 100%; overflow: hidden; }
 .sidebar-collapse-btn svg { flex-shrink: 0; transition: transform .22s ease; }
 html.sidebar-collapsed .tablet-sidebar { width: 64px !important; min-width: 64px !important; }
 html.sidebar-collapsed .tablet-sidebar .label { display: none; }
+html.sidebar-collapsed .sidebar-item.no-num::after {
+  content: attr(data-mini);
+  font-family: var(--f-mono); font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--cyan);
+}
+html.sidebar-collapsed .sidebar-item.no-num.active::after { color: var(--accent-ink); }
 html.sidebar-collapsed .sidebar-item { justify-content: center; gap: 0; padding: 12px 0; }
 html.sidebar-collapsed .sidebar-item .num { width: auto; }
 html.sidebar-collapsed .sidebar-collapse-btn { justify-content: center; margin: 0 10px 12px; padding: 7px 0; }
@@ -1632,6 +1650,11 @@ html.sidebar-collapsed .btn-sidebar-tool span { font-size: 14px; }
   /* narrow screens (iPhone, iPad portrait split view): the rail is the default width */
   .tablet-sidebar { width: 64px !important; min-width: 64px !important; }
   .tablet-sidebar .label { display: none; }
+  .tablet-sidebar .sidebar-item.no-num::after {
+    content: attr(data-mini);
+    font-family: var(--f-mono); font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--cyan);
+  }
+  .tablet-sidebar .sidebar-item.no-num.active::after { color: var(--accent-ink); }
   .sidebar-item { justify-content: center; gap: 0; padding: 12px 0; }
   .sidebar-collapse-btn { display: none; }
   /* top bar on phones: logo, module actions and theme only */
@@ -1645,3 +1668,200 @@ html.sidebar-collapsed .btn-sidebar-tool span { font-size: 14px; }
 
 
 
+
+/* ==========================================================================
+   TELEPHONE ET IPAD VERTICAL (<= 900px)
+   Le menu des modules passe en barre du bas : toute la largeur de l'ecran
+   revient au contenu (carte, tableaux, checklists). Les outils (Profils, PDF,
+   Donnees) restent accessibles a droite de cette meme barre.
+   ========================================================================== */
+@media (max-width: 900px) {
+  .tablet-body,
+  .main-layout {
+    flex-direction: column !important;
+  }
+
+  /* le contenu occupe tout l'espace, la barre vient dessous */
+  .tablet-workspace,
+  .content-section,
+  .workspace {
+    order: 1;
+    min-height: 0 !important;
+  }
+
+  .tablet-sidebar {
+    order: 3;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 56px;
+    min-height: 56px;
+    flex: 0 0 56px;
+    flex-direction: row !important;
+    align-items: stretch;
+    gap: 0;
+    padding: 0 !important;
+    overflow: visible;
+    border-right: 0 !important;
+    border-top: 1px solid var(--line);
+    background: var(--canvas);
+    z-index: 1600;
+  }
+
+  .tablet-sidebar .sidebar-item {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    padding: 0 !important;
+    border-left: 0 !important;
+    border-top: 2px solid transparent;
+  }
+  .tablet-sidebar .sidebar-item .num { width: auto; font-size: 13px; }
+  .tablet-sidebar .sidebar-item .label { display: none; }
+  .tablet-sidebar .sidebar-item.no-num { padding: 0 !important; }
+  .tablet-sidebar .sidebar-item.no-num .label { display: none; }
+  .tablet-sidebar .sidebar-item.no-num::after {
+    content: attr(data-mini);
+    font-family: var(--f-mono); font-size: 12px; font-weight: 600; letter-spacing: .06em; color: var(--text-secondary);
+  }
+  .tablet-sidebar .sidebar-item.no-num.active::after { color: var(--accent-ink); font-weight: 700; }
+  .tablet-sidebar .sidebar-sep {
+    width: 1px; height: 20px; min-height: 0; flex: 0 0 1px;
+    margin: 0 5px; align-self: center; background: var(--line-strong);
+  }
+  .tablet-sidebar .sidebar-item.active {
+    background: var(--accent-soft);
+    border-left: 0 !important;
+    border-top-color: var(--accent);
+  }
+  .tablet-sidebar .sidebar-item.active .num { color: var(--accent-ink); }
+
+  /* outils a droite de la barre, en icones seules */
+  .sidebar-footer {
+    position: static;
+    flex: 0 0 auto;
+    flex-direction: row;
+    gap: 0;
+    margin: 0;
+    padding: 0 !important;
+    border-top: 0;
+    border-left: 1px solid var(--line);
+    background: transparent;
+  }
+  .btn-sidebar-tool {
+    border: 0 !important;
+    border-radius: 0 !important;
+    padding: 0 15px !important;
+    font-size: 0 !important;
+    background: transparent !important;
+  }
+  .btn-sidebar-tool .tool-ico { width: 17px; height: 17px; }
+  .sidebar-collapse-btn { display: none !important; }
+}
+
+/* Telephone seulement : on allege encore la barre du haut et les marges */
+@media (max-width: 600px) {
+  .content-section { padding: 16px 14px 24px !important; }
+  .tablet-workspace { padding: 16px 14px 24px !important; }
+  .page-heading h1, .mfd-title { font-size: 28px !important; }
+}
+
+/* --------------------------------------------------------------------------
+   Barre du bas (telephone, iPad vertical) : repartition reguliere, hauteur
+   respectant la zone systeme iOS et etat actif lisible.
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  html, body { height: 100dvh; }
+  .tablet-sidebar {
+    height: calc(56px + env(safe-area-inset-bottom, 0px));
+    min-height: calc(56px + env(safe-area-inset-bottom, 0px));
+    flex: 0 0 calc(56px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+    justify-content: space-between;
+    box-shadow: 0 -6px 18px -12px rgba(0, 0, 0, .6);
+  }
+  .tablet-sidebar .sidebar-item {
+    position: relative;
+    flex: 1 1 0;
+    font-family: var(--f-mono);
+  }
+  .tablet-sidebar .sidebar-item .num {
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    color: var(--text-secondary);
+  }
+  .tablet-sidebar .sidebar-item.active { background: transparent; border-top-color: transparent; }
+  .tablet-sidebar .sidebar-item.active .num { color: var(--accent-ink); font-weight: 700; }
+  .tablet-sidebar .sidebar-item.active::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 26px; height: 3px; border-radius: 0 0 3px 3px;
+    background: var(--accent);
+  }
+  .sidebar-footer { align-items: stretch; }
+  .btn-sidebar-tool {
+    width: 48px;
+    padding: 0 !important;
+    justify-content: center;
+    color: var(--text-secondary) !important;
+  }
+  .btn-sidebar-tool:hover { color: var(--cyan) !important; background: var(--panel-hover) !important; }
+}
+
+/* Telephone : outils dans la barre du haut, modules centres en bas */
+.sidebar-footer.in-hud {
+  position: static !important;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none;
+}
+.sidebar-footer.in-hud .btn-sidebar-tool {
+  width: 34px;
+  height: 34px;
+  padding: 0 !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 9px !important;
+  color: var(--text-secondary) !important;
+}
+.sidebar-footer.in-hud .btn-sidebar-tool:hover {
+  color: var(--cyan) !important;
+  border-color: var(--cyan) !important;
+  background: var(--cyan-soft) !important;
+}
+@media (max-width: 600px) {
+  .tablet-sidebar { justify-content: center; gap: 0; }
+  .tablet-sidebar .sidebar-item { flex: 1 1 0; min-width: 0; max-width: 58px; }
+}
+
+/* Telephone : le menu des modules doit se voir au premier coup d'oeil */
+@media (max-width: 600px) {
+  .tablet-sidebar {
+    background: var(--panel) !important;
+    border-top: 1px solid var(--line-strong);
+    box-shadow: 0 -10px 24px -14px rgba(0, 0, 0, .75);
+  }
+  .tablet-sidebar .sidebar-item { flex: 1 1 0; min-width: 0; max-width: 58px; }
+  .tablet-sidebar .sidebar-item.no-num::after {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: var(--text) !important;
+  }
+  .tablet-sidebar .sidebar-item.no-num.active::after { color: var(--accent-ink) !important; }
+  .tablet-sidebar .sidebar-sep { margin: 0 3px; }
+  .tablet-sidebar .sidebar-item .num {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: var(--text) !important;
+    letter-spacing: .06em;
+  }
+  .tablet-sidebar .sidebar-item.active .num { color: var(--accent-ink) !important; }
+  .tablet-sidebar .sidebar-item.active::before { width: 30px; height: 3px; }
+}

@@ -86,6 +86,29 @@
     applySidebar(document.documentElement.classList.contains('sidebar-collapsed'));
   }
 
+  // Le menu compte trois entrees servies par la page Preparation (Meteo, Infos de
+  // vol, Depart en vol) : l'ancre dit laquelle est en cours.
+  const PREP_STAGE_NAV = { weather: 'wx', notams: 'wx', 'flight-fuel': 'info', navlog: 'info', readiness: 'dep', summary: 'info' };
+
+  function currentNavKey() {
+    const page = (location.pathname.split('/').pop() || 'flg_prep.html').toLowerCase();
+    if (page.indexOf('vfr') === 0) return 'map';
+    if (page.indexOf('perfo') === 0) return 'perf';
+    if (page.indexOf('checklists') === 0) return 'check';
+    if (page.indexOf('emergency') === 0) return 'emg';
+    const stage = (location.hash || '').replace('#', '');
+    return PREP_STAGE_NAV[stage] || 'info';
+  }
+
+  function syncSidebarActive(key) {
+    const items = document.querySelectorAll('.tablet-sidebar .sidebar-item[data-nav]');
+    if (!items.length) return;
+    const want = key || currentNavKey();
+    items.forEach(a => a.classList.toggle('active', a.getAttribute('data-nav') === want));
+  }
+
+  window.addEventListener('hashchange', () => syncSidebarActive());
+
   // DOM ready hook
   function initHeader(options = {}) {
     const activeTab = options.activeTab || '';
@@ -117,6 +140,7 @@
     }
 
     initSidebarToggle();
+    syncSidebarActive();
 
     // Sync active aircraft pill if flight dossier / profile exists
     updateDossierPill();
@@ -235,6 +259,8 @@
     initHeader,
     updateDossierPill,
     updateHudTelemetry,
+    syncSidebarActive,
+    currentNavKey,
     getTheme: () => document.documentElement.getAttribute('data-theme') || 'night'
   };
 
