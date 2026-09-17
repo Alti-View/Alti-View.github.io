@@ -72,6 +72,7 @@ sub send_json {
     . "Content-Length: " . length($body) . "\r\nConnection: close\r\n\r\n" . $body;
 }
 
+
 my $srv = IO::Socket::INET->new(LocalAddr => '127.0.0.1', LocalPort => $port, Listen => 64, ReuseAddr => 1)
   or die "Port $port occupé : $!\n";
 $SIG{CHLD} = 'IGNORE'; $| = 1;
