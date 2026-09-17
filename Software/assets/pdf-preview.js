@@ -100,8 +100,10 @@
                 const label = dl.textContent;
                 dl.textContent = 'Génération…';
                 dl.disabled = true;
+                let restorePreparedContent = () => {};
                 try {
                     if (document.fonts && document.fonts.ready) await document.fonts.ready;
+                    if (typeof o.prepare === 'function') restorePreparedContent = await o.prepare(sheet) || restorePreparedContent;
                     await window.html2pdf().set({
                         margin: o.margin !== undefined ? o.margin : 0.35,
                         filename: o.filename || 'altiview.pdf',
@@ -113,6 +115,8 @@
                 } catch (e) {
                     console.warn('Export PDF impossible, passage par l\'impression :', e);
                     printSheet(sheet, o.title);
+                } finally {
+                    restorePreparedContent();
                 }
                 dl.textContent = label;
                 dl.disabled = false;

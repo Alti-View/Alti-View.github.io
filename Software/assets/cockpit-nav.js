@@ -91,8 +91,11 @@
   const PREP_STAGE_NAV = { weather: 'wx', notams: 'wx', 'flight-fuel': 'info', navlog: 'info', readiness: 'dep', summary: 'info' };
 
   function currentNavKey() {
-    const page = (location.pathname.split('/').pop() || 'flg_prep.html').toLowerCase();
+    const page = (location.pathname.split('/').pop() || 'VFR.html').toLowerCase();
     if (page.indexOf('vfr') === 0) return 'map';
+    if (page.indexOf('meteo') === 0) return 'wx';
+    if (page.indexOf('infos_vol') === 0) return 'info';
+    if (page.indexOf('depart') === 0) return 'dep';
     if (page.indexOf('perfo') === 0) return 'perf';
     if (page.indexOf('checklists') === 0) return 'check';
     if (page.indexOf('emergency') === 0) return 'emg';

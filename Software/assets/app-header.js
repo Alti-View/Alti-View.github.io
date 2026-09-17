@@ -10,6 +10,7 @@
 
     const SHORTCUT_KEY = 'altiview-shortcuts';
     const ACCOUNT_KEY = 'altiview-account';
+    const LANGUAGE_KEY = 'altiview-vfr-language';
 
     const DEFAULTS = [
         { id: 'fit', key: 'f', label: 'Recentrer sur la route' },
@@ -79,6 +80,13 @@
                                 border:1px solid color-mix(in srgb, var(--accent) 55%, transparent); }
             .hud-account-btn:hover .hud-avatar.empty { color:var(--accent-ink); border-color:var(--accent); }
             .hud-account-name { max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            .language-switch { height:32px; padding:3px; display:inline-flex; align-items:stretch; gap:2px; flex:none;
+                               border:1px solid var(--line-strong); border-radius:10px; background:var(--panel-2); color:var(--text-secondary);
+                               font:700 9px/1 var(--f-mono); letter-spacing:.06em; cursor:pointer; }
+            .language-switch span { min-width:25px; padding:0 5px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center;
+                                    transition:color .15s ease, background-color .15s ease, box-shadow .15s ease; }
+            .language-switch span.active { background:var(--accent); color:var(--on-accent); box-shadow:0 2px 8px rgba(255,169,77,.22); }
+            .language-switch:hover { border-color:var(--text-secondary); }
             .hud-menu { position:absolute; top:42px; right:0; min-width:210px; background:var(--panel); border:1px solid var(--line); border-radius:12px;
                         box-shadow:var(--shadow); padding:6px; display:none; z-index:4000; }
             .hud-menu.open { display:block; }
@@ -115,9 +123,66 @@
                 #btnAppSettings { display:none; }
                 .hud-account-name { display:none; }
                 .hud-account-btn { padding:0 5px; }
+                .language-switch { width:34px; height:30px; }
+                .language-switch span { display:none; width:100%; min-width:0; padding:0; }
+                .language-switch span.active { display:inline-flex; }
             }
         `;
         document.head.appendChild(st);
+    }
+
+    function readLanguage() {
+        try { return localStorage.getItem(LANGUAGE_KEY) === 'en' ? 'en' : 'fr'; }
+        catch (e) { return 'fr'; }
+    }
+
+    function paintLanguageSwitch(button, language) {
+        button.querySelectorAll('[data-lang-option]').forEach(option => {
+            option.classList.toggle('active', option.dataset.langOption === language);
+        });
+        button.setAttribute('aria-checked', language === 'fr' ? 'true' : 'false');
+        button.setAttribute('aria-label', language === 'fr' ? 'Afficher en anglais' : 'Afficher en français');
+        button.title = language === 'fr' ? 'Langue : français' : 'Language: English';
+    }
+
+    function initSharedHeaderControls() {
+        const header = document.querySelector('.tablet-hud');
+        const left = header && header.querySelector('.hud-left');
+        const right = header && header.querySelector('.hud-right');
+        if (!header || !left || !right) return;
+
+        // L'appareil reste près de la marque sur chaque module, comme sur la carte.
+        const aircraft = header.querySelector('#hudAircraftTag');
+        const brand = left.querySelector('.hud-brand');
+        if (aircraft && aircraft.parentElement !== left) {
+            if (brand) brand.insertAdjacentElement('afterend', aircraft);
+            else left.appendChild(aircraft);
+        }
+
+        // La carte possède déjà sa commande, reliée au rendu des points VFR.
+        // Les autres modules reçoivent la même commande et partagent son choix.
+        let languageSwitch = header.querySelector('#languageSwitch');
+        if (!languageSwitch) {
+            languageSwitch = document.createElement('button');
+            languageSwitch.type = 'button';
+            languageSwitch.id = 'languageSwitch';
+            languageSwitch.className = 'language-switch';
+            languageSwitch.setAttribute('role', 'switch');
+            languageSwitch.innerHTML = '<span data-lang-option="fr">FR</span><span data-lang-option="en">EN</span>';
+            right.insertBefore(languageSwitch, right.querySelector('#themeSwitch') || right.firstChild);
+
+            languageSwitch.addEventListener('click', () => {
+                const language = readLanguage() === 'fr' ? 'en' : 'fr';
+                try { localStorage.setItem(LANGUAGE_KEY, language); } catch (e) {}
+                document.documentElement.lang = language;
+                paintLanguageSwitch(languageSwitch, language);
+                window.dispatchEvent(new CustomEvent('altiview-language-changed', { detail: { language } }));
+            });
+        }
+
+        const language = readLanguage();
+        document.documentElement.lang = language;
+        paintLanguageSwitch(languageSwitch, language);
     }
 
     function modal(id, title, bodyHtml) {
@@ -225,6 +290,7 @@
 
     function build() {
         styles();
+        initSharedHeaderControls();
         const right = document.querySelector('.hud-right');
         if (!right || document.getElementById('btnAccountMenu')) return;
 
@@ -248,7 +314,6 @@
                 <button type="button" id="altiMyAccount" role="menuitem">Mon compte</button>
                 <button type="button" id="altiMyFlights" role="menuitem">Mes vols</button>
                 <button type="button" id="altiMyAircraft" role="menuitem">Mes avions</button>
-                <div class="sep"></div>
                 <button type="button" class="danger" id="altiSignOut" role="menuitem">Se déconnecter</button>
             </div>`;
 
@@ -264,7 +329,7 @@
         });
         document.addEventListener('click', () => menu.classList.remove('open'));
         wrap.querySelector('#altiMyAccount').addEventListener('click', () => { menu.classList.remove('open'); openAccount(); });
-        wrap.querySelector('#altiMyFlights').addEventListener('click', () => { window.location.href = 'flg_prep.html'; });
+        wrap.querySelector('#altiMyFlights').addEventListener('click', () => { window.location.href = 'infos_vol.html'; });
         wrap.querySelector('#altiMyAircraft').addEventListener('click', () => {
             menu.classList.remove('open');
             if (window.AircraftProfiles && typeof window.AircraftProfiles.openModal === 'function') window.AircraftProfiles.openModal('fleet');
@@ -284,11 +349,11 @@
         const right = document.querySelector('.hud-right');
         const sidebar = document.querySelector('.tablet-sidebar');
         if (!footer || !right || !sidebar) return;
-        const phone = window.innerWidth <= 600;
-        if (phone && !footer.classList.contains('in-hud')) {
+        const compactLayout = window.innerWidth <= 900;
+        if (compactLayout && !footer.classList.contains('in-hud')) {
             right.insertBefore(footer, document.getElementById('themeSwitch') || right.firstChild);
             footer.classList.add('in-hud');
-        } else if (!phone && footer.classList.contains('in-hud')) {
+        } else if (!compactLayout && footer.classList.contains('in-hud')) {
             sidebar.appendChild(footer);
             footer.classList.remove('in-hud');
         }

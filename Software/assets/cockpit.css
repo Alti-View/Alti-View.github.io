@@ -1659,7 +1659,14 @@ html.sidebar-collapsed .btn-sidebar-tool span { font-size: 14px; }
   .sidebar-collapse-btn { display: none; }
   /* top bar on phones: logo, module actions and theme only */
   .tablet-hud { padding: 0 10px !important; }
-  .hud-aircraft, .hud-telemetry { display: none !important; }
+  .hud-telemetry { display: none !important; }
+  .hud-left > .hud-aircraft {
+    display: flex !important;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   /* the rail keeps the tool buttons as icons */
   .sidebar-footer { padding: 12px 8px 0; }
   .btn-sidebar-tool { font-size: 0 !important; justify-content: center; padding: 8px 0 !important; }
@@ -1765,6 +1772,13 @@ html.sidebar-collapsed .btn-sidebar-tool span { font-size: 14px; }
   .content-section { padding: 16px 14px 24px !important; }
   .tablet-workspace { padding: 16px 14px 24px !important; }
   .page-heading h1, .mfd-title { font-size: 28px !important; }
+  .hud-left { gap: 7px; min-width: 0; }
+  .hud-left > .hud-aircraft {
+    max-width: 104px;
+    padding-left: 7px;
+    font-size: 10px;
+    letter-spacing: 0;
+  }
 }
 
 /* --------------------------------------------------------------------------

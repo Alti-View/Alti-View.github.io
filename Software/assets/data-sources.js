@@ -78,6 +78,8 @@
         ensureStyles();
         if (document.getElementById('altiDataModal')) return;
         const k = AltiviewData.getKeys();
+        let vacTpl = '';
+        try { vacTpl = localStorage.getItem('altiview-vac-url') || ''; } catch (e) {}
         const wrap = document.createElement('div');
         wrap.className = 'alti-data-overlay';
         wrap.id = 'altiDataModal';
@@ -90,8 +92,8 @@
                 <div class="alti-data-body">
                     <p class="alti-data-intro">
                         Pour des données réelles et à jour, lancez le logiciel avec <strong>Lancer_AltiView.command</strong> :
-                        la passerelle locale relaie les sources officielles que le navigateur refuse d'appeler directement.
-                        Les clés ci-dessous sont gratuites et restent sur cet ordinateur.
+                        la passerelle locale relaie les services externes. Les points VFR SIA sont embarqués avec leur date de cycle.
+                        Les identifiants ci-dessous restent sur cet ordinateur ; leurs conditions d'accès dépendent de chaque source.
                     </p>
                     <div class="alti-status" id="altiDataStatus"></div>
 
@@ -106,6 +108,11 @@
                         <label for="altiOpenaip">Espaces aériens — clé OpenAIP</label>
                         <input type="password" id="altiOpenaip" placeholder="x-openaip-api-key" value="${(k.openaip || '').replace(/"/g, '&quot;')}" autocomplete="off" spellcheck="false">
                         <span class="hint">Compte gratuit sur <a href="https://www.openaip.net" target="_blank" rel="noopener noreferrer">openaip.net</a> (profil → API key). Données communautaires tenues à jour, non certifiées : la référence reste l'AIP du <a href="https://www.sia.aviation-civile.gouv.fr" target="_blank" rel="noopener noreferrer">SIA</a>.</span>
+                    </div>
+                    <div class="alti-field">
+                        <label for="altiVacUrl">Adresse des cartes VAC</label>
+                        <input type="text" id="altiVacUrl" placeholder="https://mon-club.fr/vac/{ICAO}.pdf" value="${vacTpl.replace(/"/g, '&quot;')}" autocomplete="off" spellcheck="false">
+                        <span class="hint">Le bouton « Carte VAC » d'un terrain ouvre cette adresse, <strong>{ICAO}</strong> remplacé par le code du terrain. Sans adresse personnalisée, les terrains français ouvrent le visualisateur officiel SIA. Recherchez le code OACI du terrain pour consulter sa VAC en vigueur.</span>
                     </div>
 
                     <div class="alti-test" id="altiDataTest"></div>
@@ -125,6 +132,7 @@
                 faaSecret: document.getElementById('altiFaaSecret').value.trim(),
                 openaip: document.getElementById('altiOpenaip').value.trim()
             });
+            try { localStorage.setItem('altiview-vac-url', document.getElementById('altiVacUrl').value.trim()); } catch (e) {}
             const t = document.getElementById('altiDataTest');
             t.textContent = 'Clés enregistrées. Rechargez la page pour les appliquer.';
             refreshStatus();
@@ -144,9 +152,12 @@
         const k = AltiviewData.getKeys();
         box.innerHTML =
             row('Passerelle locale', ok ? 'Active — sources officielles relayées' : 'Non lancée — ouvrez Lancer_AltiView.command', ok ? 'ok' : 'warn', ok ? 'Active' : 'Inactive')
-            + row('METAR / TAF', ok ? 'NOAA (aviationweather.gov), actualisés en direct' : 'Repli VATSIM : METAR seulement, pas de TAF', ok ? 'ok' : 'warn', ok ? 'Officiel' : 'Limité')
+            + row('METAR / TAF', ok ? 'NOAA Aviation Weather Center, actualisés en direct' : 'Source officielle indisponible — aucune météo de repli affichée', ok ? 'ok' : 'warn', ok ? 'Officiel' : 'Indisponible')
             + row('NOTAM', (ok && k.faaId && k.faaSecret) ? 'API FAA, actualisés en direct' : 'Base embarquée non officielle + copier-coller du briefing', (ok && k.faaId && k.faaSecret) ? 'ok' : 'warn', (ok && k.faaId && k.faaSecret) ? 'Officiel' : 'Clé requise')
-            + row('Espaces aériens (carte)', (ok && k.openaip) ? 'OpenAIP, chargés autour de la zone affichée' : 'Base embarquée, sans cycle AIRAC vérifié', (ok && k.openaip) ? 'ok' : 'warn', (ok && k.openaip) ? 'OpenAIP' : 'Clé requise');
+            + row('Espaces aériens (carte)', (ok && k.openaip) ? 'OpenAIP, chargés autour de la zone affichée' : 'Base embarquée, sans cycle AIRAC vérifié', (ok && k.openaip) ? 'ok' : 'warn', (ok && k.openaip) ? 'OpenAIP' : 'Clé requise')
+            + row('Points VFR SIA', window.AltiviewVfrData
+                ? `${window.AltiviewVfrData.metadata.count} points · édition ${window.AltiviewVfrData.metadata.effectiveFrom} · échéance ${window.AltiviewVfrData.metadata.effectiveUntil} UTC. Actualiser avec Mettre_a_jour_VFR.command.`
+                : 'Jeu SIA absent : lancer Mettre_a_jour_VFR.command.', 'warn', 'Cycle à vérifier');
     }
 
     async function testSources() {
