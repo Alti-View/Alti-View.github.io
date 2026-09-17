@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -18,10 +18,6 @@
     <script src="assets/data-sources.js"></script>
     <script src="assets/app-header.js"></script>
     
-    <!-- PDF & Canvas Libraries (Deferred to eliminate initial page blocking) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous" defer></script>
-
     <style>
         :root {
             --bg-color: var(--canvas, #070b10);
@@ -106,14 +102,13 @@
 
         /* Spotlight Search Bar */
         .spotlight-search-wrap {
-            /* centree sur la zone carte : le decalage suit le repli des menus */
+            /* Centrée dans la barre de menu. */
             position: absolute;
-            left: calc(50% + var(--map-shift, 0px));
+            left: 50%;
             transform: translateX(-50%);
             width: min(420px, 38vw);
             min-width: 240px;
             z-index: 3100;
-            transition: left .22s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .spotlight-input-box {
@@ -200,6 +195,37 @@
         .badge-airspace { background: rgba(197, 34, 31, 0.1); color: var(--danger); }
         .badge-vor { background: rgba(24, 128, 56, 0.1); color: var(--accent-green); }
         .badge-vfr { background: rgba(193, 110, 86, 0.1); color: var(--accent-orange); }
+
+        .language-switch {
+            height: 32px;
+            padding: 3px;
+            display: inline-flex;
+            align-items: stretch;
+            gap: 2px;
+            flex: none;
+            border: 1px solid var(--line-strong);
+            border-radius: 10px;
+            background: var(--panel-2);
+            color: var(--text-secondary);
+            font: 700 9px/1 var(--f-mono);
+            letter-spacing: .06em;
+            cursor: pointer;
+        }
+        .language-switch span {
+            min-width: 25px;
+            padding: 0 5px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: color .15s ease, background-color .15s ease, box-shadow .15s ease;
+        }
+        .language-switch span.active {
+            background: var(--accent);
+            color: var(--accent-ink, #111827);
+            box-shadow: 0 2px 8px rgba(255, 169, 77, .22);
+        }
+        .language-switch:hover { border-color: var(--text-secondary); }
 
         /* Top Bar Controls */
         .top-bar-controls {
@@ -1038,6 +1064,23 @@
             flex-shrink: 0;
             transition: background-color 0.2s ease, box-shadow 0.2s ease;
         }
+        /* la classe se lit d'un coup d'oeil : lettre seule, dans son propre cadre */
+        .airspace-mini-class {
+            flex-shrink: 0;
+            min-width: 13px;
+            text-align: center;
+            font-family: var(--f-mono);
+            font-size: 8.5px;
+            font-weight: 800;
+            line-height: 1;
+            padding: 2px 3px;
+            border: 1px solid currentColor;
+            border-radius: 4px;
+            background: color-mix(in srgb, currentColor 14%, transparent);
+        }
+        @media (max-width: 600px) {
+            .airspace-mini-class { font-size: 8px; min-width: 12px; padding: 1px 2px; }
+        }
         .airspace-mini-badge {
             font-size: 9.5px;
             font-weight: 800;
@@ -1346,7 +1389,7 @@
 
         /* Fold button of the Flight Deck: mirror of the left menu's "Replier" button,
            same size and same line (16px under the top bar), chevron pointing outwards */
-        /* Prise en main de la carte : rappel du parcours de preparation */
+        /* Prise en main de la carte : une etape par ecran, logo en tete */
         .map-intro-overlay {
             position: fixed; inset: 0; z-index: 5000;
             display: flex; align-items: center; justify-content: center; padding: 20px;
@@ -1355,20 +1398,25 @@
         }
         .map-intro-overlay[hidden] { display: none !important; }
         .map-intro-card {
-            width: min(560px, 100%); max-height: 88vh; overflow-y: auto;
+            width: min(540px, 100%);
+            display: flex; flex-direction: column;
             background: var(--panel); border: 1px solid var(--line-strong); border-radius: 18px;
             box-shadow: 0 28px 70px -30px rgba(0, 0, 0, .8);
+            overflow: hidden;
         }
         .map-intro-head {
             display: flex; align-items: flex-start; justify-content: space-between; gap: 14px;
-            padding: 20px 22px 14px; border-bottom: 1px solid var(--line);
+            padding: 18px 20px 15px; border-bottom: 1px solid var(--line); background: var(--panel-2);
         }
+        .map-intro-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .map-intro-logo { flex-shrink: 0; }
         .map-intro-kicker {
-            font-family: var(--f-mono); font-size: 10px; font-weight: 600; letter-spacing: .18em;
+            display: block;
+            font-family: var(--f-mono); font-size: 9.5px; font-weight: 600; letter-spacing: .2em;
             text-transform: uppercase; color: var(--cyan);
         }
         .map-intro-head h2 {
-            margin: 6px 0 0; font-family: var(--f-display); font-size: 21px; font-weight: 800;
+            margin: 4px 0 0; font-family: var(--f-display); font-size: 21px; font-weight: 800;
             letter-spacing: .01em; color: var(--text);
         }
         .map-intro-close {
@@ -1377,40 +1425,56 @@
             font-size: 20px; line-height: 1;
         }
         .map-intro-close:hover { color: var(--danger); border-color: var(--danger); }
-        .map-intro-steps { list-style: none; margin: 0; padding: 16px 22px 4px; display: flex; flex-direction: column; gap: 14px; }
-        .map-intro-steps li { display: flex; gap: 13px; align-items: flex-start; }
-        .map-intro-steps .n {
-            flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            background: var(--cyan-soft); color: var(--cyan);
-            font-family: var(--f-mono); font-size: 11px; font-weight: 700;
+
+        .map-intro-body { padding: 18px 20px 20px; min-height: 150px; }
+        .map-intro-tag {
+            display: inline-block; margin-bottom: 10px;
+            font-family: var(--f-mono); font-size: 9.5px; font-weight: 600; letter-spacing: .16em;
+            text-transform: uppercase; color: var(--cyan);
+            background: var(--cyan-soft); border-radius: 20px; padding: 4px 10px;
         }
-        .map-intro-steps li > div > strong { display: block; font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
-        .map-intro-steps p strong { color: var(--text); font-weight: 700; }
-        .map-intro-steps p { margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--text-secondary); }
-        .map-intro-steps em { font-style: normal; font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .04em; color: var(--cyan); }
-        .map-intro-steps kbd {
-            font-family: var(--f-mono); font-size: 11px; padding: 1px 6px; border-radius: 5px;
+        .map-intro-body p { margin: 0; font-size: 13.5px; line-height: 1.68; color: var(--text-secondary); }
+        .map-intro-body p strong { color: var(--text); font-weight: 700; }
+        .map-intro-body kbd {
+            font-family: var(--f-mono); font-size: 11.5px; padding: 2px 7px; border-radius: 5px;
             border: 1px solid var(--line-strong); background: var(--panel-2); color: var(--text);
         }
+
         .map-intro-foot {
             display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-            padding: 16px 22px 20px; margin-top: 8px; border-top: 1px solid var(--line);
+            padding: 14px 20px 16px; border-top: 1px solid var(--line); background: var(--panel-2);
         }
         .map-intro-skip { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12.5px; color: var(--text-secondary); }
         .map-intro-skip input { accent-color: var(--cyan); width: 15px; height: 15px; }
+        .map-intro-nav { display: flex; align-items: center; gap: 10px; }
+        .map-intro-dots { display: flex; align-items: center; gap: 5px; margin-right: 4px; }
+        .map-intro-dot {
+            width: 7px; height: 7px; padding: 0; border-radius: 50%; cursor: pointer;
+            border: 0; background: var(--line-strong); transition: background .15s ease, transform .15s ease;
+        }
+        .map-intro-dot:hover { background: var(--text-secondary); }
+        .map-intro-dot.on { background: var(--cyan); transform: scale(1.35); }
+        .map-intro-back {
+            font-family: var(--f-mono); font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+            padding: 9px 14px; border-radius: 10px; cursor: pointer;
+            border: 1px solid var(--line-strong); background: transparent; color: var(--text-secondary);
+        }
+        .map-intro-back:hover { color: var(--text); border-color: var(--text-secondary); }
+        .map-intro-back[hidden] { display: none !important; }
         .map-intro-go {
             font-family: var(--f-mono); font-size: 11.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
             padding: 10px 20px; border-radius: 10px; cursor: pointer; border: 1px solid var(--accent);
             background: var(--accent); color: var(--on-accent); transition: background .15s ease, transform .15s ease;
         }
         .map-intro-go:hover { background: var(--accent-hover); transform: translateY(-1px); }
+
         @media (max-width: 600px) {
             .map-intro-card { border-radius: 14px; }
-            .map-intro-head { padding: 16px 16px 12px; }
+            .map-intro-head { padding: 14px 15px 12px; }
             .map-intro-head h2 { font-size: 18px; }
-            .map-intro-steps { padding: 14px 16px 2px; gap: 12px; }
-            .map-intro-foot { padding: 14px 16px 18px; }
+            .map-intro-body { padding: 15px; min-height: 170px; }
+            .map-intro-foot { padding: 12px 15px 14px; }
+            .map-intro-nav { width: 100%; justify-content: space-between; }
         }
 
         .dock-fold-btn {
@@ -1810,20 +1874,29 @@
             filter: drop-shadow(0 6px 12px rgba(0,0,0,0.7)) drop-shadow(0 0 8px rgba(34, 211, 238, 0.6));
         }
 
-        /* Modern VFR Reporting Points (compulsory vs on-request) */
+        /* VFR reporting points: neutral triangle marker. The SIA feed does not
+           publish whether a point is compulsory, so the symbol carries no such claim. */
         .aero-vfr-marker-pod {
             display: flex;
             flex-direction: column;
             align-items: center;
             cursor: pointer;
-            transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), filter 0.18s ease;
-            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5));
+            transition: transform .18s cubic-bezier(.16, 1, .3, 1), filter .18s ease;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
         }
         .aero-vfr-marker-pod:hover {
-            transform: scale(1.25);
-            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.7)) drop-shadow(0 0 8px rgba(245, 158, 11, 0.6));
+            transform: scale(1.18);
+            filter: drop-shadow(0 3px 7px rgba(0,0,0,.65)) drop-shadow(0 0 6px var(--as-ctl));
+        }
+        .vfr-triangle {
+            fill: var(--map-chip);
+            stroke: var(--as-ctl);
+            stroke-width: 2;
+            stroke-linejoin: round;
         }
         .vfr-code-pill {
+            display: inline-flex;
+            align-items: center;
             background: rgba(10, 17, 25, 0.92);
             color: #f8fafc;
             border: 1px solid rgba(255, 255, 255, 0.18);
@@ -1834,7 +1907,7 @@
             font-weight: 800;
             margin-top: 1px;
             white-space: nowrap;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+            box-shadow: 0 2px 6px rgba(0,0,0,.5);
             pointer-events: none;
         }
 
@@ -1892,6 +1965,24 @@
             align-items: center;
         }
         .aero-popup-title { font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: -0.01em; }
+        .vac-chart-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            flex: 0 0 auto;
+            padding: 6px 8px;
+            border: 1px solid color-mix(in srgb, var(--cyan) 48%, var(--border-color));
+            border-radius: 7px;
+            color: var(--cyan);
+            background: color-mix(in srgb, var(--cyan) 10%, transparent);
+            font-size: 10px;
+            font-weight: 850;
+            letter-spacing: .45px;
+            text-decoration: none;
+            transition: background .16s ease, border-color .16s ease, transform .16s ease;
+        }
+        .vac-chart-link:hover { background: color-mix(in srgb, var(--cyan) 20%, transparent); border-color: var(--cyan); transform: translateY(-1px); }
+        .vac-chart-link:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
         .aero-popup-body { padding: 14px 18px; font-size: 12px; max-height: 420px; overflow-y: auto; }
         .aero-popup-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--line); }
         .aero-popup-label { color: var(--muted-text); font-weight: 700; text-transform: uppercase; font-size: 10px; }
@@ -2619,6 +2710,7 @@
         .apt-dot-inv { fill: var(--wp-fill); }
         .apt-muted { fill: var(--wp-fill); stroke: var(--map-label); stroke-width: 1.8; }
         .apt-muted-dot { fill: var(--map-label); }
+        .aero-div-icon { background: transparent !important; border: none !important; }
         .vfr-tri { fill: var(--wp-fill); stroke: var(--as-ctl); stroke-width: 2.2; stroke-linejoin: round; }
         .vfr-tri.compulsory { fill: var(--as-ctl); stroke: var(--wp-fill); stroke-width: 1.6; }
         .vfr-code-pill { background: var(--map-chip); color: var(--map-ink); border: 1px solid var(--line); box-shadow: none; font-family: var(--f-mono); font-weight: 500; letter-spacing: 0.06em; }
@@ -2639,6 +2731,24 @@
         .layer-btn.active.ctrl-theme-danger { color: var(--as-d); background: color-mix(in srgb, currentColor 15%, transparent); }
         .layer-btn.active.ctrl-theme-fis { color: var(--as-siv); background: color-mix(in srgb, currentColor 15%, transparent); }
         .layer-btn.active.ctrl-theme-ruler { color: var(--accent); background: color-mix(in srgb, currentColor 15%, transparent); }
+
+        /* Colonne des calques : les teintes se touchent, sans liseré clair
+           entre deux boutons. Seuls les coins extrêmes restent arrondis. */
+        .chart-layer-controls { width: 40px; padding: 0; overflow: hidden; }
+        .chart-layer-controls .layer-btn,
+        .chart-layer-controls .chart-ctrl-btn {
+            width: 100%;
+            margin: 0;
+            border-radius: 0;
+        }
+        .chart-layer-controls > *:first-child { border-radius: 15px 15px 0 0; }
+        .chart-layer-controls > *:last-child { border-radius: 0 0 15px 15px; }
+        .chart-layer-controls .chart-ctrl-divider { margin: 0; opacity: .35; }
+        @media (min-width: 601px) and (max-width: 1100px) {
+            .chart-ctrl-cluster.topright .chart-layer-controls { width: auto; }
+            .chart-ctrl-cluster.topright .chart-layer-controls > *:first-child { border-radius: 15px 0 0 15px; }
+            .chart-ctrl-cluster.topright .chart-layer-controls > *:last-child { border-radius: 0 15px 15px 0; }
+        }
         .airspace-mini-dot { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
         .airspace-mini-badge { background: var(--as-ctl); color: var(--wp-fill); }
         .airspace-detail-rule { background: var(--cyan-soft); }
@@ -2691,20 +2801,78 @@
         .airspace-mini-card { bottom: 14px; right: 14px; padding: 7px 12px; border-radius: 12px; max-width: min(560px, calc(100% - 440px)); }
         .airspace-mini-name { max-width: 260px; }
 
-        /* ---- Habillage de la carte : cadre d'angles, vignettage, contrôles ---- */
-        .map-frame {
-            position: absolute; inset: 12px; z-index: 620; pointer-events: none; border-radius: 16px;
-            background:
-                linear-gradient(90deg, var(--cyan), var(--cyan)) 0 0 / 26px 2px no-repeat,
-                linear-gradient(180deg, var(--cyan), var(--cyan)) 0 0 / 2px 26px no-repeat,
-                linear-gradient(90deg, var(--cyan), var(--cyan)) 100% 0 / 26px 2px no-repeat,
-                linear-gradient(180deg, var(--cyan), var(--cyan)) 100% 0 / 2px 26px no-repeat,
-                linear-gradient(90deg, var(--cyan), var(--cyan)) 0 100% / 26px 2px no-repeat,
-                linear-gradient(180deg, var(--cyan), var(--cyan)) 0 100% / 2px 26px no-repeat,
-                linear-gradient(90deg, var(--cyan), var(--cyan)) 100% 100% / 26px 2px no-repeat,
-                linear-gradient(180deg, var(--cyan), var(--cyan)) 100% 100% / 2px 26px no-repeat;
-            opacity: .45;
+        /* Étiquette d'espace : pastille posée sur la bordure, teintée de la
+           couleur de la zone. La classe se lit dans son carré, à droite. */
+        .leaflet-tooltip.as-class-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 1px 3px 1px 6px;
+            border: 0;
+            border-radius: 9px;
+            box-shadow: 0 1px 4px -1px rgba(0, 0, 0, .35);
+            background: var(--panel);
+            font-family: var(--f-mono);
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: .06em;
+            line-height: 1.5;
+            color: var(--as-ink, var(--text));
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: .95;
         }
+        .leaflet-tooltip.as-class-label::before { display: none; }
+        .leaflet-tooltip.as-class-label .as-cls {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 11px;
+            height: 11px;
+            border-radius: 3px;
+            background: var(--as-ink, var(--text));
+            color: var(--panel);
+            font-size: 7.5px;
+            font-weight: 800;
+            line-height: 1;
+        }
+        /* une teinte par classe, reprise du trait de la zone */
+        .leaflet-tooltip.as-class-A, .leaflet-tooltip.as-class-B { --as-ink: var(--as-prohibited, #D8455F); }
+        .leaflet-tooltip.as-class-C, .leaflet-tooltip.as-class-D { --as-ink: var(--as-ctr, #2563EB); }
+        .leaflet-tooltip.as-class-E { --as-ink: var(--as-tma, #7C3AED); }
+        .leaflet-tooltip.as-class-G { --as-ink: var(--as-siv, #1E90A8); }
+        /* trop haut, les étiquettes se chevauchent : la carte reprend le dessus */
+        .map-zoom-far .leaflet-tooltip.as-class-label { display: none; }
+        @media (max-width: 600px) {
+            .leaflet-tooltip.as-class-label { font-size: 7px; padding: 0 2px 0 5px; gap: 3px; }
+            .leaflet-tooltip.as-class-label .as-cls { width: 9px; height: 9px; font-size: 6.5px; }
+        }
+
+        .map-ceiling {
+            position: absolute; top: 14px; right: 16px; z-index: 640;
+            display: flex; align-items: center; gap: 7px;
+            padding: 7px 13px; border-radius: 22px; cursor: pointer;
+            border: 1px solid var(--line-strong);
+            background: color-mix(in srgb, var(--panel) 94%, transparent);
+            box-shadow: 0 6px 18px -10px rgba(0, 0, 0, .55);
+            color: var(--text-secondary);
+            font-family: var(--f-mono); font-size: 11px; letter-spacing: .04em;
+            transition: color .15s ease, border-color .15s ease, background .15s ease;
+        }
+        .map-ceiling:hover { color: var(--text); border-color: var(--cyan); }
+        .map-ceiling .lbl { text-transform: uppercase; font-size: 9.5px; letter-spacing: .14em; }
+        .map-ceiling strong { font-weight: 700; font-size: 12px; color: var(--text); }
+        .map-ceiling.on {
+            border-color: var(--accent);
+            background: color-mix(in srgb, var(--accent) 16%, var(--panel));
+            color: var(--accent-ink);
+        }
+        .map-ceiling.on strong { color: var(--accent-ink); }
+        @media (max-width: 900px) {
+            .map-ceiling { top: auto; bottom: 74px; right: 10px; padding: 6px 10px; }
+            .map-ceiling .lbl { display: none; }
+        }
+
         .map-vignette {
             position: absolute; inset: 0; z-index: 610; pointer-events: none;
             box-shadow: inset 0 0 140px 18px rgba(4, 10, 16, .38);
@@ -2712,8 +2880,7 @@
         html:not(.dark-mode) .map-vignette, [data-theme="day"] .map-vignette {
             box-shadow: inset 0 0 130px 16px rgba(20, 45, 70, .10);
         }
-        html:not(.dark-mode) .map-frame, [data-theme="day"] .map-frame { opacity: .35; }
-        html.map-focus .map-frame, html.map-focus .map-vignette { inset: 0; border-radius: 0; }
+        html.map-focus .map-vignette { inset: 0; border-radius: 0; }
 
         /* contrôles : verre plus net, séparateurs fins, survol cyan */
         .chart-nav-controls .chart-ctrl-btn + .chart-ctrl-btn { border-top: 1px solid var(--line); }
@@ -2728,7 +2895,6 @@
         .airspace-mini-card { border-left-width: 3px !important; }
 
         @media (max-width: 600px) {
-            .map-frame { display: none; }
             .map-vignette { box-shadow: inset 0 0 90px 10px rgba(4, 10, 16, .3); }
         }
 
@@ -2739,14 +2905,84 @@
         /* ---- APT reprend le bleu des secteurs d'information ---- */
         .layer-btn.active#btnLayerAirports { color: var(--as-siv); background: color-mix(in srgb, var(--as-siv) 15%, transparent); }
 
-        /* ---- iPad : la barre des calques passe en haut a droite ---- */
-        /* iPad : la barre des calques est deplacee en haut a droite et passe a l'horizontale */
+        /* ---- iPad : les calques restent à gauche, sous les commandes de carte ---- */
         .chart-ctrl-cluster.topright { top: 74px; right: 18px; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
-        .chart-ctrl-cluster.topright .chart-layer-controls {
-            flex-direction: row; align-items: center; flex-wrap: wrap; justify-content: flex-end;
-            width: auto; max-width: min(560px, calc(100vw - 130px)); padding: 3px 5px;
+        /* Même colonne étroite sur tous les formats : elle ne mange jamais la carte. */
+        .chart-ctrl-cluster.topleft .chart-layer-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1px;
+            width: 32px;
+            max-height: calc(100dvh - 188px);
+            overflow-y: auto;
+            padding: 2px;
+            border-radius: 12px;
         }
-        .chart-ctrl-cluster.topright .chart-layer-controls .chart-ctrl-divider { width: 1px; height: 22px; margin: 0 2px; }
+        .chart-ctrl-cluster.topleft .chart-layer-controls .chart-ctrl-divider { display: none; }
+        .chart-ctrl-cluster.topleft .chart-layer-controls .layer-btn,
+        .chart-ctrl-cluster.topleft .chart-layer-controls .chart-ctrl-btn {
+            width: 28px;
+            min-height: 29px;
+            height: 29px;
+            border-radius: 7px;
+        }
+        .chart-ctrl-cluster.topleft .chart-layer-controls .ctrl-micro-lbl { font-size: 7px; }
+        /* Rail des calques : icônes nettes, indicateur de sélection discret. */
+        .chart-ctrl-cluster.topleft .chart-layer-controls {
+            background: color-mix(in srgb, var(--card-bg) 86%, transparent);
+            border-color: color-mix(in srgb, var(--border-color) 82%, transparent);
+            box-shadow: 0 8px 22px rgba(15, 23, 42, .18);
+            scrollbar-width: none;
+        }
+        .chart-ctrl-cluster.topleft .chart-layer-controls::-webkit-scrollbar { display: none; }
+        .chart-ctrl-cluster.topleft .chart-layer-controls .layer-btn,
+        .chart-ctrl-cluster.topleft .chart-layer-controls .chart-ctrl-btn {
+            position: relative;
+            color: var(--muted-text);
+            background: transparent !important;
+            transition: color .16s ease, background .16s ease, transform .16s ease;
+        }
+        .chart-ctrl-cluster.topleft .chart-layer-controls .ctrl-micro-lbl { display: none; }
+        .chart-ctrl-cluster.topleft .chart-layer-controls .layer-btn:hover,
+        .chart-ctrl-cluster.topleft .chart-layer-controls .chart-ctrl-btn:hover {
+            color: var(--text-color);
+            background: var(--hover-bg) !important;
+            transform: scale(1.05);
+        }
+        .chart-ctrl-cluster.topleft .chart-layer-controls .layer-btn.active {
+            color: var(--cyan);
+            width: 100%;
+            border-radius: 0;
+            background: color-mix(in srgb, currentColor 13%, transparent) !important;
+        }
+        .chart-ctrl-cluster.topleft .chart-layer-controls #btnLayerAirports.active { color: var(--as-siv); }
+        .chart-ctrl-cluster.topleft .chart-layer-controls #btnLayerVfrPoints.active { color: var(--as-ctl); }
+        .chart-ctrl-cluster.topleft .chart-layer-controls #btnLayerNavaids.active { color: var(--text-color); }
+        .chart-ctrl-cluster.topleft .chart-layer-controls #btnLayerRoute.active,
+        .chart-ctrl-cluster.topleft .chart-layer-controls #btnRulerNavToggle.active { color: var(--accent); }
+        .chart-ctrl-cluster.topleft .chart-layer-controls #btnLayerCtrl.active { color: var(--as-ctl); }
+        .chart-ctrl-cluster.topleft .chart-layer-controls #btnLayerSpecial.active { color: var(--as-r); }
+        .chart-ctrl-cluster.topleft .chart-layer-controls #btnLayerDanger.active { color: var(--as-d); }
+        .chart-ctrl-cluster.topleft .chart-layer-controls .layer-btn.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 5px;
+            bottom: 5px;
+            width: 2px;
+            border-radius: 2px;
+            background: currentColor;
+        }
+        .chart-ctrl-cluster.topleft .chart-layer-controls .ctrl-badge-icon { font-size: 8px !important; }
+        @media (min-width: 601px) and (max-width: 1100px) and (orientation: portrait) {
+            .chart-ctrl-cluster.topleft { top: 10px; left: 10px; gap: 6px; }
+            .chart-ctrl-cluster.topleft .chart-nav-controls .chart-ctrl-btn { width: 32px; height: 32px; }
+        }
+        @media (max-width: 600px) {
+            .chart-ctrl-cluster.topleft { top: 8px; left: 8px; gap: 5px; }
+            .chart-ctrl-cluster.topleft .chart-nav-controls .chart-ctrl-btn { width: 30px; height: 30px; }
+        }
 
         /* ---- Inspecteur d'espaces aériens : masquable, et simplifié sur téléphone ---- */
         body.inspector-off .airspace-mini-card { display: none !important; }
@@ -2804,7 +3040,12 @@
         .airspace-mini-title { font-family: var(--f-mono); font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--text-secondary); }
         .airspace-mini-count { font-family: var(--f-mono); font-size: 10px; color: var(--muted); }
         .airspace-mini-list { display: flex; flex-direction: column; gap: 1px; }
-        .airspace-mini-row { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 3px 5px; border-radius: 7px; cursor: pointer; }
+        .airspace-mini-row { display: grid; grid-template-columns: auto auto auto minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 3px 5px; border-radius: 7px; cursor: pointer; }
+        .airspace-mini-row > * { min-width: 0; }
+        .airspace-mini-class.empty { border-color: transparent !important; background: transparent !important; }
+        .airspace-mini-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+        .airspace-mini-alt { white-space: nowrap; justify-self: end; }
+        .airspace-mini-badge { white-space: nowrap; }
         .airspace-mini-row:hover { background: var(--panel-hover); }
         .airspace-mini-row .airspace-mini-name { max-width: none; font-size: 12px; }
         .airspace-mini-row .airspace-mini-alt { border-left: 0; padding-left: 0; font-size: 10.5px; white-space: nowrap; }
@@ -2828,12 +3069,54 @@
             .flight-deck-hud { bottom: 26px; }
             .airspace-mini-card { bottom: 132px; }
             .chart-ctrl-cluster.topcenter { top: 10px; }
+            .language-switch { height: 30px; }
+            .language-switch span { min-width: 22px; padding: 0 3px; }
+            .hud-right { gap: 6px; }
         }
+        @media (max-width: 600px) {
+            .language-switch { width: 34px; }
+            .language-switch span { display: none; width: 100%; min-width: 0; }
+            .language-switch span.active { display: inline-flex; }
+        }
+
+        /* iPad vertical : le résumé de route devient une seule bande. */
+        @media (min-width: 601px) and (max-width: 900px) {
+            .flight-deck-hud {
+                width: auto;
+                max-width: calc(100% - 28px);
+                padding: 7px 9px;
+                gap: 8px;
+                flex-direction: row;
+                align-items: center;
+                border-radius: 14px;
+                bottom: 12px;
+                left: 14px;
+            }
+            .hud-top-row { flex: 1 1 auto; min-width: 0; gap: 6px; }
+            .hud-route-summary { gap: 4px; font-size: 10px; }
+            .hud-status-badge { font-size: 8px; padding: 1px 5px; }
+            .hud-airport-pill { padding: 2px 5px; font-size: 10px; }
+            .hud-leg-counter { font-size: 8.5px; }
+            .hud-actions { gap: 3px; }
+            .hud-btn { width: 28px; height: 28px; padding: 0; justify-content: center; border-radius: 8px; }
+            .hud-btn span { display: none; }
+            .hud-metrics { display: flex; width: auto; gap: 7px; padding: 0; border: 0; text-align: left; }
+            .hud-metric-item { padding: 0; border: 0; background: transparent; }
+            .hud-metric-label { display: none; }
+            .hud-metric-val { font-size: 12px; white-space: nowrap; }
+            .hud-metric-item:nth-child(3), .hud-metric-item:nth-child(4) { display: none; }
+        }
+
+        /* L'inspecteur d'espaces sous le curseur n'est plus affiché sur la carte. */
+        .airspace-mini-card,
+        .airspace-detail-modal,
+        #btnInspectorToggle { display: none !important; }
 
         @media (max-width: 600px) {
             /* telephone : pas de raccourcis clavier ni de regle */
             #btnKbdHelp, #btnRulerNavToggle, .kbd-help { display: none !important; }
         }
+
     </style>
 </head>
 <body>
@@ -2841,7 +3124,7 @@
     <!-- 1. TABLET HUD BAR -->
     <header class="tablet-hud" style="z-index: 3000;">
         <div class="hud-left">
-            <a href="flg_prep.html" class="hud-brand" title="ALTIVIEW — Préparation du Vol">
+            <a href="VFR.html" class="hud-brand" title="ALTIVIEW — Carte VFR">
                 <svg class="hud-logo-svg" viewBox="250 190 1432 1432" width="26" height="26" aria-hidden="true">
                     <defs>
                         <linearGradient id="lgA-vfr" x1="0" y1="212" x2="0" y2="990" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#5FE3CF"/><stop offset="1" stop-color="#4BC8B6"/></linearGradient>
@@ -2858,6 +3141,7 @@
                 </svg>
                 <span class="hud-title">ALTIVIEW</span>
             </a>
+            <span class="hud-aircraft" id="hudAircraftTag">F-HAERO · C172S</span>
         </div>
 
         <!-- Global Spotlight Search Bar -->
@@ -2872,9 +3156,14 @@
         <!-- Right Quick Controls & Live Telemetry -->
         <div class="hud-right">
             <div class="hud-telemetry" style="display: flex; align-items: center; gap: 10px; margin-right: 8px;">
-                <span class="hud-aircraft" id="hudAircraftTag">F-HAERO · C172S</span>
                 <span class="hud-clock" id="hudUtcClock">--:-- UTC</span>
             </div>
+
+
+            <button class="language-switch" id="languageSwitch" type="button" role="switch" aria-checked="true" aria-label="Afficher les points VFR en anglais" title="Langue des points VFR : français">
+                <span data-lang-option="fr" class="active">FR</span>
+                <span data-lang-option="en">EN</span>
+            </button>
 
 
             <!-- Sun/Moon Theme Toggle -->
@@ -2886,6 +3175,7 @@
     </header>
 
     <!-- 2. MAIN LAYOUT -->
+
     <main class="main-layout">
         <!-- Numbered Tablet Sidebar Navigation -->
         <nav class="tablet-sidebar">
@@ -2893,11 +3183,11 @@
                 <span class="num">01</span>
                 <span class="label">Carte</span>
             </a>
-            <a href="flg_prep.html#weather" class="sidebar-item" data-nav="wx">
+            <a href="meteo.html" class="sidebar-item" data-nav="wx">
                 <span class="num">02</span>
                 <span class="label">Météo</span>
             </a>
-            <a href="flg_prep.html#flight-fuel" class="sidebar-item" data-nav="info">
+            <a href="infos_vol.html" class="sidebar-item" data-nav="info">
                 <span class="num">03</span>
                 <span class="label">Infos de vol</span>
             </a>
@@ -2905,7 +3195,7 @@
                 <span class="num">04</span>
                 <span class="label">Performances</span>
             </a>
-            <a href="flg_prep.html#readiness" class="sidebar-item" data-nav="dep">
+            <a href="depart.html" class="sidebar-item" data-nav="dep">
                 <span class="num">05</span>
                 <span class="label">Départ en vol</span>
             </a>
@@ -2918,7 +3208,7 @@
             </a>
 
             <div class="sidebar-footer">
-                <button type="button" class="btn-sidebar-tool" onclick="AircraftProfiles.openModal()" title="Profils Avion (C172, DR400, PA28...)">
+                <button type="button" class="btn-sidebar-tool" id="btnAircraftProfiles" title="Profils Avion (C172, DR400, PA28...)">
                     <svg class="tool-ico" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5L21 16z"/></svg> Profils
                 </button>
                 <button type="button" class="btn-sidebar-tool" id="exportFlightDocBtn" title="Exporter Dossier PDF">
@@ -2939,8 +3229,16 @@
                 <!-- Leaflet Map Container (full bleed: the chart takes the whole workspace) -->
                 <div class="map-wrapper">
                     <div id="map"></div>
+                        <!-- Plafond d'affichage : masque les espaces dont le plancher est au-dessus -->
+                        <button type="button" class="map-ceiling" id="btnAltCeiling"
+                                title="Ne garder que les espaces sous une altitude">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M4 6h16M7 12l5-5 5 5M12 20V8"/>
+                            </svg>
+                            <span class="lbl">Espaces sous</span>
+                            <strong id="altCeilingLbl">tout</strong>
+                        </button>
                         <div class="map-vignette" aria-hidden="true"></div>
-                        <div class="map-frame" aria-hidden="true"></div>
 
                     <!-- Honest data status: the local base is not an official, AIRAC-cycled source -->
 
@@ -3099,7 +3397,7 @@
                                     </div>
                                     <button class="btn-cockpit" id="closeLegendFlyoutBtn" style="padding: 2px 7px; font-size:10px; border-radius:8px;">✕</button>
                                 </div>
-                                <div class="legend-flyout-body">
+                                <div class="legend-flyout-body"><p style="font-size:11px;margin:8px 0">◇ Point VFR SIA · obligation de report et altitude : consulter la VAC.</p>
                                     <div style="display:flex; flex-direction:column; gap:5px; margin-top:4px; font-size:10.5px;">
                                         <div style="display:flex; align-items:center; justify-content:space-between; padding:2px 0;">
                                             <span style="display:flex; align-items:center; gap:6px; color:var(--text-color);">
@@ -3457,7 +3755,10 @@
 
     <!-- Leaflet JS & Aeronautical Database -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script src="aero_data.js"></script>
+    <script src="data/sia-vfr.js"></script>
+    <script src="assets/vfr-integrity.js"></script>
+    <script src="assets/vfr-language.js"></script>
+    <script src="data/aero-fr.js"></script>
 
     <script>
         // =========================================================================
@@ -3466,6 +3767,12 @@
         const NAV_STORAGE_KEY = 'flightprep_map_data_v11';
         const PERF_STORAGE_KEY = 'flightprep_perf_data_v10';
         const CHK_STORAGE_KEY = 'flightprep_checklists_data_v2';
+        const VFR_LANGUAGE_KEY = 'altiview-vfr-language';
+        let uiLanguage = (() => {
+            try { return localStorage.getItem(VFR_LANGUAGE_KEY) === 'en' ? 'en' : 'fr'; }
+            catch (_) { return 'fr'; }
+        })();
+        document.documentElement.lang = uiLanguage;
         
         let waypoints = [];
         let markers = [];
@@ -3475,7 +3782,7 @@
         let isProfileOpen = false;
 
         // Initialize Map
-        const map = L.map('map', { zoomControl: false, preferCanvas: true, attributionControl: false }).setView([48.83, 2.35], 9);
+        const map = L.map('map', { zoomControl: false, preferCanvas: true, attributionControl: false }).setView([46.6, 2.5], 6);
         L.control.attribution({ position: 'bottomright', prefix: false }).addTo(map);
 
         // Custom Leaflet Layer Panes for Strict Visual Hierarchy
@@ -3919,7 +4226,7 @@
             let cruiseHtml = '';
             if (cruiseAlt > 0) {
                 if (cruiseAlt >= floorFt && cruiseAlt <= ceilFt) {
-                    cruiseHtml = `<div class="aero-cruise-badge active">ACTIVE AT YOUR CRUISING LEVEL (${cruiseAlt.toLocaleString()} FT)</div>`;
+                    cruiseHtml = `<div class="aero-cruise-badge active">INTERSECTS YOUR PLANNED ALTITUDE (${cruiseAlt.toLocaleString()} FT)</div>`;
                 } else if (cruiseAlt < floorFt) {
                     const margin = floorFt - cruiseAlt;
                     cruiseHtml = `<div class="aero-cruise-badge clear">✓ CLEAR: ${margin.toLocaleString()} FT ABOVE YOUR CRUISE</div>`;
@@ -4212,6 +4519,24 @@
             }
         }
 
+        const MINI_TYPE = {
+            Prohibited: 'P', Restricted: 'R', Danger: 'D',
+            'Glider Sector': 'PLAN', 'Glider': 'PLAN',
+            TMA: 'TMA', CTR: 'CTR', CTA: 'CTA', FIS: 'FIS', SIV: 'SIV',
+            RMZ: 'RMZ', TMZ: 'TMZ'
+        };
+        function miniTypeLabel(t) {
+            return MINI_TYPE[t] || String(t || 'ZONE').slice(0, 4).toUpperCase();
+        }
+        // "3500' AMSL" -> "3500", "FL 115" -> "FL115" : la ligne doit tenir
+        function miniLevel(v) {
+            return String(v || '')
+                .replace(/\s*AMSL|\s*AGL|\s*MSL/gi, '')
+                .replace(/'/g, '')
+                .replace(/FL\s+/i, 'FL')
+                .trim() || '—';
+        }
+
         function setMiniAirspace(sp, stackedList) {
             if (!inspectorOn) return;
             const card = document.getElementById('airspaceMiniCard');
@@ -4243,14 +4568,17 @@
                 const color = getAirspaceThemeColor(s);
                 const row = document.createElement('div');
                 row.className = 'airspace-mini-row';
-                row.title = 'Limites, fréquences et règles';
+                row.title = `${s.name || ''} · ${s.type || ''}${s.class ? ' classe ' + s.class : ''} · ${s.floor || 'SFC'} vers ${s.ceiling || 'UNL'}`;
+                const cls = s.class && s.class !== 'UNC' && s.class !== 'Q' ? s.class : '';
                 row.innerHTML = `<span class="airspace-mini-dot" style="background:${color}; box-shadow:0 0 8px ${color};"></span>`
                     + `<span class="airspace-mini-badge" style="background:${color};"></span>`
+                    + `<span class="airspace-mini-class${cls ? '' : ' empty'}" style="color:${color}; border-color:${color};"></span>`
                     + `<span class="airspace-mini-name"></span>`
                     + `<span class="airspace-mini-alt"></span>`;
-                row.querySelector('.airspace-mini-badge').textContent = s.type || 'ZONE';
+                row.querySelector('.airspace-mini-badge').textContent = miniTypeLabel(s.type);
+                row.querySelector('.airspace-mini-class').textContent = cls;
                 row.querySelector('.airspace-mini-name').textContent = s.name || 'Espace aérien';
-                row.querySelector('.airspace-mini-alt').textContent = `${s.floor || 'SFC'} ➔ ${s.ceiling || 'UNL'}`;
+                row.querySelector('.airspace-mini-alt').textContent = `${miniLevel(s.floor) || 'SFC'} ➔ ${miniLevel(s.ceiling) || 'UNL'}`;
                 row.addEventListener('click', ev => { ev.stopPropagation(); openAirspaceDetailModal(s); });
                 list.appendChild(row);
             });
@@ -4480,38 +4808,36 @@
             `;
 
             if (openPrepBtn) {
-                openPrepBtn.onclick = () => window.open(`flg_prep.html?icao=${icao}`, '_blank');
+                openPrepBtn.onclick = () => window.open(`meteo.html?icao=${icao}`, '_blank');
             }
 
-            // Fetch live METAR via Gateway or direct NOAA/VATSIM
+            // Fetch live METAR/TAF only through the official NOAA AWC gateway.
             let wxData = mapWxCache[icao];
             if (!wxData || (Date.now() - wxData._cachedAt > 180000)) {
                 try {
-                    const gatewayBase = window.location.origin.includes('localhost') ? window.location.origin : 'http://localhost:8080';
+                    const onLocalGateway = /^https?:$/.test(window.location.protocol) && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
+                    const gatewayBase = onLocalGateway ? window.location.origin : 'http://127.0.0.1:8790';
                     let fetched = null;
                     try {
                         const ctrl = new AbortController();
-                        const tid = setTimeout(() => ctrl.abort(), 2000);
-                        const gRes = await fetch(`${gatewayBase}/api/weather?icao=${icao}`, { signal: ctrl.signal });
+                        const tid = setTimeout(() => ctrl.abort(), 3500);
+                        const [metarRes, tafRes] = await Promise.all([
+                            fetch(`${gatewayBase}/api/metar?ids=${encodeURIComponent(icao)}`, { signal: ctrl.signal, cache: 'no-store' }),
+                            fetch(`${gatewayBase}/api/taf?ids=${encodeURIComponent(icao)}`, { signal: ctrl.signal, cache: 'no-store' })
+                        ]);
                         clearTimeout(tid);
-                        if (gRes.ok) fetched = await gRes.json();
+                        if (metarRes.ok) {
+                            const metars = await metarRes.json();
+                            const tafs = tafRes.ok ? await tafRes.json() : [];
+                            if (Array.isArray(metars) && metars.length && metars[0].rawOb) {
+                                fetched = {
+                                    metar: metars[0].rawOb,
+                                    taf: Array.isArray(tafs) && tafs.length ? tafs[0].rawTAF : null,
+                                    source: 'NOAA_AWC'
+                                };
+                            }
+                        }
                     } catch(e) {}
-
-                    if (!fetched || !fetched.metar) {
-                        const nRes = await fetch(`https://aviationweather.gov/api/data/metar?ids=${icao}&format=json`, { mode: 'cors' });
-                        if (nRes.ok) {
-                            const arr = await nRes.json();
-                            if (Array.isArray(arr) && arr.length > 0) fetched = { metar: arr[0].rawOb };
-                        }
-                    }
-
-                    if (!fetched || !fetched.metar) {
-                        const vRes = await fetch(`https://metar.vatsim.net/${icao}`);
-                        if (vRes.ok) {
-                            const txt = await vRes.text();
-                            if (txt && txt.length > 6 && !txt.includes('No METAR')) fetched = { metar: txt.trim() };
-                        }
-                    }
 
                     if (fetched && fetched.metar) {
                         wxData = {
@@ -4781,12 +5107,63 @@
                 openAirspaceDetailModal(sp);
             });
 
+            // Classe d'espace lisible directement sur la carte : l'etiquette
+            // suit le polygone et ne s'affiche qu'a partir d'un zoom utile.
+            const lbl = airspaceLabel(sp);
+            if (lbl) {
+                const anchor = borderAnchor(sp.coordinates);
+                polygon.bindTooltip(lbl, {
+                    permanent: true,
+                    direction: 'center',
+                    className: 'as-class-label as-class-' + (sp.class || 'UNC'),
+                    opacity: 1
+                });
+                if (anchor) polygon.on('add', function () {
+                    const tt = polygon.getTooltip();
+                    if (tt) tt.setLatLng(anchor);
+                });
+            }
+
             sp._poly = polygon;
             sp._targetLayer = isFis ? fisAirspacesLayer : (isControlled ? ctrlAirspacesLayer : (isSpecial ? specialAirspacesLayer : dangerAirspacesLayer));
             storeAirspaceBase(sp, st);
 
             airspacePolygonRefs.push({ polygon, sp });
             return polygon;
+        }
+
+        // Milieu du plus long segment du contour, pris dans sa moitie nord :
+        // l'etiquette se lit ainsi le long de la bordure, au-dessus de la zone,
+        // sans recouvrir ce qu'elle contient.
+        function borderAnchor(coords) {
+            if (!Array.isArray(coords) || coords.length < 3) return null;
+            let minLat = 90, maxLat = -90;
+            coords.forEach(function (p) {
+                if (p[0] < minLat) minLat = p[0];
+                if (p[0] > maxLat) maxLat = p[0];
+            });
+            const mid = (minLat + maxLat) / 2;
+            let best = null, bestLen = -1;
+            for (let i = 0; i < coords.length; i++) {
+                const a = coords[i], b = coords[(i + 1) % coords.length];
+                if (!a || !b) continue;
+                const mLat = (a[0] + b[0]) / 2, mLng = (a[1] + b[1]) / 2;
+                if (mLat < mid) continue;                     // on privilegie la bordure nord
+                const dLat = b[0] - a[0], dLng = (b[1] - a[1]) * 0.66;
+                const len = dLat * dLat + dLng * dLng;
+                if (len > bestLen) { bestLen = len; best = [mLat, mLng]; }
+            }
+            if (best) return best;
+            // contour degenere : on retombe sur le premier point du contour
+            return [coords[0][0], coords[0][1]];
+        }
+
+        // "CTR D", "TMA E", "P" : le type suivi de la classe quand elle est connue.
+        function airspaceLabel(sp) {
+            if (!sp) return '';
+            const type = sp.type || 'ZONE';
+            const cls = sp.class && sp.class !== 'UNC' && sp.class !== 'Q' ? sp.class : '';
+            return cls ? type + '<b class="as-cls">' + cls + '</b>' : type;
         }
 
         function getOrCreateAirspaceBadge(sp) {
@@ -4850,7 +5227,7 @@
                         isVisible = true;
                     }
 
-                    if (!isVisible) return;
+                    if (!isVisible || airspaceAboveCeiling(sp)) return;
 
                     const poly = getOrCreateAirspacePolygon(sp);
                     nextPolys.add(sp);
@@ -4873,6 +5250,35 @@
         // =========================================================================
         // AIRPORT RENDERING WITH LAZY VIEWPORT LOD
         // =========================================================================
+        // Carte VAC — les VAC françaises SIA suivent une adresse PDF prévisible
+        // pour chaque cycle eAIP. Le cycle est celui du dernier jeu SIA chargé.
+        // Une adresse personnalisée reste possible avec {ICAO} (club, SDVFR,
+        // serveur personnel) lorsque souhaité.
+        const VAC_TPL_KEY = 'altiview-vac-url';
+        function siaVacCyclePath() {
+            const effectiveFrom = globalThis.AltiviewVfrData?.metadata?.effectiveFrom;
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(effectiveFrom || '')) return null;
+            const [year, month, day] = effectiveFrom.split('-');
+            const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+            return `eAIP_${day}_${months[Number(month) - 1]}_${year}`;
+        }
+        function vacUrlFor(icao) {
+            const code = String(icao || '').toUpperCase();
+            let tpl = '';
+            try { tpl = localStorage.getItem(VAC_TPL_KEY) || ''; } catch (e) {}
+            if (!tpl) {
+                const cycle = siaVacCyclePath();
+                return code.startsWith('LF') && cycle
+                    ? { url: `https://www.sia.aviation-civile.gouv.fr/media/dvd/${cycle}/Atlas-VAC/PDF_AIPparSSection/VAC/AD/AD-2.${code}.pdf`, custom: false }
+                    : null;
+            }
+            if (!/^https?:\/\//i.test(tpl)) return null;
+            return {
+                url: tpl.replace(/\{ICAO\}/gi, code).replace(/\{icao\}/g, code.toLowerCase()),
+                custom: true
+            };
+        }
+
         function getOrCreateAirportMarker(apt) {
             if (apt._marker) return apt._marker;
 
@@ -4946,13 +5352,21 @@
                 </div>
             `).join('');
 
+            const vac = vacUrlFor(apt.icao);
             const popupContent = `
                 <div class="aero-popup-header">
                     <div>
                         <div class="aero-popup-title">${escapeHtml(apt.icao)} — ${escapeHtml(apt.name)}</div>
                         <div style="font-size:10px; color:var(--muted-text);">${escapeHtml(apt.city)} &bull; Elev: ${apt.alt} ft AMSL</div>
                     </div>
-                    <span class="spotlight-badge badge-airport">${escapeHtml(apt.type.toUpperCase())}</span>
+                    ${vac
+                        ? `<a class="vac-chart-link" href="${vac.url}" target="_blank" rel="noopener noreferrer"
+                              title="Ouvrir la VAC PDF de ${escapeHtml(apt.icao)}" aria-label="Ouvrir la VAC PDF de ${escapeHtml(apt.icao)}">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M14 2.8H7a2 2 0 0 0-2 2v14.4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><polyline points="14 2.8 14 8 19 8"/><path d="M8.5 15.5h7M8.5 12h5"/>
+                            </svg><span>VAC</span>
+                          </a>`
+                        : ''}
                 </div>
                 <div class="aero-popup-body">
                     <div style="font-weight:800; text-transform:uppercase; font-size:10px; color:var(--muted-text); margin-bottom:4px;">Runways</div>
@@ -4964,10 +5378,6 @@
                     <div class="aero-popup-row">
                         <span class="aero-popup-label">Circuit</span>
                         <span class="aero-popup-val">${escapeHtml(apt.circuit?.alt || '1000 ft AGL')}</span>
-                    </div>
-                    <div class="aero-popup-row">
-                        <span class="aero-popup-label">Fuel</span>
-                        <span class="aero-popup-val">${escapeHtml(apt.fuel || '100LL')}</span>
                     </div>
 
                     <!-- Quick Add Actions -->
@@ -5050,53 +5460,51 @@
         // =========================================================================
         // VFR REPORTING POINTS WITH LEVEL-OF-DETAIL
         // =========================================================================
+        function vfrDescription(wp) {
+            return AltiviewVfrLanguage.description(wp, uiLanguage);
+        }
+
+        function vfrDisplayName(wp) {
+            return AltiviewVfrLanguage.displayName(wp, uiLanguage);
+        }
+
         function getOrCreateVfrPointMarker(wp) {
             if (wp._marker) return wp._marker;
-            const isCompulsory = !!wp.compulsory;
-            const triangleSvg = isCompulsory
-                ? `<svg width="18" height="16" viewBox="0 0 20 18"><polygon class="vfr-tri compulsory" points="10,1.5 18.5,16.5 1.5,16.5"/></svg>`
-                : `<svg width="18" height="16" viewBox="0 0 20 18"><polygon class="vfr-tri" points="10,1.5 18.5,16.5 1.5,16.5"/></svg>`;
-
+            const inFrench = uiLanguage === 'fr';
+            const pointName = vfrDisplayName(wp);
+            const pointDescription = vfrDescription(wp);
             const icon = L.divIcon({
                 className: 'aero-div-icon',
-                html: `
-                    <div class="aero-vfr-marker-pod" title="${escapeHtml(wp.airport)} ${escapeHtml(wp.code)}">
-                        ${triangleSvg}
-                        <span class="vfr-code-pill">${escapeHtml(wp.code)}</span>
-                    </div>
-                `,
-                iconSize: [22, 28],
-                iconAnchor: [11, 8]
+                html: `<div class="aero-vfr-marker-pod"><svg width="14" height="13" viewBox="0 0 16 15" aria-hidden="true"><path class="vfr-triangle" d="M8 1.2 14.6 13.5H1.4Z"/></svg><span class="vfr-code-pill">${escapeHtml(wp.code)}</span></div>`,
+                iconSize: [18, 25], iconAnchor: [9, 7]
             });
-
-            const marker = L.marker([wp.lat, wp.lng], { icon: icon });
-            const popupContent = `
-                <div class="aero-popup-header">
-                    <div>
-                        <div class="aero-popup-title">${escapeHtml(wp.airport)} Point ${escapeHtml(wp.code)}</div>
-                        <div style="font-size:10.5px; color:var(--muted-text); font-weight:700;">${escapeHtml(wp.name)}</div>
-                    </div>
-                    <span class="spotlight-badge badge-vfr">${wp.compulsory ? 'COMPULSORY ▲' : 'ON REQUEST △'}</span>
-                </div>
+            const marker = L.marker([wp.lat, wp.lng], { icon, title: `${wp.airport} ${wp.code} — ${pointName}`, bubblingMouseEvents: false });
+            const content = document.createElement('div');
+            const meta = window.AltiviewVfrData?.metadata;
+            content.innerHTML = `
+                <div class="aero-popup-header"><div>
+                    <div class="aero-popup-title">${escapeHtml(wp.airport + ' ' + wp.code)}</div>
+                    <div>${escapeHtml(pointName)}</div>
+                </div><span class="spotlight-badge badge-vfr">SIA · VFR</span></div>
                 <div class="aero-popup-body">
-                    <div class="aero-popup-row">
-                        <span class="aero-popup-label">Altitude</span>
-                        <span class="aero-popup-val" style="color:var(--accent-blue); font-weight:800;">${escapeHtml(wp.alt || 'Standard VFR')}</span>
-                    </div>
-                    <div class="aero-popup-row">
-                        <span class="aero-popup-label">Landmark</span>
-                        <span class="aero-popup-val">${escapeHtml(wp.desc || 'Visual checkpoint')}</span>
-                    </div>
-                    <div style="margin-top:12px;">
-                        <button class="btn-popup-action accent" style="width:100%;" onclick="addVfrPointAsWp('${escapeHtml(wp.airport + ' ' + wp.code + ' (' + wp.name + ')')}', ${wp.lat}, ${wp.lng})">
-                            + Add ${escapeHtml(wp.code)} to Route
-                        </button>
-                    </div>
-                </div>
-            `;
-            marker.bindPopup(popupContent);
-            marker.bindTooltip(`<strong>${wp.airport} ${wp.code}</strong> (${wp.name})`, { direction: 'top', offset: [0, -12] });
-
+                    <div class="aero-popup-row"><span class="aero-popup-label">WGS‑84</span><span class="aero-popup-val">${escapeHtml(wp.publishedLat)}<br>${escapeHtml(wp.publishedLng)}</span></div>
+                    <div class="aero-popup-row"><span class="aero-popup-label">${inFrench ? 'Degrés' : 'Degrees'}</span><span class="aero-popup-val">${wp.lat.toFixed(7)}, ${wp.lng.toFixed(7)}</span></div>
+                    <div class="aero-popup-row"><span class="aero-popup-label">${inFrench ? 'Repère' : 'Landmark'}</span><span class="aero-popup-val">${escapeHtml(pointDescription)}</span></div>
+                    <div class="aero-popup-row"><span class="aero-popup-label">${inFrench ? 'Altitude / report' : 'Altitude / reporting'}</span><span class="aero-popup-val">${inFrench ? 'Consulter la VAC · non renseignée dans le flux' : 'See the VAC chart · not provided in the feed'}</span></div>
+                    <p style="font-size:11px;margin:10px 0">${inFrench ? 'Source SIA · édition' : 'SIA source · edition'} ${escapeHtml(meta?.effectiveFrom || (inFrench ? 'inconnue' : 'unknown'))} · ${AltiviewVfrIntegrity.status(meta) === 'current' ? (inFrench ? 'cycle en cours' : 'current cycle') : (inFrench ? 'cycle non valide' : 'invalid cycle')}</p>
+                    <a href="https://www.sia.aviation-civile.gouv.fr/vaip" target="_blank" rel="noopener noreferrer">${inFrench ? 'Consulter la VAC / AIP SIA' : 'Open the SIA VAC / AIP'}</a>
+                    <label style="display:block;font-size:11px;margin-top:10px">${inFrench ? 'Altitude planifiée en ft AMSL · vérifier la VAC' : 'Planned altitude in ft AMSL · check the VAC chart'}
+                        <input class="vfr-planned-altitude" type="number" min="0" max="45000" step="1" required placeholder="${inFrench ? 'À définir' : 'Required'}" style="width:100%;padding:7px;margin-top:4px" aria-label="${inFrench ? 'Altitude planifiée en pieds AMSL' : 'Planned altitude in feet AMSL'}">
+                    </label>
+                    <button type="button" class="btn-popup-action accent" style="width:100%;margin-top:12px">${inFrench ? '+ Ajouter' : '+ Add'} ${escapeHtml(wp.code)} ${inFrench ? 'à la route' : 'to route'}</button>
+                </div>`;
+            content.querySelector('button').addEventListener('click', () => {
+                const altitude = content.querySelector('.vfr-planned-altitude');
+                if (!altitude.reportValidity()) return;
+                window.addVfrPointAsWp(`${wp.airport} ${wp.code}`.trim(), wp.lat, wp.lng, wp.id, Number(altitude.value));
+            });
+            marker.bindPopup(content, { maxHeight: Math.max(160, Math.min(390, map.getSize().y - 230)), maxWidth: 340, autoPanPaddingTopLeft: [55, 65], autoPanPaddingBottomRight: [55, 110] });
+            marker.bindTooltip(`<strong>${escapeHtml(wp.airport)} ${escapeHtml(wp.code)}</strong> · ${escapeHtml(pointName)}`, { direction: 'top', offset: [0, -12] });
             wp._marker = marker;
             return marker;
         }
@@ -5107,11 +5515,12 @@
             if (!map.hasLayer(vfrPointsLayer)) return;
             const z = map.getZoom();
             if (z < 9) {
-                // VFR entry/exit reporting points are only useful for approach into CTRs/airfields (zoom >= 9)
+                // les points de report ne servent qu'en approche : sous ce zoom, on les range
                 activeVfrPoints.forEach(wp => {
                     if (wp._marker) vfrPointsLayer.removeLayer(wp._marker);
                 });
                 activeVfrPoints.clear();
+                syncVfrLayerHint(-1);
                 return;
             }
 
@@ -5137,6 +5546,58 @@
                 }
             });
             activeVfrPoints = nextVfr;
+            syncVfrLayerHint(nextVfr.size);
+        }
+
+        function syncVfrLayerHint(count) {
+            const btn = document.getElementById('btnLayerVfrPoints');
+            if (!btn) return;
+            btn.classList.toggle('layer-empty', count === 0);
+            btn.setAttribute('data-tip', count < 0
+                ? (uiLanguage === 'fr' ? 'Points VFR SIA · zoomer pour afficher (niveau 9)' : 'SIA VFR points · zoom in to display (level 9)')
+                : (uiLanguage === 'fr' ? `Points VFR SIA · ${count} dans la vue · une absence ne garantit pas une couverture complète` : `SIA VFR points · ${count} in view · absence does not guarantee complete coverage`));
+
+        }
+
+        function refreshVfrPointLanguage() {
+            vfrPointsLayer.clearLayers();
+            activeVfrPoints.clear();
+            AeroData.VFR_WAYPOINTS.forEach(wp => { wp._marker = null; });
+            updateVfrPointsVisibility();
+        }
+
+        function paintLanguageSwitch() {
+            const button = document.getElementById('languageSwitch');
+            if (!button) return;
+            button.querySelectorAll('[data-lang-option]').forEach(option => {
+                option.classList.toggle('active', option.dataset.langOption === uiLanguage);
+            });
+            const next = uiLanguage === 'fr' ? 'anglais' : 'français';
+            button.setAttribute('aria-checked', uiLanguage === 'fr' ? 'true' : 'false');
+            button.setAttribute('aria-label', `Afficher les points VFR en ${next}`);
+            button.title = uiLanguage === 'fr' ? 'Langue des points VFR : français' : 'VFR point language: English';
+            spotlightInput.placeholder = uiLanguage === 'fr'
+                ? 'Recherche aéroports, points VFR, CTR, VOR...'
+                : 'Search airports, VFR points, CTR, VOR...';
+        }
+
+        function applyVfrLanguage(language, persist = true) {
+            uiLanguage = language === 'en' ? 'en' : 'fr';
+            document.documentElement.lang = uiLanguage;
+            if (persist) {
+                try { localStorage.setItem(VFR_LANGUAGE_KEY, uiLanguage); } catch (_) {}
+            }
+            paintLanguageSwitch();
+            refreshVfrPointLanguage();
+            const query = spotlightInput.value.trim();
+            if (query.length >= 2 && spotlightDropdown.style.display === 'block') spotlightRender(searchChart(query), query);
+        }
+
+        function initVfrLanguageSwitch() {
+            paintLanguageSwitch();
+            document.getElementById('languageSwitch')?.addEventListener('click', () => {
+                applyVfrLanguage(uiLanguage === 'fr' ? 'en' : 'fr');
+            });
         }
 
         // =========================================================================
@@ -5254,10 +5715,35 @@
 
         map.on('moveend zoomend', scheduleViewportUpdate);
 
+        // Les classes d'espaces ne s'affichent qu'une fois assez zoome :
+        // de trop haut, les etiquettes se chevauchent et masquent la carte.
+        function syncClassLabels() {
+            document.body.classList.toggle('map-zoom-far', map.getZoom() < 10);
+        }
+        map.on('zoomend', syncClassLabels);
+        syncClassLabels();
+
         // =========================================================================
         // ALTITUDE SLICER / FILTER
         // =========================================================================
+        // Plafond d'affichage : en VFR on ne vole pas au-dessus d'une certaine
+        // altitude, et les espaces qui commencent plus haut ne font qu'encombrer.
+        // 0 = tout afficher. Le plancher de l'espace décide, pas son plafond.
+        const ALT_CEILING_KEY = 'altiview-alt-ceiling';
+        let altCeilingFt = 0;
+        try { altCeilingFt = parseInt(localStorage.getItem(ALT_CEILING_KEY), 10) || 0; } catch (e) {}
+
+        function airspaceAboveCeiling(sp) {
+            return altCeilingFt > 0 && (sp.floorFt || 0) > altCeilingFt;
+        }
+
         function applyAltitudeFilterToPolygon(polygon, sp) {
+            if (airspaceAboveCeiling(sp)) {
+                polygon.setStyle({ opacity: 0, fillOpacity: 0 });
+                if (polygon._path) polygon._path.style.pointerEvents = 'none';
+                return;
+            }
+            if (polygon._path) polygon._path.style.pointerEvents = '';
             polygon.setStyle({
                 color: sp._baseStroke,
                 fillColor: sp._baseStroke,
@@ -5295,12 +5781,50 @@
         let spotlightResults = [];
         let spotlightIndex = -1;
 
+        function normalizedSearchText(value) {
+            return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+        }
+
+        function searchChart(query) {
+            const results = AeroData.searchAll(query);
+            if (uiLanguage !== 'fr') return results;
+            const q = normalizedSearchText(query.trim());
+            const seen = new Set(results.filter(r => r.type === 'vfr').map(r => r.data?.id));
+            for (const wp of AeroData.VFR_WAYPOINTS) {
+                if (seen.has(wp.id)) continue;
+                const name = normalizedSearchText(AltiviewVfrLanguage.displayName(wp, 'fr'));
+                const description = normalizedSearchText(AltiviewVfrLanguage.description(wp, 'fr'));
+                if (!name.includes(q) && !description.includes(q)) continue;
+                results.push({
+                    type: 'vfr',
+                    category: 'VFR · consulter la VAC',
+                    title: `${wp.airport || ''} ${wp.code || ''}`.trim(),
+                    sub: description,
+                    lat: wp.lat,
+                    lng: wp.lng,
+                    score: name.startsWith(q) ? 72 : 58,
+                    data: wp
+                });
+            }
+            return results.sort((a, b) => b.score - a.score).slice(0, 15);
+        }
+
+        function spotlightTitle(result) {
+            if (result.type !== 'vfr' || !result.data) return result.title;
+            const code = `${result.data.airport || ''} ${result.data.code || ''}`.trim();
+            return `${code} — ${vfrDisplayName(result.data)}`;
+        }
+
+        function spotlightSubtitle(result) {
+            return result.type === 'vfr' && result.data ? vfrDescription(result.data) : (result.sub || '');
+        }
+
         function spotlightRender(results, query) {
             spotlightResults = results.slice(0, 10);
             spotlightIndex = spotlightResults.length ? 0 : -1;
 
             if (!spotlightResults.length) {
-                spotlightDropdown.innerHTML = `<div style="padding:12px 16px; color:var(--muted-text); font-size:12px;">Aucun résultat pour « ${escapeHtml(query)} »</div>`;
+                spotlightDropdown.innerHTML = `<div style="padding:12px 16px; color:var(--muted-text); font-size:12px;">${uiLanguage === 'fr' ? 'Aucun résultat pour' : 'No results for'} « ${escapeHtml(query)} »</div>`;
                 spotlightDropdown.style.display = 'block';
                 return;
             }
@@ -5311,18 +5835,20 @@
                 else if (r.type === 'navaid') badgeClass = 'badge-vor';
                 else if (r.type === 'vfr') badgeClass = 'badge-vfr';
                 const label = r.type === 'vfr' ? 'VFR' : r.type.toUpperCase();
+                const title = spotlightTitle(r);
+                const subtitle = spotlightSubtitle(r);
                 return `
                     <div class="spotlight-item${idx === spotlightIndex ? ' selected' : ''}" data-idx="${idx}">
                         <div>
-                            <div style="font-weight:700; font-size:13px; color:var(--text-color);">${escapeHtml(r.title)}</div>
-                            <div style="font-size:10.5px; color:var(--muted-text);">${escapeHtml(r.sub || '')}</div>
+                            <div style="font-weight:700; font-size:13px; color:var(--text-color);">${escapeHtml(title)}</div>
+                            <div style="font-size:10.5px; color:var(--muted-text);">${escapeHtml(subtitle)}</div>
                         </div>
                         <span class="spotlight-badge ${badgeClass}">${escapeHtml(label)}</span>
                     </div>`;
             }).join('') + `
                 <div class="spotlight-hint">
                     <span><b>↑ ↓</b> parcourir</span>
-                    <span><b>Entrée</b> ajouter</span>
+                    <span><b>Entrée</b> afficher</span>
                     <span><b>Maj+Entrée</b> départ</span>
                     <span><b>Alt+Entrée</b> arrivée</span>
                 </div>`;
@@ -5346,7 +5872,7 @@
         }
 
         function spotlightGoTo(sel) {
-            map.flyTo([sel.lat, sel.lng], Math.max(map.getZoom(), 11), { animate: true });
+            map.setView([sel.lat, sel.lng], Math.max(map.getZoom(), 11), { animate: false });
             setTimeout(() => {
                 if (sel.type === 'airport' && sel.data) {
                     const apt = AeroData.AIRPORTS.find(a => a.icao === sel.data.icao);
@@ -5356,7 +5882,7 @@
                         m.openPopup();
                     }
                 } else if (sel.type === 'vfr') {
-                    const v = AeroData.VFR_WAYPOINTS.find(w => Math.abs(w.lat - sel.lat) < 0.001 && Math.abs(w.lng - sel.lng) < 0.001);
+                    const v = AeroData.VFR_WAYPOINTS.find(w => w.id === sel.data?.id);
                     if (v) {
                         const m = getOrCreateVfrPointMarker(v);
                         if (!vfrPointsLayer.hasLayer(m)) vfrPointsLayer.addLayer(m);
@@ -5382,14 +5908,14 @@
             spotlightInput.value = sel.title.split('—')[0].trim();
 
             // un espace aérien ne se met pas dans la route : on s'y rend
-            if (mode === 'goto' || sel.type === 'airspace') { spotlightGoTo(sel); return; }
+            if (mode === 'goto' || sel.type === 'airspace' || sel.type === 'vfr') { spotlightGoTo(sel); return; }
 
             if (sel.type === 'airport' && sel.data) {
                 const role = (mode === 'departure' || mode === 'arrival') ? mode : 'waypoint';
                 window.addAirportAsWp(sel.data.icao, role);
             } else {
                 // points VFR et balises : toujours des points tournants
-                window.addVfrPointAsWp(cleanWaypointName(sel.title), sel.lat, sel.lng);
+                window.addVfrPointAsWp(cleanWaypointName(sel.title), sel.lat, sel.lng, sel.type === 'vfr' ? sel.data?.id : null);
             }
             map.flyTo([sel.lat, sel.lng], Math.max(map.getZoom(), 10), { animate: true });
             spotlightInput.blur();
@@ -5403,7 +5929,7 @@
                 spotlightResults = [];
                 return;
             }
-            spotlightRender(AeroData.searchAll(val), val);
+            spotlightRender(searchChart(val), val);
         });
 
         spotlightInput.addEventListener('keydown', (e) => {
@@ -5412,7 +5938,7 @@
             else if (e.key === 'ArrowUp') { e.preventDefault(); spotlightSelect(spotlightIndex - 1); }
             else if (e.key === 'Enter') {
                 e.preventDefault();
-                const mode = e.shiftKey ? 'departure' : ((e.altKey || e.ctrlKey || e.metaKey) ? 'arrival' : 'waypoint');
+                const mode = e.shiftKey ? 'departure' : ((e.altKey || e.ctrlKey || e.metaKey) ? 'arrival' : 'goto');
                 spotlightApply(spotlightIndex < 0 ? 0 : spotlightIndex, mode);
             }
         });
@@ -5530,12 +6056,14 @@
             updateUI();
         };
 
-        window.addVfrPointAsWp = function(name, lat, lng) {
+        window.addVfrPointAsWp = function(name, lat, lng, vfrSourceId = null, plannedAltitude = null) {
+            if (vfrSourceId && (!Number.isFinite(plannedAltitude) || plannedAltitude < 0 || plannedAltitude > 45000)) return;
             const wpItem = {
                 name: cleanWaypointName(name),
+                vfrSourceId,
                 lat: parseFloat(lat),
                 lng: parseFloat(lng),
-                alt: 3500,
+                alt: vfrSourceId ? plannedAltitude : 3500,
                 role: 'waypoint',
                 isDeparture: false,
                 isArrival: false
@@ -5566,29 +6094,8 @@
             const lat = roundDec(latlng.lat, 4);
             const lng = roundDec(latlng.lng, 4);
 
-            const nearbyAirport = AeroData.AIRPORTS.find(a => 
-                Math.abs(a.lat - lat) < 0.03 && Math.abs(a.lng - lng) < 0.03
-            );
-            
-            const nearbyVfr = AeroData.VFR_WAYPOINTS.find(v => 
-                Math.abs(v.lat - lat) < 0.03 && Math.abs(v.lng - lng) < 0.03
-            );
-
-            const nearbyNav = AeroData.NAVAIDS.find(n => 
-                Math.abs(n.lat - lat) < 0.03 && Math.abs(n.lng - lng) < 0.03
-            );
-
-            let wpName = `WP ${waypoints.length + 1}`;
-            let wpAlt = 3500;
-
-            if (nearbyAirport) {
-                wpName = nearbyAirport.icao;
-                wpAlt = nearbyAirport.alt || wpAlt;
-            } else if (nearbyNav) {
-                wpName = `${nearbyNav.ident} ${nearbyNav.type}`;
-            } else if (nearbyVfr) {
-                wpName = `${nearbyVfr.ident} (${nearbyVfr.name})`;
-            }
+            const wpName = `WP ${waypoints.length + 1}`;
+            const wpAlt = 3500; // User planning altitude, not a published point constraint.
 
             const newWp = {
                 lat: lat,
@@ -5627,7 +6134,7 @@
                 const popupHtml = `
                     <div class="aero-popup-header">
                         <div class="aero-popup-title">Vertical Airspace Column</div>
-                        <span class="spotlight-badge badge-airspace">${airspacesHere.length} ACTIVE</span>
+                        <span class="spotlight-badge badge-airspace">${airspacesHere.length} RÉPERTORIÉS</span>
                     </div>
                     <div class="aero-popup-body">
                         <div>${spListHtml}</div>
@@ -5875,9 +6382,9 @@
                             <button class="btn-card-del" data-idx="${index}" title="Remove waypoint">✕</button>
                         </div>
                         <div class="wp-alt-row">
-                            <span>Altitude:</span>
+                            <span>Altitude planifiée:</span>
                             <input type="number" class="wp-alt-input" value="${wp.alt !== undefined ? wp.alt : 3500}" step="500" data-idx="${index}">
-                            <span>ft &bull; ${wp.lat.toFixed(3)}N, ${wp.lng.toFixed(3)}E</span>
+                            <span>ft &bull; ${Math.abs(wp.lat).toFixed(5)}${wp.lat < 0 ? 'S' : 'N'}, ${Math.abs(wp.lng).toFixed(5)}${wp.lng < 0 ? 'W' : 'E'}</span>
                         </div>
                     </div>
                 `;
@@ -5945,7 +6452,7 @@
             }
 
             if (penetratedAirspaces.size === 0) {
-                airspaceBriefList.innerHTML = '<div style="padding:24px; color:var(--accent-green); font-weight:700; text-align:center; font-size:13.5px;">✓ Route remains entirely in Uncontrolled Airspace (Class G).</div>';
+                airspaceBriefList.innerHTML = '<div style="padding:24px; color:var(--accent-green); font-weight:700; text-align:center; font-size:13.5px;">Aucun espace détecté dans les données chargées. Couverture et activité non vérifiées : consulter AIP, SUP AIP et NOTAM.</div>';
                 return;
             }
 
@@ -6274,6 +6781,186 @@
             }));
             const data = { waypoints: sanitizedWaypoints, tas: tasInput.value, windDir: windDirInput.value, windSpd: windSpdInput.value };
             localStorage.setItem(NAV_STORAGE_KEY, JSON.stringify(data));
+            cacheRouteFields(sanitizedWaypoints);
+        }
+
+
+        // ---------------------------------------------------------------
+        // Capture de la zone de vol pour le dossier PDF.
+        // html2canvas ne sait pas photographier une carte Leaflet : on
+        // recompose donc l'image nous-mêmes à partir des tuiles, puis on
+        // trace la route par-dessus. Le résultat est une vraie image, que
+        // le PDF peut afficher sans dépendre du réseau au moment de l'export.
+        // ---------------------------------------------------------------
+        const ROUTE_IMAGE_KEY = 'flightprep_route_image_v1';
+        const CAP_W = 960, CAP_H = 460, TILE = 256;
+
+        function lon2x(lon, z) { return (lon + 180) / 360 * Math.pow(2, z); }
+        function lat2y(lat, z) {
+            const r = lat * Math.PI / 180;
+            return (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * Math.pow(2, z);
+        }
+
+        function loadTile(url) {
+            return new Promise(function (resolve) {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = function () { resolve(img); };
+                img.onerror = function () { resolve(null); };
+                img.src = url;
+            });
+        }
+
+        function captureRouteMap(wps) {
+            const pts = (wps || []).map(function (w) {
+                return { lat: parseFloat(w.lat), lng: parseFloat(w.lng), name: w.name || '' };
+            }).filter(function (p) { return !isNaN(p.lat) && !isNaN(p.lng); });
+            if (pts.length < 2) { try { localStorage.removeItem(ROUTE_IMAGE_KEY); } catch (e) {} return; }
+
+            // cadrage : la route, plus une marge d'un cinquième
+            let s = 90, n = -90, w = 180, e = -180;
+            pts.forEach(function (p) {
+                s = Math.min(s, p.lat); n = Math.max(n, p.lat);
+                w = Math.min(w, p.lng); e = Math.max(e, p.lng);
+            });
+            const padLat = Math.max(0.02, (n - s) * 0.2), padLng = Math.max(0.02, (e - w) * 0.2);
+            s -= padLat; n += padLat; w -= padLng; e += padLng;
+
+            // le zoom le plus fin qui tient encore dans le cadre
+            let z = 13;
+            for (; z > 4; z--) {
+                const dx = (lon2x(e, z) - lon2x(w, z)) * TILE;
+                const dy = (lat2y(s, z) - lat2y(n, z)) * TILE;
+                if (dx <= CAP_W && dy <= CAP_H) break;
+            }
+
+            const cx = (lon2x(w, z) + lon2x(e, z)) / 2, cy = (lat2y(n, z) + lat2y(s, z)) / 2;
+            const originX = cx * TILE - CAP_W / 2, originY = cy * TILE - CAP_H / 2;
+            const px = function (p) {
+                return [lon2x(p.lng, z) * TILE - originX, lat2y(p.lat, z) * TILE - originY];
+            };
+
+            const x0 = Math.floor(originX / TILE), x1 = Math.floor((originX + CAP_W) / TILE);
+            const y0 = Math.floor(originY / TILE), y1 = Math.floor((originY + CAP_H) / TILE);
+            const max = Math.pow(2, z);
+            const jobs = [];
+            for (let ty = y0; ty <= y1; ty++) {
+                for (let tx = x0; tx <= x1; tx++) {
+                    if (ty < 0 || ty >= max) continue;
+                    const wrapX = ((tx % max) + max) % max;
+                    jobs.push({
+                        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/'
+                             + z + '/' + ty + '/' + wrapX,
+                        dx: tx * TILE - originX, dy: ty * TILE - originY
+                    });
+                }
+            }
+            if (jobs.length > 60) return;   // cadrage aberrant, on renonce plutôt que de marteler le serveur
+
+            Promise.all(jobs.map(function (j) { return loadTile(j.url); })).then(function (imgs) {
+                if (!imgs.filter(Boolean).length) return;   // hors ligne : on garde l'image précédente
+                const cv = document.createElement('canvas');
+                cv.width = CAP_W; cv.height = CAP_H;
+                const g = cv.getContext('2d');
+                g.fillStyle = '#F2F4F5'; g.fillRect(0, 0, CAP_W, CAP_H);
+                imgs.forEach(function (img, i) { if (img) g.drawImage(img, jobs[i].dx, jobs[i].dy, TILE, TILE); });
+
+                // la route : un liseré blanc pour détacher du fond, puis le trait
+                const path = pts.map(px);
+                g.lineJoin = g.lineCap = 'round';
+                g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = 7;
+                g.beginPath(); path.forEach(function (p, i) { i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]); }); g.stroke();
+                g.strokeStyle = '#B4531A'; g.lineWidth = 3.2;
+                g.beginPath(); path.forEach(function (p, i) { i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]); }); g.stroke();
+
+                // points tournants, départ en vert, arrivée en rouge
+                g.font = '600 12px ui-monospace, Menlo, monospace';
+                g.textAlign = 'center';
+                path.forEach(function (p, i) {
+                    const last = i === path.length - 1;
+                    g.fillStyle = '#FFFFFF'; g.beginPath(); g.arc(p[0], p[1], 6.5, 0, 6.29); g.fill();
+                    g.fillStyle = i === 0 ? '#188038' : (last ? '#B3123A' : '#22313F');
+                    g.beginPath(); g.arc(p[0], p[1], 4.2, 0, 6.29); g.fill();
+                    const label = pts[i].name;
+                    if (label) {
+                        const ty = p[1] - 12;
+                        g.lineWidth = 3; g.strokeStyle = 'rgba(255,255,255,.95)';
+                        g.strokeText(label, p[0], ty);
+                        g.fillStyle = '#1B2733'; g.fillText(label, p[0], ty);
+                    }
+                });
+
+                try { localStorage.setItem(ROUTE_IMAGE_KEY, cv.toDataURL('image/jpeg', 0.82)); }
+                catch (err) { /* quota atteint : le dossier retombera sur le tracé vectoriel */ }
+            });
+        }
+
+        // Frequences, pistes et sens de circuit des terrains de la route.
+        // La base aeronautique ne vit que sur les pages qui la chargent :
+        // on met de cote l'essentiel pour que le dossier PDF y ait acces partout.
+        const ROUTE_FIELDS_KEY = 'flightprep_route_fields_v1';
+        function cacheRouteFields(wps) {
+            if (!window.AeroData || !Array.isArray(AeroData.AIRPORTS)) return;
+            // pas de fréquence sol : le dossier sert en vol, pas au parking
+            const wanted = ['ATIS', 'TWR', 'AFIS', 'INFO', 'APP'];
+            const out = [];
+            (wps || []).forEach(function (wp, i) {
+                const code = String(wp.name || '').toUpperCase().match(/\b[A-Z]{4}\b/);
+                if (!code) return;
+                const apt = AeroData.AIRPORTS.find(a => a.icao === code[0]);
+                if (!apt) return;
+                const freqs = {};
+                (apt.frequencies || []).forEach(function (fr) {
+                    const t = String(fr.type || '').toUpperCase();
+                    if (wanted.indexOf(t) >= 0 && !freqs[t]) freqs[t] = String(fr.freq || '').replace(' MHz', '');
+                });
+                out.push({
+                    icao: apt.icao,
+                    name: apt.name,
+                    alt: apt.alt,
+                    role: i === 0 ? 'Départ' : (i === wps.length - 1 ? 'Arrivée' : 'En route'),
+                    runways: (apt.runways || []).map(r => ({ name: r.name, length: r.length, surface: r.surface })),
+                    circuit: apt.circuit || null,
+                    freqs: freqs
+                });
+            });
+            try { localStorage.setItem(ROUTE_FIELDS_KEY, JSON.stringify(out)); } catch (e) {}
+            cacheRouteChart(wps);
+            clearTimeout(window.__capTimer);
+            window.__capTimer = setTimeout(function () { captureRouteMap(wps); }, 900);
+        }
+
+        // Extrait de carte pour le dossier PDF : les espaces traverses et les
+        // terrains proches, en coordonnees simplifiees. Le PDF n'a pas acces a
+        // la base complete, il lui faut ce strict necessaire.
+        const ROUTE_CHART_KEY = 'flightprep_route_chart_v1';
+        function cacheRouteChart(wps) {
+            if (!window.AeroData || !Array.isArray(wps) || wps.length < 2) return;
+            const lats = wps.map(w => parseFloat(w.lat)).filter(v => !isNaN(v));
+            const lngs = wps.map(w => parseFloat(w.lng)).filter(v => !isNaN(v));
+            if (!lats.length) return;
+            const pad = 0.35;
+            const box = {
+                s: Math.min.apply(null, lats) - pad, n: Math.max.apply(null, lats) + pad,
+                w: Math.min.apply(null, lngs) - pad, e: Math.max.apply(null, lngs) + pad
+            };
+            const overlaps = b => b && !(b[2] < box.s || b[0] > box.n || b[3] < box.w || b[1] > box.e);
+            const keep = ['CTR', 'TMA', 'CTA', 'Prohibited', 'Restricted', 'Danger'];
+            const zones = (AeroData.AIRSPACES || [])
+                .filter(sp => keep.indexOf(sp.type) >= 0 && overlaps(sp.bbox) && Array.isArray(sp.coordinates))
+                .slice(0, 28)
+                .map(sp => ({
+                    t: sp.type,
+                    c: sp.class && sp.class !== 'UNC' ? sp.class : '',
+                    // un point sur deux suffit a l'echelle du dossier
+                    p: sp.coordinates.filter((_, i) => i % 2 === 0 || i === sp.coordinates.length - 1)
+                        .map(pt => [+pt[0].toFixed(3), +pt[1].toFixed(3)])
+                }));
+            const fields = (AeroData.AIRPORTS || [])
+                .filter(a => a.lat >= box.s && a.lat <= box.n && a.lng >= box.w && a.lng <= box.e)
+                .slice(0, 40)
+                .map(a => ({ i: a.icao, y: +a.lat.toFixed(4), x: +a.lng.toFixed(4), k: a.type }));
+            try { localStorage.setItem(ROUTE_CHART_KEY, JSON.stringify({ zones: zones, fields: fields })); } catch (e) {}
         }
 
         function loadState() {
@@ -6475,7 +7162,7 @@
                 inspectFrame = null;
                 if (isRulerActive || !inspectLatLng || typeof AeroData === 'undefined') return;
                 const found = AeroData.findAirspacesAt(inspectLatLng.lat, inspectLatLng.lng)
-                    .filter(sp => sp.type !== 'Airway' && airspaceLayerShown(sp))
+                    .filter(sp => sp.type !== 'Airway' && airspaceLayerShown(sp) && !airspaceAboveCeiling(sp))
                     .sort((a, b) => (a.floorFt || 0) - (b.floorFt || 0));
                 if (found.length) {
                     if (miniAirspaceRevertTimeout) { clearTimeout(miniAirspaceRevertTimeout); miniAirspaceRevertTimeout = null; }
@@ -6487,39 +7174,19 @@
         });
         map.on('mouseout', resetInspectorSoon);
 
-        // la recherche reste au centre de la carte quand on replie un panneau
-        function updateSearchCenter() {
-            const side = document.querySelector('.tablet-sidebar');
-            const dock = document.getElementById('navlogDock');
-            const sideW = (side && window.innerWidth > 900) ? side.getBoundingClientRect().width : 0;
-            const dockW = dock ? dock.getBoundingClientRect().width : 0;
-            document.documentElement.style.setProperty('--map-shift', ((sideW - dockW) / 2) + 'px');
-        }
-        updateSearchCenter();
-        window.addEventListener('resize', updateSearchCenter);
-
-        // iPad : les calques rejoignent le coin haut droit ; ailleurs ils restent a gauche
+        // Les calques restent sous les commandes à gauche : ils ne recouvrent
+        // ainsi ni le fond de carte ni le Flight Deck sur les écrans tactiles.
         function placeLayerBar() {
             const bar = document.getElementById('chartLayerControls');
             const wrap = document.querySelector('.map-wrapper');
             const home = document.querySelector('.chart-ctrl-cluster.topleft');
             if (!bar || !wrap || !home) return;
-            const tablet = window.innerWidth > 600 && window.innerWidth <= 1100;
-            let right = wrap.querySelector('.chart-ctrl-cluster.topright');
-            if (tablet) {
-                if (!right) {
-                    right = document.createElement('div');
-                    right.className = 'chart-ctrl-cluster topright';
-                    wrap.appendChild(right);
-                }
-                if (bar.parentElement !== right) right.appendChild(bar);
-            } else if (bar.parentElement !== home) {
-                home.appendChild(bar);
-            }
+            const right = wrap.querySelector('.chart-ctrl-cluster.topright');
+            if (bar.parentElement !== home) home.appendChild(bar);
+            if (right) right.remove();
         }
         placeLayerBar();
         window.addEventListener('resize', placeLayerBar);
-        ['transitionend', 'click'].forEach(ev => document.addEventListener(ev, () => setTimeout(updateSearchCenter, 60)));
 
         applyInspectorState();
         document.getElementById('btnInspectorToggle')?.addEventListener('click', () => {
@@ -6734,6 +7401,7 @@
         // =========================================================================
         // INITIALIZATION (Instantaneous Viewport-Bounded Load)
         // =========================================================================
+        initVfrLanguageSwitch();
         updateVfrPointsVisibility();
         scheduleViewportUpdate();
 
@@ -6743,14 +7411,92 @@
 
 
         // ---------------------------------------------------------------
-        // Prise en main : rappel du parcours de preparation a l'arrivee
+        // Prise en main : d'abord la carte, puis chaque module du menu.
+        // Une etape par ecran, la fenetre s'ouvre a l'arrivee sur la carte.
         // ---------------------------------------------------------------
         function initMapIntro() {
             const KEY = 'altiview-map-intro-seen';
             const overlay = document.getElementById('mapIntro');
             if (!overlay) return;
-            let seen = false;
-            try { seen = localStorage.getItem(KEY) === '1'; } catch (e) {}
+
+            const searchKey = (window.AltiviewSettings && AltiviewSettings.keyFor)
+                ? (AltiviewSettings.keyFor('search') || '/') : '/';
+            const k = key => `<kbd>${key}</kbd>`;
+
+            const STEPS = [
+                {
+                    tag: 'La carte',
+                    title: 'Tracer la route',
+                    body: `<p>Ouvrez la recherche avec ${k(searchKey)}, tapez un code OACI ou un nom de terrain,
+                           puis choisissez <strong>Départ</strong> ou <strong>Arrivée</strong>.
+                           Un clic sur la carte ajoute un point tournant, un glisser le déplace.</p>`
+                },
+                {
+                    tag: 'La carte',
+                    title: 'Lire la carte',
+                    body: `<p>Survolez une zone : l'encart en bas à droite liste les espaces traversés et leurs
+                           limites d'altitude. Les calques (CTR, TMA, terrains, points VFR) se choisissent en haut à droite,
+                           et le <strong>Flight Deck</strong> à droite donne branches, caps, distances et temps estimé.</p>`
+                },
+                {
+                    tag: '02 · Météo',
+                    title: 'Vérifier les conditions',
+                    body: `<p>METAR, TAF et NOTAM des terrains de votre vol, récupérés en direct.
+                           Les terrains de la route s'ajoutent d'un clic, et l'observation se rafraîchit à la demande :
+                           relisez-la juste avant le départ.</p>`
+                },
+                {
+                    tag: '03 · Infos de vol',
+                    title: 'Remplir le dossier',
+                    body: `<p>Équipage, appareil, date, carburant et log de navigation branche par branche.
+                           C'est cette page qui alimente le <strong>dossier de vol PDF</strong> exporté depuis le bas du menu.</p>`
+                },
+                {
+                    tag: '04 · Performances',
+                    title: 'Masse, centrage et distances',
+                    body: `<p>Choisissez l'avion dans <strong>Profils avion</strong> — un modèle constructeur ou l'un des vôtres —
+                           puis vérifiez la masse au décollage, le centrage dans l'enveloppe, les vitesses
+                           caractéristiques et la distance franchissable.</p>`
+                },
+                {
+                    tag: '05 · Départ en vol',
+                    title: 'Décider Go / No-Go',
+                    body: `<p>La check-list de décision, catégorie par catégorie : pilote (IMSAFE), météo, avion et
+                           documents, navigation. Le bandeau reste en <strong>NO-GO</strong> tant qu'un critère n'est pas levé.</p>`
+                },
+                {
+                    tag: 'Check-lists · Urgences',
+                    title: 'À bord',
+                    body: `<p><strong>Check-lists</strong> déroule les phases du vol, une seule à l'écran, dans l'ordre.
+                           <strong>Urgences</strong> garde les procédures à connaître par cœur, la distance de plané
+                           et les codes transpondeur. Ces deux pages sont conçues pour le vol, pas pour la préparation.</p>`
+                }
+            ];
+
+            const body = document.getElementById('mapIntroBody');
+            const dots = document.getElementById('mapIntroDots');
+            const title = document.getElementById('mapIntroTitle');
+            const btnPrev = document.getElementById('mapIntroPrev');
+            const btnNext = document.getElementById('mapIntroNext');
+            const skip = document.getElementById('mapIntroSkip');
+            let i = 0;
+
+            dots.innerHTML = STEPS.map((_, n) =>
+                `<button type="button" class="map-intro-dot" data-step="${n}" aria-label="Étape ${n + 1}"></button>`).join('');
+            dots.addEventListener('click', e => {
+                const d = e.target.closest('.map-intro-dot');
+                if (d) render(parseInt(d.dataset.step, 10));
+            });
+
+            function render(n) {
+                i = Math.max(0, Math.min(STEPS.length - 1, n));
+                const s = STEPS[i];
+                title.textContent = s.title;
+                body.innerHTML = `<span class="map-intro-tag">${s.tag}</span>${s.body}`;
+                dots.querySelectorAll('.map-intro-dot').forEach((d, n2) => d.classList.toggle('on', n2 === i));
+                btnPrev.hidden = i === 0;
+                btnNext.textContent = i === STEPS.length - 1 ? 'Commencer' : 'Suivant';
+            }
 
             function close(remember) {
                 overlay.hidden = true;
@@ -6758,79 +7504,179 @@
                 if (remember) { try { localStorage.setItem(KEY, '1'); } catch (e) {} }
                 if (map && map.invalidateSize) setTimeout(() => map.invalidateSize(), 60);
             }
-            function onKey(e) { if (e.key === 'Escape') close(document.getElementById('mapIntroSkip').checked); }
+            function onKey(e) {
+                if (e.key === 'Escape') close(skip.checked);
+                else if (e.key === 'ArrowRight') render(i + 1);
+                else if (e.key === 'ArrowLeft') render(i - 1);
+            }
             function open() {
+                render(0);
+                skip.checked = false;
                 overlay.hidden = false;
                 document.addEventListener('keydown', onKey);
-                const btn = document.getElementById('mapIntroStart');
-                if (btn) btn.focus({ preventScroll: true });
+                btnNext.focus({ preventScroll: true });
             }
 
-            document.getElementById('mapIntroClose').addEventListener('click', () => close(document.getElementById('mapIntroSkip').checked));
-            document.getElementById('mapIntroStart').addEventListener('click', () => close(document.getElementById('mapIntroSkip').checked));
-            overlay.addEventListener('click', e => { if (e.target === overlay) close(document.getElementById('mapIntroSkip').checked); });
-
-            const kbd = document.getElementById('mapIntroSearchKey');
-            if (kbd && window.AltiviewSettings && AltiviewSettings.keyFor) kbd.textContent = AltiviewSettings.keyFor('search') || '/';
+            btnPrev.addEventListener('click', () => render(i - 1));
+            btnNext.addEventListener('click', () => {
+                if (i < STEPS.length - 1) render(i + 1);
+                else close(skip.checked);
+            });
+            document.getElementById('mapIntroClose').addEventListener('click', () => close(skip.checked));
+            overlay.addEventListener('click', e => { if (e.target === overlay) close(skip.checked); });
 
             window.AltiviewMapIntro = { open: open, close: close };
+
+            let seen = false;
+            try { seen = localStorage.getItem(KEY) === '1'; } catch (e) {}
             if (!seen) setTimeout(open, 350);
         }
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initMapIntro);
         else initMapIntro();
+
+
+        // Bouton du plafond d'affichage : l'altitude est choisie par le pilote.
+        (function initAltCeiling() {
+            const btn = document.getElementById('btnAltCeiling');
+            const lbl = document.getElementById('altCeilingLbl');
+            if (!btn || !lbl) return;
+            function paint() {
+                lbl.textContent = altCeilingFt ? altCeilingFt.toLocaleString('fr-FR') + ' ft' : 'tout';
+                btn.classList.toggle('on', altCeilingFt > 0);
+                btn.title = altCeilingFt
+                    ? `Seuls les espaces dont le plancher est sous ${altCeilingFt.toLocaleString('fr-FR')} ft sont affichés — cliquer pour changer`
+                    : "Ne garder que les espaces sous une altitude — cliquer pour choisir";
+            }
+            btn.addEventListener('click', () => {
+                const value = window.prompt(
+                    'Afficher les espaces dont le plancher est sous cette altitude (ft AMSL).\nSaisissez 0 pour tout afficher.',
+                    String(altCeilingFt)
+                );
+                if (value === null) return;
+                const chosen = Number(value.trim());
+                if (!Number.isInteger(chosen) || chosen < 0 || chosen > 60000) {
+                    window.alert('Saisissez une altitude entière entre 0 et 60 000 ft.');
+                    return;
+                }
+                altCeilingFt = chosen;
+                try { localStorage.setItem(ALT_CEILING_KEY, String(altCeilingFt)); } catch (e) {}
+                paint();
+                // on repart d'une carte propre : certains espaces reviennent, d'autres partent
+                activeAirspacePolys.forEach(sp => { if (sp._poly && sp._targetLayer) sp._targetLayer.removeLayer(sp._poly); });
+                activeAirspacePolys = new Set();
+                scheduleViewportUpdate();
+                setMiniAirspace(null);
+            });
+            paint();
+        })();
 
         window.addEventListener('resize', alignAirspaceInspectorBar);
         setTimeout(alignAirspaceInspectorBar, 150);
     </script>
 
     <!-- Premiere visite : comment preparer un vol depuis la carte -->
+    <!-- Prise en main : la carte, puis chaque module du menu -->
     <div class="map-intro-overlay" id="mapIntro" role="dialog" aria-modal="true" aria-labelledby="mapIntroTitle" hidden>
         <div class="map-intro-card">
             <div class="map-intro-head">
-                <div>
-                    <span class="map-intro-kicker">Prise en main</span>
-                    <h2 id="mapIntroTitle">Préparer un vol depuis la carte</h2>
+                <div class="map-intro-brand">
+                    <svg class="map-intro-logo" viewBox="250 190 1432 1432" width="34" height="34" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="lgA-intro" x1="0" y1="212" x2="0" y2="990" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#5FE3CF"/><stop offset="1" stop-color="#4BC8B6"/></linearGradient>
+                            <linearGradient id="lgLeg-intro" x1="0" y1="1120" x2="0" y2="1586" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#43A99B"/><stop offset="1" stop-color="#24665D"/></linearGradient>
+                            <radialGradient id="lgGlow-intro" cx="966" cy="362" r="120" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#8CF7E4" stop-opacity=".75"/><stop offset=".45" stop-color="#8CF7E4" stop-opacity=".25"/><stop offset="1" stop-color="#8CF7E4" stop-opacity="0"/></radialGradient>
+                            <clipPath id="lgLegs-intro"><path d="M540 1120 346 1586H602L790 1120ZM1392 1120 1586 1586H1330L1142 1120Z"/></clipPath>
+                        </defs>
+                        <path d="M966 212 1366 990H566ZM966 540 820 916H1111Z" fill="url(#lgA-intro)" fill-rule="evenodd"/>
+                        <path d="M540 1120 346 1586H602L790 1120ZM1392 1120 1586 1586H1330L1142 1120Z" fill="url(#lgLeg-intro)"/>
+                        <path d="M381 1250 912 1138H1020L1550 1250V1296L1020 1184H912L381 1296Z" fill="#000" opacity=".22" clip-path="url(#lgLegs-intro)"/>
+                        <circle cx="966" cy="362" r="120" fill="url(#lgGlow-intro)"/>
+                        <circle cx="966" cy="362" r="44" fill="#8CF7E4"/>
+                        <path d="M966 405 1020 920 1660 1177 1550 1250 1020 1138V1440L1166 1512 966 1473 766 1512 912 1440V1138L381 1250 272 1177 912 920Z" style="fill:var(--logo-plane,#F8FAFB)"/>
+                    </svg>
+                    <div>
+                        <span class="map-intro-kicker">Altiview · prise en main</span>
+                        <h2 id="mapIntroTitle">Titre</h2>
+                    </div>
                 </div>
                 <button type="button" class="map-intro-close" id="mapIntroClose" aria-label="Fermer">&times;</button>
             </div>
-            <ol class="map-intro-steps">
-                <li>
-                    <span class="n">1</span>
-                    <div>
-                        <strong>Posez le départ et l'arrivée</strong>
-                        <p>Ouvrez la recherche (touche <kbd id="mapIntroSearchKey">/</kbd>), tapez un code OACI ou un nom de terrain, puis choisissez « Départ » ou « Arrivée ». Un clic sur la carte ajoute un point tournant.</p>
-                    </div>
-                </li>
-                <li>
-                    <span class="n">2</span>
-                    <div>
-                        <strong>Vérifiez la route</strong>
-                        <p>Le Flight Deck, à droite, donne les branches, les caps, les distances et le temps estimé. Survolez une zone pour lire les espaces traversés et leurs limites d'altitude.</p>
-                    </div>
-                </li>
-                <li>
-                    <span class="n">3</span>
-                    <div>
-                        <strong>Complétez la préparation</strong>
-                        <p>La route est partagée avec les autres modules : <em>Météo</em> pour les METAR/TAF et NOTAM, <em>Infos de vol</em> pour le log de navigation et le carburant, <em>Performances</em> pour la masse et le centrage.</p>
-                    </div>
-                </li>
-                <li>
-                    <span class="n">4</span>
-                    <div>
-                        <strong>Décidez, puis emportez</strong>
-                        <p><em>Départ en vol</em> déroule la décision Go / No-Go, et le bouton <strong>PDF</strong> sort le dossier de vol complet.</p>
-                    </div>
-                </li>
-            </ol>
+
+            <div class="map-intro-body" id="mapIntroBody"></div>
+
             <div class="map-intro-foot">
                 <label class="map-intro-skip"><input type="checkbox" id="mapIntroSkip"><span>Ne plus afficher</span></label>
-                <button type="button" class="map-intro-go" id="mapIntroStart">Commencer</button>
+                <div class="map-intro-nav">
+                    <div class="map-intro-dots" id="mapIntroDots" role="tablist" aria-label="Étapes"></div>
+                    <button type="button" class="map-intro-back" id="mapIntroPrev">Précédent</button>
+                    <button type="button" class="map-intro-go" id="mapIntroNext">Suivant</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="aircraft_profiles.js"></script>
-    <script src="flight_dossier.js"></script>
+    <!-- Les outils 3D et PDF sont chargés uniquement lorsqu'ils sont demandés. -->
+    <script>
+        (() => {
+            const loaded = new Map();
+            function loadScriptOnce(src, options = {}) {
+                if (loaded.has(src)) return loaded.get(src);
+                const promise = new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = src;
+                    if (options.crossOrigin) script.crossOrigin = options.crossOrigin;
+                    script.onload = resolve;
+                    script.onerror = () => reject(new Error(`Impossible de charger ${src}`));
+                    document.body.appendChild(script);
+                });
+                loaded.set(src, promise);
+                return promise;
+            }
+
+            async function loadAircraftProfiles() {
+                const files = [
+                    'assets/three/three.global.js',
+                    'assets/three/RoomEnvironment.global.js',
+                    'assets/three-kit.js',
+                    'assets/fleet-models.js',
+                    'assets/scene-card.js',
+                    'aircraft_profiles.js'
+                ];
+                for (const file of files) await loadScriptOnce(file);
+            }
+
+            document.getElementById('btnAircraftProfiles')?.addEventListener('click', async event => {
+                const button = event.currentTarget;
+                button.disabled = true;
+                try {
+                    await loadAircraftProfiles();
+                    window.AircraftProfiles.openModal();
+                } catch (error) {
+                    console.error(error);
+                    window.alert('Le gestionnaire de profils avion n’a pas pu être chargé.');
+                } finally {
+                    button.disabled = false;
+                }
+            });
+
+            document.getElementById('exportFlightDocBtn')?.addEventListener('click', async event => {
+                event.preventDefault();
+                const button = event.currentTarget;
+                button.disabled = true;
+                button.dataset.dossierBound = 'true';
+                try {
+                    await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', { crossOrigin: 'anonymous' });
+                    await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js', { crossOrigin: 'anonymous' });
+                    await loadScriptOnce('flight_dossier.js');
+                    window.FlightDossier.open();
+                } catch (error) {
+                    console.error(error);
+                    window.alert('Le dossier PDF n’a pas pu être chargé.');
+                } finally {
+                    button.disabled = false;
+                }
+            });
+        })();
+    </script>
 </body>
 </html>

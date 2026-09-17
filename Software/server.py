@@ -59,10 +59,7 @@ REFERENCE_STATIONS = {
 }
 
 def get_ssl_context():
-    try:
-        return ssl.create_default_context()
-    except Exception:
-        return ssl._create_unverified_context()
+    return ssl.create_default_context()
 
 def fetch_url(url, timeout=8):
     """Fetch URL with aviation user agent and SSL fallback"""
@@ -76,12 +73,7 @@ def fetch_url(url, timeout=8):
         with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
             return resp.read().decode("utf-8", errors="ignore")
     except Exception:
-        try:
-            unverified_ctx = ssl._create_unverified_context()
-            with urllib.request.urlopen(req, timeout=timeout, context=unverified_ctx) as resp:
-                return resp.read().decode("utf-8", errors="ignore")
-        except Exception:
-            return None
+        return None
 
 def fetch_noaa_taf(icao):
     """Fetch TAF for an ICAO code from NOAA with reference aerodrome fallback"""
@@ -139,7 +131,7 @@ def fetch_noaa_taf(icao):
     }
 
 def fetch_noaa_metar(icao):
-    """Fetch METAR for an ICAO code from NOAA or VATSIM fallback"""
+    """Fetch METAR for an ICAO code from NOAA Aviation Weather Center."""
     icao = icao.strip().upper()
     url = f"https://aviationweather.gov/api/data/metar?ids={icao}&format=json"
     raw = fetch_url(url)
@@ -151,6 +143,7 @@ def fetch_noaa_metar(icao):
                 item = data[0]
                 return {
                     "icao": icao,
+                    "rawOb": item.get("rawOb"),
                     "rawMetar": item.get("rawOb"),
                     "name": item.get("name"),
                     "wdir": item.get("wdir"),
@@ -165,26 +158,9 @@ def fetch_noaa_metar(icao):
         except json.JSONDecodeError:
             pass
 
-    # VATSIM fallback
-    vatsim_url = f"https://metar.vatsim.net/{icao}"
-    v_raw = fetch_url(vatsim_url)
-    if v_raw and len(v_raw.strip()) > 8 and "No METAR" not in v_raw:
-        return {
-            "icao": icao,
-            "rawMetar": v_raw.strip(),
-            "name": f"Aerodrome {icao}",
-            "wdir": None,
-            "wspd": None,
-            "temp": None,
-            "dewp": None,
-            "altim": None,
-            "visib": None,
-            "fltCat": None,
-            "reportTime": None
-        }
-
     return {
         "icao": icao,
+        "rawOb": None,
         "rawMetar": None,
         "message": f"No METAR reported for {icao}"
     }
@@ -225,6 +201,7 @@ class AltiViewHandler(SimpleHTTPRequestHandler):
             self.wfile.write(body)
             return
 
+
         # 2. API TAF
         if path == "/api/taf":
             icao_param = query.get("icao", query.get("ids", [""]))[0]
@@ -239,8 +216,7 @@ class AltiViewHandler(SimpleHTTPRequestHandler):
                 return
 
             results = [fetch_noaa_taf(code) for code in icaos]
-            resp_body = results[0] if len(results) == 1 else results
-            body = json.dumps(resp_body).encode("utf-8")
+            body = json.dumps(results).encode("utf-8")
 
             self.send_response(200)
             self.send_header("Content-Type", "application/json; charset=utf-8")
@@ -263,8 +239,7 @@ class AltiViewHandler(SimpleHTTPRequestHandler):
                 return
 
             results = [fetch_noaa_metar(code) for code in icaos]
-            resp_body = results[0] if len(results) == 1 else results
-            body = json.dumps(resp_body).encode("utf-8")
+            body = json.dumps(results).encode("utf-8")
 
             self.send_response(200)
             self.send_header("Content-Type", "application/json; charset=utf-8")
@@ -291,7 +266,7 @@ class AltiViewHandler(SimpleHTTPRequestHandler):
             payload = {
                 "icao": icao,
                 "name": taf.get("name") or metar.get("name") or f"Aerodrome {icao}",
-                "metar": metar.get("rawMetar"),
+                "metar": metar.get("rawOb"),
                 "taf": taf.get("rawTAF"),
                 "isRefTaf": taf.get("isRef", False),
                 "refIcao": taf.get("refIcao"),

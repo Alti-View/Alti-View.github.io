@@ -548,7 +548,8 @@
                 emptyArm: parseFloat(perfData.profile?.emptyArm) || 0,
                 mtow: parseFloat(perfData.profile?.mtow) || 0,
                 mlw: parseFloat(perfData.profile?.mlw) || 0,
-                fuelCapacity: parseFloat(perfData.profile?.fuelCapacity) || 0
+                fuelCapacity: parseFloat(perfData.profile?.fuelCapacity) || 0,
+                fuelDensity: parseFloat(perfData.profile?.fuelDensity) || 0.72
             },
             speeds: Array.isArray(perfData.speeds) ? perfData.speeds : [],
             range: {
@@ -556,7 +557,9 @@
                 fuelBurn: parseFloat(perfData.range?.fuelBurn) || 0,
                 reserveMin: parseFloat(perfData.range?.reserveMin) || 45,
                 cruiseTas: perfData.range?.cruiseTas || 'Vc',
-                taxiFuel: parseFloat(perfData.range?.taxiFuel) || 0
+                taxiFuel: parseFloat(perfData.range?.taxiFuel) || 0,
+                climbMinutes: parseFloat(perfData.range?.climbMinutes) || 8,
+                alternateMinutes: parseFloat(perfData.range?.alternateMinutes) || 20
             },
             limits: perfData.limits || { fwd: 0, aft: 0 },
             wbRows: Array.isArray(perfData.wbRows) ? perfData.wbRows : [],
@@ -608,7 +611,8 @@
             emptyArm: parseFloat(obj.profile?.emptyArm || obj.emptyArm || 0),
             mtow: parseFloat(obj.profile?.mtow || obj.mtow || 0),
             mlw: parseFloat(obj.profile?.mlw || obj.mlw || obj.profile?.mtow || obj.mtow || 0),
-            fuelCapacity: parseFloat(obj.profile?.fuelCapacity || obj.fuelCapacity || 0)
+            fuelCapacity: parseFloat(obj.profile?.fuelCapacity || obj.fuelCapacity || 0),
+            fuelDensity: parseFloat(obj.profile?.fuelDensity || obj.fuelDensity || 0.72)
         };
 
         // Speeds array normalization
@@ -629,7 +633,9 @@
             fuelBurn: parseFloat(obj.range?.fuelBurn || obj.fuelBurn || 0),
             reserveMin: parseFloat(obj.range?.reserveMin || 45),
             cruiseTas: obj.range?.cruiseTas || 'Vc',
-            taxiFuel: parseFloat(obj.range?.taxiFuel || 0)
+            taxiFuel: parseFloat(obj.range?.taxiFuel || 0),
+            climbMinutes: parseFloat(obj.range?.climbMinutes || 8),
+            alternateMinutes: parseFloat(obj.range?.alternateMinutes || 20)
         };
 
         // W&B Rows & CG Limits
@@ -640,6 +646,7 @@
                 name: String(r.name || 'Station'),
                 weight: parseFloat(r.weight) || 0,
                 arm: parseFloat(r.arm) || 0,
+                linkedEmpty: !!r.linkedEmpty,
                 linkedFuel: !!r.linkedFuel
             }));
         }
@@ -671,6 +678,14 @@
     // -------------------------------------------------------------
     // 4. IMPORT & MULTI-PAGE SYNCHRONIZATION
     // -------------------------------------------------------------
+    const ORIGIN_KEY = 'flightprep_profile_origin_v1';
+    function setProfileOrigin(shapeKey) {
+        try { localStorage.setItem(ORIGIN_KEY, shapeKey || 'import'); } catch (e) {}
+    }
+    function getProfileOrigin() {
+        try { return localStorage.getItem(ORIGIN_KEY) || ''; } catch (e) { return ''; }
+    }
+
     function importAircraftProfile(profileInput) {
         const normalized = validateAndNormalizeAircraftProfile(profileInput);
 
@@ -782,6 +797,159 @@
     // -------------------------------------------------------------
     // 5. MODAL UI INJECTION & CONTROLLER
     // -------------------------------------------------------------
+    // ---------------------------------------------------------------
+    // Schemas d'avion : vue de dessus posee sur un plateau tournant.
+    // Les proportions distinguent les familles (aile haute / basse,
+    // aile cranquee du DR400, empennage en T du DA40).
+    // ---------------------------------------------------------------
+    // ---------------------------------------------------------------
+    // Schemas d'avion : vue de dessus dessinee au trait, qui tourne sur
+    // elle-meme. Le trait reste lisible a tous les angles, contrairement
+    // a une silhouette pleine ecrasee par la perspective.
+    // Les cotes sont en metres reels, mises a l'echelle du cadre.
+    // ---------------------------------------------------------------
+    const AIRCRAFT_SHAPES = {
+        c172:  { span: 11.0, len: 8.3, wing: 'straight', pos: 'high', tail: 'conv', cabin: 4 },
+        c152:  { span: 10.2, len: 7.3, wing: 'straight', pos: 'high', tail: 'conv', cabin: 2 },
+        dr400: { span: 8.7,  len: 6.9, wing: 'crank',    pos: 'low',  tail: 'conv', cabin: 4 },
+        pa28:  { span: 10.7, len: 7.3, wing: 'taper',    pos: 'low',  tail: 'stab', cabin: 4 },
+        da40:  { span: 11.9, len: 8.1, wing: 'taper',    pos: 'low',  tail: 'tee',  cabin: 4 },
+        // Profil venu d'un fichier : aucun modele connu, silhouette neutre
+        // et identique pour tous les imports.
+        import:{ span: 10.8, len: 7.8, wing: 'straight', pos: 'low', tail: 'conv', cabin: 4, neutral: true }
+    };
+
+    function shapeFor(key, type) {
+        if (AIRCRAFT_SHAPES[key]) return AIRCRAFT_SHAPES[key];
+        const t = String(type || '').toUpperCase();
+        if (t.indexOf('DR4') >= 0) return AIRCRAFT_SHAPES.dr400;
+        if (t.indexOf('DA4') >= 0) return AIRCRAFT_SHAPES.da40;
+        if (t.indexOf('PA') === 0) return AIRCRAFT_SHAPES.pa28;
+        if (t.indexOf('C15') >= 0) return AIRCRAFT_SHAPES.c152;
+        return AIRCRAFT_SHAPES.c172;
+    }
+
+    // Vignette 3D quand le moteur est chargé, dessin au trait sinon :
+    // la fenêtre reste utilisable sur une machine sans WebGL.
+    function aircraftSchematic(key, type) {
+        if (window.AltiKit && window.AltiviewCard3D) {
+            const s = shapeFor(key, type);
+            const id = (window.AltiKit.fleetModels && AltiKit.fleetModels.SPECS[key]) ? key : modelIdFor(type);
+            if (id) return `<div class="ac-turn ac-3d-wrap"><canvas class="ac-3d" data-model="${id}" aria-hidden="true"></canvas></div>`;
+            void s;
+        }
+        return aircraftSchematicFlat(key, type);
+    }
+
+    function modelIdFor(type) {
+        const t = String(type || '').toUpperCase();
+        if (t.indexOf('DR4') >= 0) return 'dr400';
+        if (t.indexOf('DA4') >= 0) return 'da40';
+        if (t.indexOf('PA') === 0) return 'pa28';
+        if (t.indexOf('C15') >= 0) return 'c152';
+        if (t.indexOf('C17') >= 0 || t.indexOf('172') >= 0) return 'c172';
+        return 'c172';
+    }
+
+    function aircraftSchematicFlat(key, type) {
+        const s = shapeFor(key, type);
+
+        // cadre 220 x 220, nez en haut, meme echelle pour toute la flotte
+        const K = 168 / 12.0;                 // px par metre
+        const cx = 110;
+        const half = (s.span * K) / 2;        // demi-envergure
+        const L = s.len * K;                  // longueur hors tout
+        const noseY = 110 - L / 2;
+        const tailY = noseY + L;
+
+        const bodyW = 9;                      // demi-largeur du fuselage
+        const wingY = noseY + L * (s.pos === 'high' ? 0.26 : 0.34);
+        const chord = L * 0.20;
+        const stabY = tailY - L * 0.16;
+        const stabHalf = half * 0.40;
+        const stabChord = L * 0.10;
+
+        // --- aile
+        let wing;
+        if (s.wing === 'crank') {
+            const kx = half * 0.42, ky = wingY + chord * 0.30;
+            wing = `M${cx - half} ${ky} L${cx - kx} ${wingY} H${cx + kx} L${cx + half} ${ky}`
+                 + ` v${chord * 0.62} L${cx + kx} ${wingY + chord} H${cx - kx} L${cx - half} ${ky + chord * 0.62} Z`;
+        } else if (s.wing === 'taper') {
+            const tip = chord * 0.58, ty = wingY + chord * 0.16;
+            wing = `M${cx - half} ${ty} L${cx - half * 0.34} ${wingY} H${cx + half * 0.34} L${cx + half} ${ty}`
+                 + ` v${tip} L${cx + half * 0.34} ${wingY + chord} H${cx - half * 0.34} L${cx - half} ${ty + tip} Z`;
+        } else {
+            wing = `M${cx - half} ${wingY} H${cx + half} v${chord} H${cx - half} Z`;
+        }
+
+        // --- fuselage : nez, cabine, poutre arriere
+        const body = `M${cx} ${noseY}`
+            + ` C${cx + bodyW * 0.8} ${noseY + L * 0.04} ${cx + bodyW} ${noseY + L * 0.12} ${cx + bodyW} ${noseY + L * 0.22}`
+            + ` L${cx + bodyW} ${noseY + L * 0.48}`
+            + ` L${cx + bodyW * 0.42} ${tailY - L * 0.04}`
+            + ` L${cx + bodyW * 0.42} ${tailY} H${cx - bodyW * 0.42}`
+            + ` L${cx - bodyW * 0.42} ${tailY - L * 0.04}`
+            + ` L${cx - bodyW} ${noseY + L * 0.48}`
+            + ` L${cx - bodyW} ${noseY + L * 0.22}`
+            + ` C${cx - bodyW} ${noseY + L * 0.12} ${cx - bodyW * 0.8} ${noseY + L * 0.04} ${cx} ${noseY} Z`;
+
+        // --- empennage horizontal
+        const stab = s.tail === 'tee'
+            ? `M${cx - stabHalf} ${stabY + stabChord * 0.55} L${cx - stabHalf * 0.25} ${stabY} H${cx + stabHalf * 0.25}`
+              + ` L${cx + stabHalf} ${stabY + stabChord * 0.55} v${stabChord * 0.5} L${cx + stabHalf * 0.25} ${stabY + stabChord}`
+              + ` H${cx - stabHalf * 0.25} L${cx - stabHalf} ${stabY + stabChord * 1.05} Z`
+            : `M${cx - stabHalf} ${stabY + stabChord * 0.5} L${cx - bodyW * 0.5} ${stabY} H${cx + bodyW * 0.5}`
+              + ` L${cx + stabHalf} ${stabY + stabChord * 0.5} v${stabChord * 0.55} H${cx - stabHalf} Z`;
+
+        // --- derive vue de dessus, cabine, haubans
+        const fin = `M${cx - 2.6} ${stabY - L * 0.06} L${cx - 1.2} ${tailY - L * 0.01} h2.4 L${cx + 2.6} ${stabY - L * 0.06} Z`;
+        const cabX = bodyW * 0.62;
+        const cabTop = noseY + L * 0.20;
+        const cabBot = cabTop + L * (s.cabin >= 4 ? 0.30 : 0.22);
+        const cabin = `M${cx - cabX} ${cabTop} H${cx + cabX} V${cabBot} H${cx - cabX} Z`;
+        const struts = s.pos === 'high'
+            ? `<path d="M${cx - bodyW * 0.7} ${wingY + chord * 2.1} L${cx - half * 0.52} ${wingY + chord}
+                        M${cx + bodyW * 0.7} ${wingY + chord * 2.1} L${cx + half * 0.52} ${wingY + chord}"/>`
+            : '';
+
+        const propR = Math.max(22, half * 0.30);
+
+        return `
+            <div class="ac-turn${s.neutral ? ' ac-turn-import' : ''}" aria-hidden="true">
+                <div class="ac-turn-inner">
+                    <svg viewBox="0 0 220 220" class="ac-plan">
+                        <g class="ac-disc">
+                            <circle cx="${cx}" cy="110" r="${half + 8}"/>
+                            <circle cx="${cx}" cy="110" r="${half * 0.55}"/>
+                        </g>
+                        <g class="ac-fill">
+                            <path d="${wing}"/>
+                            <path d="${stab}"/>
+                            <path d="${body}"/>
+                            <path d="${fin}"/>
+                        </g>
+                        <g class="ac-line">
+                            <path d="${wing}"/>
+                            <path d="${stab}"/>
+                            <path d="${body}"/>
+                            <path d="${fin}"/>
+                        </g>
+                        <g class="ac-detail">
+                            <path d="${cabin}"/>
+                            <path d="M${cx - half * 0.92} ${wingY + chord * 0.72} H${cx - half * 0.42}
+                                     M${cx + half * 0.42} ${wingY + chord * 0.72} H${cx + half * 0.92}"/>
+                            ${struts}
+                        </g>
+                        <g class="ac-prop">
+                            <circle cx="${cx}" cy="${noseY + 1}" r="${propR}"/>
+                            <path d="M${cx - propR} ${noseY + 1} H${cx + propR}"/>
+                        </g>
+                    </svg>
+                </div>
+            </div>`;
+    }
+
     function renderProfileModalHtml() {
         return `
         <div id="aircraftProfileModal" class="profile-modal-overlay" style="display:none !important;">
@@ -823,6 +991,7 @@
                                             </div>
                                             <span class="preset-tag">CONSTRUCTEUR</span>
                                         </div>
+                                        ${aircraftSchematic(key, p.type)}
                                         <div class="preset-desc">${escapeHtml(p.description)}</div>
                                         <div class="preset-specs">
                                             <span><strong>Croisière :</strong> ${vCruise} kt</span>
@@ -965,6 +1134,41 @@
             .profile-edit-grid input { background:var(--panel-2) !important; border:1px solid var(--line) !important; border-radius:8px !important;
                                        color:var(--text) !important; font-family:var(--f-mono) !important; font-size:13.5px !important; padding:9px 11px !important; }
             :root .btn-delete-profile { border-color:color-mix(in srgb, var(--danger) 45%, transparent) !important; }
+            /* profil importe : cadre et etiquette distincts, invariables */
+            .preset-card.is-import { border-color:color-mix(in srgb, var(--cyan) 45%, transparent);
+                                     background:linear-gradient(180deg, color-mix(in srgb, var(--cyan) 6%, transparent), transparent 58%), var(--panel-2); }
+            .preset-tag.tag-import { background:var(--cyan-soft) !important; color:var(--cyan) !important;
+                                     border-color:color-mix(in srgb, var(--cyan) 45%, transparent) !important; }
+            .ac-turn-import .ac-line path { stroke:var(--cyan); }
+            .ac-turn-import .ac-detail path { stroke:var(--cyan); opacity:.4; }
+            /* Schema de l'avion : vue de dessus au trait, qui tourne sur elle-meme.
+               L'inclinaison reste faible pour que la silhouette reste lisible. */
+            .ac-turn { height:120px; margin:12px 0 6px; display:flex; align-items:center; justify-content:center;
+                       perspective:900px; perspective-origin:50% 50%; }
+            .ac-turn-inner { width:150px; height:150px; transform-style:preserve-3d;
+                             animation:acSpin 14s linear infinite; }
+            .preset-card:hover .ac-turn-inner { animation-duration:6s; }
+            @keyframes acSpin {
+                from { transform:rotateX(22deg) rotateZ(0deg); }
+                to   { transform:rotateX(22deg) rotateZ(360deg); }
+            }
+            .ac-plan { width:100%; height:100%; display:block; overflow:visible; }
+            .ac-3d-wrap { perspective:none; height:118px; }
+            .ac-3d { width:100%; height:100%; display:block; }
+            .ac-3d-wrap.no3d::after { content:'Modèle 3D indisponible'; font-family:var(--f-mono); font-size:9px;
+                                      letter-spacing:.1em; text-transform:uppercase; color:var(--muted-text); }
+            /* corps rempli d'une teinte de panneau, contour net : lisible en clair comme en sombre */
+            .ac-fill path { fill:var(--panel-2, #0D1621); stroke:none; }
+            .ac-line path { fill:none; stroke:var(--text-color); stroke-width:2.6;
+                            stroke-linejoin:round; stroke-linecap:round; opacity:.92; }
+            .ac-detail path { fill:none; stroke:var(--text-color); stroke-width:1.5;
+                              stroke-linejoin:round; stroke-linecap:round; opacity:.45; }
+            .ac-prop circle { fill:none; stroke:var(--cyan); stroke-width:1.6; stroke-dasharray:3 5; opacity:.65; }
+            .ac-prop path { stroke:var(--cyan); stroke-width:2.6; stroke-linecap:round; opacity:.85; }
+            .ac-disc circle { fill:none; stroke:var(--cyan); stroke-width:1; opacity:.16; }
+            @media (prefers-reduced-motion: reduce) {
+                .ac-turn-inner, .preset-card:hover .ac-turn-inner { animation:none; transform:rotateX(22deg) rotateZ(-18deg); }
+            }
         `;
         document.head.appendChild(st);
     }
@@ -1160,6 +1364,8 @@
             try {
                 const content = e.target.result;
                 const normalized = importAircraftProfile(content);
+                setProfileOrigin('import');
+                registerImported(normalized);
                 showSuccessAndReload(`✓ Successfully loaded profile for ${normalized.name}!`);
             } catch (err) {
                 showError(err.message);
@@ -1177,6 +1383,8 @@
         }
         try {
             const normalized = importAircraftProfile(val);
+            setProfileOrigin('import');
+            registerImported(normalized);
             showSuccessAndReload(`✓ Successfully applied profile for ${normalized.name}!`);
         } catch (err) {
             showError(err.message);
@@ -1223,14 +1431,15 @@
             const d = item.data || {};
             const cruise = (d.speeds || []).find(sp => sp.name === 'Vc');
             return `
-                <div class="preset-card">
+                <div class="preset-card${item.imported ? ' is-import' : ''}">
                     <div class="preset-header">
                         <div>
                             <strong class="preset-title">${escapeHtml(d.name || 'Avion')}</strong>
                             <div class="preset-sub">${escapeHtml(d.reg || '')} &bull; ${escapeHtml(d.type || '')}</div>
                         </div>
-                        <span class="preset-tag">MON AVION</span>
+                        <span class="preset-tag${item.imported ? ' tag-import' : ''}">${item.imported ? 'IMPORTÉ' : 'MON AVION'}</span>
                     </div>
+                    ${aircraftSchematic(item.shapeKey || '', d.type)}
                     <div class="preset-specs">
                         <span><strong>Croisière :</strong> ${cruise ? cruise.value : '—'} kt</span>
                         <span><strong>Conso :</strong> ${(d.range && d.range.fuelBurn) || '—'} L/h</span>
@@ -1263,7 +1472,9 @@
             data = item ? JSON.parse(JSON.stringify(item.data)) : null;
         } else data = activeProfileObject();
         if (!data || !data.profile) return;
-        editingDraft = { id: source === 'custom' ? id : null, data: data };
+        const shapeKey = source === 'preset' ? id
+            : (source === 'custom' ? (getCustomProfiles().find(x => x.id === id) || {}).shapeKey : '');
+        editingDraft = { id: source === 'custom' ? id : null, shapeKey: shapeKey || '', data: data };
         const cruise = (data.speeds || []).find(sp => sp.name === 'Vc');
         const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val === undefined || val === null ? '' : val; };
         set('editName', data.name); set('editReg', data.reg); set('editType', data.type);
@@ -1298,15 +1509,17 @@
         const list = getCustomProfiles();
         if (editingDraft.id) {
             const item = list.find(x => x.id === editingDraft.id);
-            if (item) item.data = d; else list.push({ id: editingDraft.id, data: d });
+            if (item) { item.data = d; item.shapeKey = editingDraft.shapeKey; }
+            else list.push({ id: editingDraft.id, shapeKey: editingDraft.shapeKey, data: d });
         } else {
             editingDraft.id = 'ac-' + Date.now().toString(36);
-            list.push({ id: editingDraft.id, data: d });
+            list.push({ id: editingDraft.id, shapeKey: editingDraft.shapeKey, data: d });
         }
         setCustomProfiles(list);
         renderFleet();
         if (alsoLoad) {
             const normalized = importAircraftProfile(d);
+            setProfileOrigin(editingDraft.shapeKey || 'import');
             showSuccessAndReload('Avion enregistré et chargé : ' + normalized.name);
         } else {
             showToast('Avion enregistré dans Mes avions');
@@ -1315,10 +1528,24 @@
         }
     }
 
+    // Un profil importe rejoint Mes avions : il y garde sa fiche, sa livree
+    // neutre et son etiquette, quelles que soient les valeurs du fichier.
+    function registerImported(normalized) {
+        try {
+            const list = getCustomProfiles();
+            const id = 'ac-imp-' + Date.now().toString(36);
+            const data = JSON.parse(JSON.stringify(normalized || {}));
+            data.name = data.name || 'Profil importé';
+            list.push({ id: id, shapeKey: 'import', imported: true, data: data });
+            setCustomProfiles(list);
+        } catch (e) {}
+    }
+
     function loadCustom(id) {
         const item = getCustomProfiles().find(x => x.id === id);
         if (!item) return;
         const normalized = importAircraftProfile(item.data);
+        setProfileOrigin(item.shapeKey || 'import');
         showSuccessAndReload('Avion chargé : ' + normalized.name);
     }
 
@@ -1336,6 +1563,7 @@
         const preset = AIRCRAFT_PRESETS[presetKey];
         if (!preset) return;
         const normalized = importAircraftProfile(preset);
+        setProfileOrigin(presetKey);
         showSuccessAndReload(`✓ Successfully loaded preset: ${normalized.name}!`);
     }
 
@@ -1490,7 +1718,8 @@
                 emptyArm: parseFloat(perfData.profile?.emptyArm) || 0,
                 mtow: parseFloat(perfData.profile?.mtow) || 0,
                 mlw: parseFloat(perfData.profile?.mlw) || 0,
-                fuelCapacity: parseFloat(perfData.profile?.fuelCapacity) || 0
+                fuelCapacity: parseFloat(perfData.profile?.fuelCapacity) || 0,
+                fuelDensity: parseFloat(perfData.profile?.fuelDensity) || 0.72
             },
             speeds: Array.isArray(perfData.speeds) ? perfData.speeds : [],
             range: {
@@ -1498,7 +1727,9 @@
                 fuelBurn: parseFloat(perfData.range?.fuelBurn) || 0,
                 reserveMin: parseFloat(perfData.range?.reserveMin) || 45,
                 cruiseTas: perfData.range?.cruiseTas || 'Vc',
-                taxiFuel: parseFloat(perfData.range?.taxiFuel) || 0
+                taxiFuel: parseFloat(perfData.range?.taxiFuel) || 0,
+                climbMinutes: parseFloat(perfData.range?.climbMinutes) || 8,
+                alternateMinutes: parseFloat(perfData.range?.alternateMinutes) || 20
             },
             limits: perfData.limits || { fwd: 0, aft: 0 },
             wbRows: Array.isArray(perfData.wbRows) ? perfData.wbRows : [],
@@ -1524,11 +1755,13 @@
 
         // Select default tab
         renderFleet();
+        if (window.AltiviewCard3D) setTimeout(() => AltiviewCard3D.mount(modal), 30);
         const tabBtn = modal.querySelector(`.profile-tab-btn[data-tab="${defaultTab}"]`);
         if (tabBtn) tabBtn.click();
     }
 
     function closeModal() {
+        if (window.AltiviewCard3D) AltiviewCard3D.unmount();
         const modal = document.getElementById('aircraftProfileModal');
         if (modal) {
             modal.classList.remove('open');
@@ -1555,6 +1788,8 @@
         importProfile: importAircraftProfile,
         validateProfile: validateAndNormalizeAircraftProfile,
         openModal: openModal,
+        getProfileOrigin: getProfileOrigin,
+        setProfileOrigin: setProfileOrigin,
         editProfile: editProfile,
         saveEdit: saveEdit,
         cancelEdit: cancelEdit,

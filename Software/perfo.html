@@ -13,6 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/cockpit.css">
+
     <script src="assets/cockpit-nav.js"></script>
     <script src="assets/data-sources.js"></script>
     <script src="assets/app-header.js"></script>
@@ -934,6 +935,14 @@
         :root .result-box .r-label { font-family: var(--f-mono) !important; font-size: 10px !important; letter-spacing: .14em !important; text-transform: uppercase !important; color: var(--text-secondary) !important; }
         :root .result-box .r-value { font-family: var(--f-mono) !important; font-size: 20px !important; font-weight: 500 !important; color: var(--text) !important; margin-top: 4px; }
         :root .result-box:nth-child(2) .r-value { color: var(--accent-ink, var(--accent)) !important; }
+        :root .calculation-status { margin-top: 12px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel-2); color: var(--text-secondary); font-size: 12px; }
+        :root .calculation-status.ok { border-color: color-mix(in srgb, var(--success) 42%, transparent); color: var(--success); background: var(--success-soft); }
+        :root .calculation-status.bad { border-color: color-mix(in srgb, var(--danger) 42%, transparent); color: var(--danger); background: var(--danger-soft); }
+        :root .condition-results { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:16px; }
+        :root .condition-result { min-width:0; padding:11px 10px; border:1px solid var(--line); border-radius:10px; background:var(--panel-2); }
+        :root .condition-result span { display:block; font-family:var(--f-mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+        :root .condition-result strong { display:block; margin-top:3px; font-family:var(--f-mono); font-size:17px; color:var(--text); white-space:nowrap; }
+        :root .performance-note { margin-top:12px; color:var(--text-secondary); font-size:11.5px; line-height:1.5; }
 
         /* weight & balance */
         :root .wb-params { background: var(--panel-2) !important; border-bottom: 1px solid var(--line) !important; padding: 14px 20px !important; }
@@ -980,7 +989,129 @@
             :root table.wb-table td input { padding: 4px 4px !important; font-size: 12px !important; }
             :root table.wb-table td.item-name { width: 40%; }
             :root .speed-row { flex-wrap: wrap; }
+            :root .condition-results { grid-template-columns:repeat(2,1fr); }
         }
+        /* =============================================================
+           MODÈLE 3D DE L'AVION — page Performances
+           Même scène que le site : cinq modèles paramétriques, l'appareil
+           tourne, l'hélice et les feux à anticollision tournent avec lui.
+        ============================================================= */
+        :root .plane-stage {
+            position: relative;
+            margin: 0 0 18px;
+            height: 260px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            overflow: hidden;
+            background:
+                radial-gradient(120% 90% at 50% 12%, color-mix(in srgb, var(--cyan) 9%, transparent), transparent 62%),
+                var(--panel-2);
+        }
+        :root .plane-stage canvas { display: block; width: 100%; height: 100%; }
+        :root .plane-pick {
+            position: absolute; top: 12px; left: 12px; z-index: 2;
+            display: inline-flex; align-items: stretch;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: color-mix(in srgb, var(--panel) 92%, transparent);
+            box-shadow: 0 8px 22px -14px rgba(0, 0, 0, .7);
+            overflow: hidden;
+        }
+        :root .ac-arr {
+            width: 34px; border: 0; cursor: pointer;
+            background: transparent; color: var(--text-secondary);
+            font-size: 18px; line-height: 1;
+            border-right: 1px solid var(--line);
+            transition: background .15s ease, color .15s ease;
+        }
+        :root .ac-arr.next {
+            border-right: 0; border-left: 1px solid var(--line);
+            background: var(--accent-soft); color: var(--accent-ink);
+        }
+        :root .ac-arr:hover { background: var(--cyan-soft); color: var(--cyan); }
+        :root .ac-arr.next:hover { background: var(--accent); color: var(--on-accent); }
+        :root .ac-now {
+            padding: 7px 16px; min-width: 150px; text-align: left;
+            border: 0; background: transparent; cursor: pointer;
+        }
+        :root .ac-now .k {
+            display: block;
+            font-family: var(--f-mono); font-size: 9px; font-weight: 600;
+            letter-spacing: .2em; text-transform: uppercase; color: var(--muted);
+        }
+        :root .ac-now strong {
+            display: block; margin-top: 1px;
+            font-family: var(--f-mono); font-size: 15px; font-weight: 700; color: var(--text);
+        }
+        :root .plane-load {
+            position: absolute; right: 12px; bottom: 12px; z-index: 2;
+            font-family: var(--f-mono); font-size: 10px; font-weight: 700;
+            letter-spacing: .12em; text-transform: uppercase;
+            padding: 8px 14px; border-radius: 20px; cursor: pointer;
+            border: 1px solid var(--accent); background: var(--accent); color: var(--on-accent);
+            transition: background .15s ease, transform .15s ease;
+        }
+        :root .plane-load:hover { background: var(--accent-hover); transform: translateY(-1px); }
+        :root .plane-load[hidden] { display: none !important; }
+        /* sans WebGL le canevas reste vide : on le dit plutôt que de laisser un trou */
+        :root .plane-stage.no3d::after {
+            content: 'Modèle 3D indisponible sur cet appareil';
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--f-mono); font-size: 11px; letter-spacing: .08em;
+            text-transform: uppercase; color: var(--muted);
+        }
+        @media (max-width: 600px) {
+            :root .plane-stage { height: 200px; }
+            :root .ac-now { min-width: 112px; padding: 6px 12px; }
+            :root .ac-now strong { font-size: 13px; }
+            :root .plane-load { font-size: 9px; padding: 7px 11px; }
+        }
+
+        /* =============================================================
+           BILAN CARBURANT — sous la masse et centrage
+           Roulage, montée, croisière, dégagement et réserve, puis le total
+           au bloc confronté à la capacité de l'appareil.
+        ============================================================= */
+        :root .fuel-plan { width: 100%; border-collapse: collapse; }
+        :root .fuel-plan th {
+            font-family: var(--f-mono); font-size: 9.5px; font-weight: 600;
+            letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
+            text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line);
+        }
+        :root .fuel-plan th:last-child, :root .fuel-plan td:last-child { text-align: right; }
+        :root .fuel-plan td {
+            padding: 9px 12px; font-size: 13px; color: var(--text);
+            border-bottom: 1px solid var(--line);
+        }
+        :root .fuel-plan td:first-child { font-weight: 600; }
+        :root .fuel-plan td:nth-child(2) {
+            font-family: var(--f-mono); font-size: 11px; color: var(--text-secondary);
+        }
+        :root .fuel-plan td:last-child { font-family: var(--f-mono); font-weight: 700; white-space: nowrap; }
+        :root .fuel-plan tfoot .total td {
+            border-bottom: 0; border-top: 2px solid var(--line-strong);
+            font-size: 14px; font-weight: 800; color: var(--text);
+        }
+        :root .fuel-plan tfoot .total td:last-child { color: var(--accent-ink); font-size: 16px; }
+        :root .fuel-plan-hint {
+            font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--muted);
+        }
+        :root .fuel-plan-verdict {
+            margin: 12px 20px 16px; padding: 9px 12px; border-radius: 8px;
+            font-size: 12.5px; line-height: 1.5;
+            border: 1px solid var(--line); background: var(--panel-2); color: var(--text-secondary);
+        }
+        :root .fuel-plan-verdict.ok {
+            border-color: color-mix(in srgb, var(--success) 45%, transparent);
+            background: var(--success-soft); color: var(--success);
+        }
+        :root .fuel-plan-verdict.bad {
+            border-color: color-mix(in srgb, var(--danger) 45%, transparent);
+            background: var(--danger-soft); color: var(--danger);
+        }
+
     </style>
 </head>
 <body>
@@ -988,7 +1119,7 @@
     <!-- 1. TABLET HUD BAR -->
     <header class="tablet-hud">
         <div class="hud-left">
-            <a href="flg_prep.html" class="hud-brand" title="ALTIVIEW — Préparation du Vol">
+            <a href="VFR.html" class="hud-brand" title="ALTIVIEW — Carte VFR">
                 <svg class="hud-logo-svg" viewBox="250 190 1432 1432" width="26" height="26" aria-hidden="true">
                     <defs>
                         <linearGradient id="lgA-perfo" x1="0" y1="212" x2="0" y2="990" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#5FE3CF"/><stop offset="1" stop-color="#4BC8B6"/></linearGradient>
@@ -1026,11 +1157,11 @@
                 <span class="num">01</span>
                 <span class="label">Carte</span>
             </a>
-            <a href="flg_prep.html#weather" class="sidebar-item" data-nav="wx">
+            <a href="meteo.html" class="sidebar-item" data-nav="wx">
                 <span class="num">02</span>
                 <span class="label">Météo</span>
             </a>
-            <a href="flg_prep.html#flight-fuel" class="sidebar-item" data-nav="info">
+            <a href="infos_vol.html" class="sidebar-item" data-nav="info">
                 <span class="num">03</span>
                 <span class="label">Infos de vol</span>
             </a>
@@ -1038,7 +1169,7 @@
                 <span class="num">04</span>
                 <span class="label">Performances</span>
             </a>
-            <a href="flg_prep.html#readiness" class="sidebar-item" data-nav="dep">
+            <a href="depart.html" class="sidebar-item" data-nav="dep">
                 <span class="num">05</span>
                 <span class="label">Départ en vol</span>
             </a>
@@ -1097,7 +1228,7 @@
                             </select>
                         </div>
                     </div>
-                    <button class="ghost-btn" id="exportPdfBtn" title="Export Weight & Balance computation sheet to PDF">
+                    <button class="ghost-btn" id="exportPdfBtn" title="Exporter la feuille Performance au format du dossier de vol">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                             <polyline points="14 2 14 8 20 8"></polyline>
@@ -1126,6 +1257,20 @@
                             </div>
                         </div>
                         <div class="card-body">
+                            <!-- Modèle 3D de l'avion : même scène que le site -->
+                            <div class="plane-stage" id="planeStage">
+                                <canvas id="planeCanvas" aria-hidden="true"></canvas>
+                                <div class="plane-pick">
+                                    <button type="button" class="ac-arr" id="acPrev" aria-label="Modèle précédent">&lsaquo;</button>
+                                    <button type="button" class="ac-now" id="acNow">
+                                        <span class="k">Profil</span>
+                                        <strong id="acNowName">—</strong>
+                                    </button>
+                                    <button type="button" class="ac-arr next" id="acNext" aria-label="Modèle suivant">&rsaquo;</button>
+                                </div>
+                                <button type="button" class="plane-load" id="acLoad">Charger ce profil</button>
+                            </div>
+
                             <div class="form-grid cols-3">
                                 <div class="form-group">
                                     <label>Immatriculation</label>
@@ -1138,6 +1283,10 @@
                                 <div class="form-group">
                                     <label>Carburant utilisable (<span class="unit-fuel">L</span>)</label>
                                     <input type="number" id="fuelCapacity" value="110" step="0.1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Densité carburant (kg/L)</label>
+                                    <input type="number" id="fuelDensityKgL" value="0.720" min="0.5" max="0.9" step="0.001" title="À vérifier dans le manuel de vol ou la fiche carburant">
                                 </div>
                             </div>
                         </div>
@@ -1206,6 +1355,14 @@
                                     <label>Roulage et mise en route (<span class="unit-fuel">L</span>)</label>
                                     <input type="number" id="taxiFuel" value="4" step="0.1">
                                 </div>
+                                <div class="form-group">
+                                    <label>Montée à forte puissance (min)</label>
+                                    <input type="number" id="climbMinutes" value="8" min="0" step="1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Dégagement (min)</label>
+                                    <input type="number" id="alternateMinutes" value="20" min="0" step="1">
+                                </div>
                             </div>
 
                             <div class="result-strip">
@@ -1222,12 +1379,38 @@
                                     <div class="r-value" id="resRange">— nm</div>
                                 </div>
                             </div>
+                            <div class="calculation-status" id="rangeStatus">Renseignez le carburant et la consommation.</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Atmosphère et composantes de vent</h2>
+                            <span class="fuel-plan-hint">Aide à la lecture du manuel de vol</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-grid cols-3">
+                                <div class="form-group"><label>Altitude terrain (ft)</label><input type="number" id="fieldElevation" value="0" step="10"></div>
+                                <div class="form-group"><label>QNH (hPa)</label><input type="number" id="fieldQnh" value="1013.25" step="0.01"></div>
+                                <div class="form-group"><label>Température (°C)</label><input type="number" id="fieldTemperature" value="15" step="1"></div>
+                                <div class="form-group"><label>Vent (kt)</label><input type="number" id="fieldWindSpeed" value="0" min="0" step="1"></div>
+                                <div class="form-group"><label>Angle vent / axe piste (°)</label><input type="number" id="fieldWindAngle" value="0" min="0" max="180" step="1"></div>
+                            </div>
+                            <div class="condition-results">
+                                <div class="condition-result"><span>Altitude pression</span><strong id="pressureAltitudeResult">0 ft</strong></div>
+                                <div class="condition-result"><span>Altitude densité</span><strong id="densityAltitudeResult">0 ft</strong></div>
+                                <div class="condition-result"><span>Température ISA</span><strong id="isaTemperatureResult">15 °C</strong></div>
+                                <div class="condition-result"><span>Vent longitudinal</span><strong id="headwindResult">0 kt</strong></div>
+                                <div class="condition-result"><span>Vent traversier</span><strong id="crosswindResult">0 kt</strong></div>
+                            </div>
+                            <p class="performance-note">Ces valeurs servent à consulter les tableaux du manuel de vol. Les distances de décollage et d’atterrissage doivent venir du POH/AFM de l’appareil sélectionné.</p>
                         </div>
                     </div>
 
                 </div>
 
-                <!-- Right Column: Weight & Balance Studio -->
+                <!-- Colonne de droite : centrage, puis le bilan carburant dessous -->
+                <div class="perf-column">
                 <div class="wb-panel">
                     <div class="card-header">
                         <h2>Masse et centrage</h2>
@@ -1272,10 +1455,13 @@
                     </div>
 
                     <div class="wb-totals">
-                        <div class="row"><span>Masse totale</span><span id="totWeight">0 kg</span></div>
-                        <div class="row"><span>Moment total</span><span id="totMoment">0</span></div>
-                        <div class="row grand"><span>Centrage (bras)</span><span id="totCg">0 cm</span></div>
+                        <div class="row"><span>Masse au parking</span><span id="totRampWeight">0 kg</span></div>
+                        <div class="row"><span>Masse au décollage</span><span id="totWeight">0 kg</span></div>
+                        <div class="row"><span>Masse à l’atterrissage</span><span id="totLandingWeight">Route non tracée</span></div>
+                        <div class="row"><span>Moment au décollage</span><span id="totMoment">0</span></div>
+                        <div class="row grand"><span>Centrage au décollage</span><span id="totCg">0 cm</span></div>
                         <div class="row"><span>Marge sur la MTOW</span><span id="totMargin">0 kg</span></div>
+                        <div class="row"><span>Marge sur la MLW</span><span id="totLandingMargin">Route non tracée</span></div>
                     </div>
 
                     <div class="limits-inputs">
@@ -1295,18 +1481,40 @@
                         <svg id="cgGraph" viewBox="0 0 440 260" width="100%" height="260"></svg>
                     </div>
                 </div>
+
+                <!-- Bilan carburant : le calcul complet, du roulage à la réserve -->
+                <div class="card" id="fuelPlanCard">
+                    <div class="card-header">
+                        <h2>Bilan carburant</h2>
+                        <span class="fuel-plan-hint">Route et vent repris de la carte</span>
+                    </div>
+                    <div class="card-body">
+                        <table class="fuel-plan">
+                            <thead>
+                                <tr><th>Poste</th><th>Détail</th><th>Quantité</th></tr>
+                            </thead>
+                            <tbody id="fuelPlanBody"></tbody>
+                            <tfoot>
+                                <tr class="total"><td>Au bloc</td><td id="fuelPlanNote">—</td><td id="fuelPlanTotal">— L</td></tr>
+                            </tfoot>
+                        </table>
+                        <div class="fuel-plan-verdict" id="fuelPlanVerdict">Renseignez la consommation et la capacité pour obtenir le bilan.</div>
+                    </div>
+                </div>
+                </div>
             </div>
         </section>
     </main>
 
+    <script src="assets/performance-calculations.js"></script>
     <script>
         const STORAGE_KEY = 'flightprep_perf_data_v10'; // Bumped for Layout changes
         const BRIEFING_STORAGE_KEY = 'flightprep_info_v1'; // Added for cross-tab sync
 
         // Conversion Factors
-        const KG_TO_LBS = 2.2046226218;
-        const CM_TO_IN = 0.3937007874;
-        const L_TO_USG = 0.2641720524;
+        const KG_TO_LBS = AltiviewPerformance.KG_TO_LBS;
+        const CM_TO_IN = AltiviewPerformance.CM_TO_IN;
+        const L_TO_USG = AltiviewPerformance.L_TO_USG;
 
         // Active Unit States
         let currentUnitWeight = 'kg';
@@ -1315,13 +1523,8 @@
 
         // Avgas Fuel Density getter (dynamically scales to combinations)
         function getFuelDensity() {
-            // Base density is 0.72 kg per Liter
-            let weightBase = currentUnitWeight === 'lbs' ? (0.72 * KG_TO_LBS) : 0.72;
-            
-            if (currentUnitFuel === 'USG') {
-                return weightBase / L_TO_USG; 
-            }
-            return weightBase; 
+            const kgPerLitre = parseFloat(fuelDensityKgL?.value);
+            return AltiviewPerformance.fuelDensity(currentUnitWeight, currentUnitFuel, Number.isFinite(kgPerLitre) ? kgPerLitre : 0.72);
         }
 
         // ---------- Elements ----------
@@ -1349,17 +1552,30 @@
         const reserveMin = document.getElementById('reserveMin');
         const cruiseTas = document.getElementById('cruiseTas');
         const taxiFuel = document.getElementById('taxiFuel');
+        const climbMinutes = document.getElementById('climbMinutes');
+        const alternateMinutes = document.getElementById('alternateMinutes');
         const fuelCapacity = document.getElementById('fuelCapacity');
+        const fuelDensityKgL = document.getElementById('fuelDensityKgL');
         const resUsableFuel = document.getElementById('resUsableFuel');
         const resEndurance = document.getElementById('resEndurance');
         const resRange = document.getElementById('resRange');
+        const rangeStatus = document.getElementById('rangeStatus');
+
+        const fieldElevation = document.getElementById('fieldElevation');
+        const fieldQnh = document.getElementById('fieldQnh');
+        const fieldTemperature = document.getElementById('fieldTemperature');
+        const fieldWindSpeed = document.getElementById('fieldWindSpeed');
+        const fieldWindAngle = document.getElementById('fieldWindAngle');
 
         const wbBody = document.getElementById('wbBody');
         const addRowBtn = document.getElementById('addRowBtn');
         const totWeight = document.getElementById('totWeight');
+        const totRampWeight = document.getElementById('totRampWeight');
+        const totLandingWeight = document.getElementById('totLandingWeight');
         const totMoment = document.getElementById('totMoment');
         const totCg = document.getElementById('totCg');
         const totMargin = document.getElementById('totMargin');
+        const totLandingMargin = document.getElementById('totLandingMargin');
         const fwdLimit = document.getElementById('fwdLimit');
         const aftLimit = document.getElementById('aftLimit');
         const statusBanner = document.getElementById('statusBanner');
@@ -1531,15 +1747,22 @@
                     reg: acReg.value,
                     type: acType.value,
                     emptyWeight: emptyWeight.value, emptyArm: emptyArm.value,
-                    mtow: mtow.value, mlw: mlw.value, fuelCapacity: fuelCapacity.value
+                    mtow: mtow.value, mlw: mlw.value, fuelCapacity: fuelCapacity.value,
+                    fuelDensity: fuelDensityKgL.value
                 },
                 speeds: speeds,
                 range: {
                     fuelOnBoard: fuelOnBoard.value, fuelBurn: fuelBurn.value,
-                    reserveMin: reserveMin.value, cruiseTas: cruiseTas.value, taxiFuel: taxiFuel.value
+                    reserveMin: reserveMin.value, cruiseTas: cruiseTas.value, taxiFuel: taxiFuel.value,
+                    climbMinutes: climbMinutes.value, alternateMinutes: alternateMinutes.value
                 },
                 wbRows: wbRows,
-                limits: { fwd: fwdLimit.value, aft: aftLimit.value }
+                limits: { fwd: fwdLimit.value, aft: aftLimit.value },
+                conditions: {
+                    elevation: fieldElevation.value, qnh: fieldQnh.value,
+                    temperature: fieldTemperature.value, windSpeed: fieldWindSpeed.value,
+                    windAngle: fieldWindAngle.value
+                }
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
@@ -1572,6 +1795,7 @@
                     mtow.value = data.profile.mtow ?? mtow.value;
                     mlw.value = data.profile.mlw ?? mlw.value;
                     fuelCapacity.value = data.profile.fuelCapacity ?? fuelCapacity.value;
+                    fuelDensityKgL.value = data.profile.fuelDensity ?? fuelDensityKgL.value;
                 }
                 if (Array.isArray(data.speeds) && data.speeds.length) {
                     speeds = data.speeds.map(s => ({ ...s, type: s.type || 'normal' }));
@@ -1581,13 +1805,31 @@
                     fuelBurn.value = data.range.fuelBurn ?? fuelBurn.value;
                     reserveMin.value = data.range.reserveMin ?? reserveMin.value;
                     taxiFuel.value = data.range.taxiFuel ?? taxiFuel.value;
+                    climbMinutes.value = data.range.climbMinutes ?? climbMinutes.value;
+                    alternateMinutes.value = data.range.alternateMinutes ?? alternateMinutes.value;
                     
                     updateCruiseDropdown();
                     if (data.range.cruiseTas) {
                         cruiseTas.value = data.range.cruiseTas;
                     }
                 }
-                if (Array.isArray(data.wbRows) && data.wbRows.length) wbRows = data.wbRows;
+                if (Array.isArray(data.wbRows)) {
+                    wbRows = data.wbRows;
+                    let emptyRow = wbRows.find(row => row.linkedEmpty);
+                    if (!emptyRow) emptyRow = wbRows.find(row => /masse\s+à\s+vide|empty\s+weight/i.test(String(row.name || '')));
+                    if (emptyRow) {
+                        emptyRow.linkedEmpty = true;
+                        emptyRow.weight = parseFloat(emptyWeight.value) || 0;
+                        emptyRow.arm = parseFloat(emptyArm.value) || 0;
+                    } else {
+                        wbRows.unshift({
+                            name: 'Masse à vide',
+                            weight: parseFloat(emptyWeight.value) || 0,
+                            arm: parseFloat(emptyArm.value) || 0,
+                            linkedEmpty: true
+                        });
+                    }
+                }
                 
                 const fob = parseFloat(fuelOnBoard.value) || 0;
                 wbRows.forEach(r => {
@@ -1597,6 +1839,13 @@
                 if (data.limits) {
                     fwdLimit.value = data.limits.fwd ?? fwdLimit.value;
                     aftLimit.value = data.limits.aft ?? aftLimit.value;
+                }
+                if (data.conditions) {
+                    fieldElevation.value = data.conditions.elevation ?? fieldElevation.value;
+                    fieldQnh.value = data.conditions.qnh ?? fieldQnh.value;
+                    fieldTemperature.value = data.conditions.temperature ?? fieldTemperature.value;
+                    fieldWindSpeed.value = data.conditions.windSpeed ?? fieldWindSpeed.value;
+                    fieldWindAngle.value = data.conditions.windAngle ?? fieldWindAngle.value;
                 }
             } catch (e) { 
                 console.warn('Failed to load performance state.', e); 
@@ -1738,27 +1987,83 @@
         });
 
         // ---------- Range & Endurance ----------
+        function flightRouteMetrics() {
+            try {
+                const data = JSON.parse(localStorage.getItem('flightprep_map_data_v11') || '{}');
+                const points = Array.isArray(data.waypoints) ? data.waypoints : [];
+                const tas = parseFloat(data.tas) || 0;
+                const windDir = parseFloat(data.windDir) || 0;
+                const windSpd = Math.max(0, parseFloat(data.windSpd) || 0);
+                if (points.length < 2 || tas <= 0) return { minutes: 0, distanceNm: 0, hasRoute: false };
+                const rad = Math.PI / 180;
+                let minutes = 0, distanceNm = 0;
+                for (let i = 0; i < points.length - 1; i++) {
+                    const a = points[i], b = points[i + 1];
+                    const lat1 = parseFloat(a.lat), lon1 = parseFloat(a.lng);
+                    const lat2 = parseFloat(b.lat), lon2 = parseFloat(b.lng);
+                    if (![lat1, lon1, lat2, lon2].every(Number.isFinite)) continue;
+                    const p1 = lat1 * rad, p2 = lat2 * rad;
+                    const dLat = (lat2 - lat1) * rad, dLon = (lon2 - lon1) * rad;
+                    const h = Math.sin(dLat / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dLon / 2) ** 2;
+                    const distance = 2 * 3440.065 * Math.asin(Math.min(1, Math.sqrt(h)));
+                    const y = Math.sin(dLon) * Math.cos(p2);
+                    const x = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dLon);
+                    const course = (Math.atan2(y, x) / rad + 360) % 360;
+                    const windAngle = (windDir - course) * rad;
+                    const crosswind = Math.sin(windAngle) * windSpd;
+                    const headwind = Math.cos(windAngle) * windSpd;
+                    const groundSpeed = tas > Math.abs(crosswind)
+                        ? Math.sqrt(tas * tas - crosswind * crosswind) - headwind
+                        : 0;
+                    distanceNm += distance;
+                    if (groundSpeed <= 0) return { minutes: 0, distanceNm, hasRoute: false, windImpossible: true };
+                    minutes += distance / groundSpeed * 60;
+                }
+                return { minutes, distanceNm, hasRoute: distanceNm > 0 };
+            } catch (_) {
+                return { minutes: 0, distanceNm: 0, hasRoute: false };
+            }
+        }
+
         function computeRange() {
-            const fob = parseFloat(fuelOnBoard.value) || 0;
-            const burn = parseFloat(fuelBurn.value) || 0;
-            const reserve = parseFloat(reserveMin.value) || 0;
-            const taxi = parseFloat(taxiFuel.value) || 0;
-            
             const selectedSpeedName = cruiseTas.value;
             const speedObj = speeds.find(s => s.name === selectedSpeedName);
             const tas = speedObj ? (parseFloat(speedObj.value) || 0) : 0;
-
-            const reserveFuel = burn * (reserve / 60);
-            const usableFuel = Math.max(0, fob - taxi - reserveFuel);
-            const endurance = burn > 0 ? usableFuel / burn : 0;
-            const range = endurance * tas;
-
-            resUsableFuel.textContent = `${usableFuel.toFixed(1)} ${currentUnitFuel}`;
-            resEndurance.textContent = `${Math.floor(endurance)}h ${Math.round((endurance % 1) * 60)}m`;
-            resRange.textContent = `${Math.round(range)} nm`;
+            const result = AltiviewPerformance.calculateRange({
+                fuelOnBoard: fuelOnBoard.value,
+                fuelCapacity: fuelCapacity.value,
+                burnPerHour: fuelBurn.value,
+                reserveMinutes: reserveMin.value,
+                taxiFuel: taxiFuel.value,
+                tas
+            });
+            const totalMinutes = Math.round(result.enduranceHours * 60);
+            resUsableFuel.textContent = `${result.tripFuelAvailable.toFixed(1)} ${currentUnitFuel}`;
+            resEndurance.textContent = `${Math.floor(totalMinutes / 60)}h ${String(totalMinutes % 60).padStart(2, '0')}m`;
+            resRange.textContent = `${Math.round(result.rangeNm)} nm`;
+            rangeStatus.className = `calculation-status ${result.issues.length ? 'bad' : 'ok'}`;
+            if (result.issues.includes('burn')) rangeStatus.textContent = 'Consommation horaire manquante ou nulle.';
+            else if (result.issues.includes('capacity')) rangeStatus.textContent = `Carburant à bord supérieur à la capacité de ${fuelCapacity.value} ${currentUnitFuel}.`;
+            else if (result.issues.includes('reserve')) rangeStatus.textContent = 'Le carburant embarqué ne couvre pas le roulage et la réserve finale.';
+            else rangeStatus.textContent = `Disponible pour le trajet après roulage et réserve : ${result.tripFuelAvailable.toFixed(1)} ${currentUnitFuel}.`;
         }
 
-        [fuelOnBoard, fuelBurn, reserveMin, cruiseTas, taxiFuel].forEach(el => {
+        function computeAtmosphere() {
+            const result = AltiviewPerformance.calculateAtmosphere({
+                elevationFt: fieldElevation.value,
+                qnhHpa: fieldQnh.value,
+                temperatureC: fieldTemperature.value,
+                windSpeedKt: fieldWindSpeed.value,
+                windAngleDeg: fieldWindAngle.value
+            });
+            document.getElementById('pressureAltitudeResult').textContent = `${Math.round(result.pressureAltitudeFt)} ft`;
+            document.getElementById('densityAltitudeResult').textContent = `${Math.round(result.densityAltitudeFt)} ft`;
+            document.getElementById('isaTemperatureResult').textContent = `${result.isaTemperatureC.toFixed(1)} °C`;
+            document.getElementById('headwindResult').textContent = `${Math.abs(result.headwindKt).toFixed(1)} kt ${result.headwindKt < 0 ? 'AR' : 'AV'}`;
+            document.getElementById('crosswindResult').textContent = `${result.crosswindKt.toFixed(1)} kt`;
+        }
+
+        [fuelOnBoard, fuelBurn, reserveMin, cruiseTas, taxiFuel, climbMinutes, alternateMinutes].forEach(el => {
             el.addEventListener('input', (e) => { 
                 if (e.target === fuelOnBoard) {
                     const fob = parseFloat(fuelOnBoard.value) || 0;
@@ -1768,11 +2073,16 @@
                     computeWB();
                 }
                 computeRange(); 
+                computeWB();
                 saveState(); 
                 if (e.target === fuelOnBoard || e.target === fuelBurn) {
                     syncToFlightPrep();
                 }
             });
+        });
+
+        [fieldElevation, fieldQnh, fieldTemperature, fieldWindSpeed, fieldWindAngle].forEach(el => {
+            el.addEventListener('input', () => { computeAtmosphere(); saveState(); });
         });
 
         // Attach listeners for Callsign and Aircraft to sync globally
@@ -1784,7 +2094,13 @@
             });
         });
 
-        fuelCapacity.addEventListener('input', () => { saveState(); computeWB(); });
+        fuelCapacity.addEventListener('input', () => { saveState(); computeRange(); computeWB(); window.AltiviewFuelPlan?.render(); });
+        fuelDensityKgL.addEventListener('input', () => {
+            const fob = parseFloat(fuelOnBoard.value) || 0;
+            wbRows.forEach(row => { if (row.linkedFuel) row.weight = parseFloat((fob * getFuelDensity()).toFixed(1)); });
+            renderWB();
+            saveState();
+        });
 
         [mtow, mlw, emptyWeight, emptyArm].forEach(el => {
             el.addEventListener('input', () => { syncLinkedRows(); saveState(); computeWB(); });
@@ -1871,23 +2187,10 @@
         });
 
         function computeWB() {
-            let fuelWeight = 0;
-            let totalWeight = 0;
-            let totalMoment = 0;
-            let fuelMoment = 0;
-
             wbRows.forEach((row, i) => {
                 const w = parseFloat(row.weight) || 0;
                 const a = parseFloat(row.arm) || 0;
                 const m = w * a;
-                
-                totalWeight += w;
-                totalMoment += m;
-                if (row.linkedFuel) {
-                    fuelWeight += w;
-                    fuelMoment += m;
-                }
-
                 const cell = document.getElementById(`moment-${i}`);
                 if (cell) cell.textContent = Math.round(m).toLocaleString();
                 
@@ -1897,56 +2200,76 @@
                 const aInput = wbBody.children[i]?.querySelector('td:nth-child(3) input');
                 if (aInput && document.activeElement !== aInput) aInput.value = a.toFixed(1);
             });
-
-            const cg = totalWeight > 0 ? totalMoment / totalWeight : 0;
-            const zfw = totalWeight - fuelWeight;
-            const zfMoment = totalMoment - fuelMoment;
-            const zfCg = zfw > 0 ? zfMoment / zfw : 0;
-
+            const route = flightRouteMetrics();
+            const plan = AltiviewPerformance.calculateFuelPlan({
+                fuelOnBoard: fuelOnBoard.value,
+                fuelCapacity: fuelCapacity.value,
+                burnPerHour: fuelBurn.value,
+                taxiFuel: taxiFuel.value,
+                tripMinutes: route.minutes,
+                climbMinutes: climbMinutes.value,
+                climbExtraRatio: .25,
+                alternateMinutes: alternateMinutes.value,
+                reserveMinutes: reserveMin.value
+            });
             const mtowVal = parseFloat(mtow.value) || 0;
-            const margin = mtowVal - totalWeight;
+            const mlwVal = parseFloat(mlw.value) || 0;
             const fwd = parseFloat(fwdLimit.value) || 0;
             const aft = parseFloat(aftLimit.value) || 0;
+            const result = AltiviewPerformance.calculateWeightBalance({
+                rows: wbRows,
+                fuelDensity: getFuelDensity(),
+                taxiFuel: taxiFuel.value,
+                expectedBurnToDestination: plan.expectedBurnToDestination,
+                hasRoute: route.hasRoute,
+                mtow: mtowVal,
+                mlw: mlwVal,
+                fwdLimit: fwd,
+                aftLimit: aft
+            });
 
-            totWeight.textContent = `${totalWeight.toFixed(1)} ${currentUnitWeight}`;
-            totMoment.textContent = Math.round(totalMoment).toLocaleString();
-            totCg.textContent = `${cg.toFixed(1)} ${currentUnitArm}`;
-            totMargin.textContent = `${margin.toFixed(1)} ${currentUnitWeight}`;
-            totMargin.style.color = margin < 0 ? 'var(--danger)' : 'var(--text-color)';
+            totRampWeight.textContent = `${result.ramp.weight.toFixed(1)} ${currentUnitWeight}`;
+            totWeight.textContent = `${result.takeoff.weight.toFixed(1)} ${currentUnitWeight}`;
+            totLandingWeight.textContent = result.landing ? `${result.landing.weight.toFixed(1)} ${currentUnitWeight}` : 'Route non tracée';
+            totMoment.textContent = Math.round(result.takeoff.moment).toLocaleString();
+            totCg.textContent = `${result.takeoff.cg.toFixed(1)} ${currentUnitArm}`;
+            totMargin.textContent = `${result.mtowMargin.toFixed(1)} ${currentUnitWeight}`;
+            totMargin.style.color = result.mtowMargin < 0 ? 'var(--danger)' : 'var(--text-color)';
+            totLandingMargin.textContent = result.mlwMargin === null ? 'Route non tracée' : `${result.mlwMargin.toFixed(1)} ${currentUnitWeight}`;
+            totLandingMargin.style.color = result.mlwMargin !== null && result.mlwMargin < 0 ? 'var(--danger)' : 'var(--text-color)';
 
-            const towOk = totalWeight <= mtowVal && totalWeight > 0 && cg >= fwd && cg <= aft;
-            const zfOk = zfw <= mtowVal && zfw > 0 && zfCg >= fwd && zfCg <= aft;
-            const ok = towOk && (zfOk || fuelWeight === 0);
+            statusBanner.classList.toggle('ok', result.ok);
+            statusBanner.classList.toggle('bad', !result.ok);
 
-            statusBanner.classList.toggle('ok', ok);
-            statusBanner.classList.toggle('bad', !ok);
-            
-            if (totalWeight === 0) {
+            if (result.ramp.weight === 0) {
                 statusBanner.textContent = 'Saisissez les données pour vérifier le centrage';
                 statusBanner.classList.remove('bad'); statusBanner.classList.add('ok');
-            } else if (ok) {
-                statusBanner.textContent = `Dans les limites · masse au décollage ${totalWeight.toFixed(1)} ${currentUnitWeight} · centrage ${cg.toFixed(1)} ${currentUnitArm}`;
+            } else if (result.ok) {
+                statusBanner.textContent = `Dans les limites · décollage ${result.takeoff.weight.toFixed(1)} ${currentUnitWeight} · centrage ${result.takeoff.cg.toFixed(1)} ${currentUnitArm}${result.landing ? ` · atterrissage ${result.landing.weight.toFixed(1)} ${currentUnitWeight}` : ''}`;
             } else {
                 const reasons = [];
-                if (totalWeight > mtowVal) reasons.push('masse au décollage supérieure à la MTOW');
-                if (cg < fwd) reasons.push('centrage au décollage trop avant');
-                if (cg > aft) reasons.push('centrage au décollage trop arrière');
-
-                if (fuelWeight > 0) {
-                    if (zfCg < fwd) reasons.push('centrage sans carburant trop avant');
-                    if (zfCg > aft) reasons.push('centrage sans carburant trop arrière');
-                }
-
+                if (!result.checks.mtow) reasons.push('MTOW dépassée');
+                if (result.checks.mlw === false) reasons.push('MLW dépassée à destination');
+                if (!result.checks.rampEnvelope) reasons.push('centrage au parking hors enveloppe');
+                if (!result.checks.takeoffEnvelope) reasons.push('centrage au décollage hors enveloppe');
+                if (result.checks.landingEnvelope === false) reasons.push('centrage à l’atterrissage hors enveloppe');
+                if (!result.checks.zeroFuelEnvelope) reasons.push('centrage sans carburant hors enveloppe');
+                if (result.issues.includes('fuel-burn')) reasons.push('carburant insuffisant pour atteindre la destination');
+                if (result.issues.includes('envelope')) reasons.push('limites de centrage invalides');
                 statusBanner.textContent = `Hors limites · ${reasons.join(', ')}`;
             }
-
-            drawCgGraph(totalWeight, cg, zfw, zfCg, mtowVal, fwd, aft, fuelWeight);
+            drawCgGraph(result, mtowVal, fwd, aft);
         }
 
         [fwdLimit, aftLimit].forEach(el => el.addEventListener('input', () => { computeWB(); saveState(); }));
 
         // ---------- CG envelope graph ----------
-        function drawCgGraph(weight, cg, zfw, zfCg, mtowVal, fwd, aft, fuelWeight) {
+        function drawCgGraph(result, mtowVal, fwd, aft) {
+            const weight = result.takeoff.weight;
+            const cg = result.takeoff.cg;
+            const zfw = result.zeroFuel.weight;
+            const zfCg = result.zeroFuel.cg;
+            const fuelWeight = result.fuelWeight;
             const W = 440, H = 260;
             const padL = 58, padR = 24, padT = 22, padB = 38;
             const plotW = W - padL - padR;
@@ -1958,7 +2281,7 @@
 
             const armMin = minArmFound - Math.max(5, (aft - fwd) * 0.25 || 5);
             const armMax = maxArmFound + Math.max(5, (aft - fwd) * 0.25 || 5);
-            const wMax = Math.max(mtowVal * 1.05, weight * 1.05, 100);
+            const wMax = Math.max(mtowVal * 1.05, result.ramp.weight * 1.05, weight * 1.05, 100);
 
             const xForArm = a => padL + ((a - armMin) / (armMax - armMin || 1)) * plotW;
             const yForW = w => padT + plotH - (w / wMax) * plotH;
@@ -1974,8 +2297,8 @@
             const hoverBg = styleVars.getPropertyValue('--hover-bg').trim();
             const cardBg = styleVars.getPropertyValue('--card-bg').trim();
 
-            const towOk = weight <= mtowVal && weight > 0 && cg >= fwd && cg <= aft;
-            const zfOk = zfw <= mtowVal && zfw > 0 && zfCg >= fwd && zfCg <= aft;
+            const towOk = result.checks.mtow && result.checks.takeoffEnvelope;
+            const zfOk = result.checks.zeroFuelEnvelope;
             
             const pointColorTow = weight === 0 ? mutedColor : (towOk ? greenColor : dangerColor);
             const pointColorZfw = zfw === 0 ? mutedColor : (zfOk ? greenColor : dangerColor);
@@ -2023,6 +2346,14 @@
                     svg += `<text x="${px2}" y="${py2+16}" font-size="10" font-weight="700" fill="${pointColorZfw}" text-anchor="middle">ZFW: ${zfw.toFixed(0)}${currentUnitWeight}</text>`;
                 }
 
+                if (result.landing) {
+                    const landingColor = result.checks.mlw && result.checks.landingEnvelope ? greenColor : dangerColor;
+                    const landingX = xForArm(result.landing.cg);
+                    const landingY = yForW(result.landing.weight);
+                    svg += `<circle cx="${landingX}" cy="${landingY}" r="5.5" fill="${cardBg}" stroke="${landingColor}" stroke-width="2.5"/>`;
+                    svg += `<text x="${landingX+8}" y="${landingY+4}" font-size="9.5" font-weight="700" fill="${landingColor}" text-anchor="start">LDG ${result.landing.weight.toFixed(0)}</text>`;
+                }
+
                 svg += `<line x1="${px1}" y1="${padT}" x2="${px1}" y2="${padT+plotH}" stroke="${hoverBg}" stroke-width="1.5"/>`;
                 
                 svg += `<circle cx="${px1}" cy="${py1}" r="6.5" fill="${pointColorTow}" stroke="${borderColor}" stroke-width="2"/>`;
@@ -2055,134 +2386,133 @@
             if (e.key === 'flightprep_profile_sync_trigger' || e.key === STORAGE_KEY) {
                 reloadAndRenderAll();
             }
+            if (e.key === 'flightprep_map_data_v11') {
+                computeWB();
+                window.AltiviewFuelPlan?.render();
+            }
         });
 
         // ---------- PDF export ----------
-        document.getElementById('exportPdfBtn').addEventListener('click', () => {
-            const rootClassList = document.documentElement.classList;
-            const wasDark = rootClassList.contains('dark-mode');
-            if (wasDark) {
-                rootClassList.remove('dark-mode');
-                computeWB(); 
+        function buildPerformancePdfHtml() {
+            if (!window.FlightDossier?.getDocumentStyles) throw new Error('Design du dossier indisponible');
+            const route = flightRouteMetrics();
+            const plan = AltiviewPerformance.calculateFuelPlan({
+                fuelOnBoard: fuelOnBoard.value, fuelCapacity: fuelCapacity.value,
+                burnPerHour: fuelBurn.value, taxiFuel: taxiFuel.value,
+                tripMinutes: route.minutes, climbMinutes: climbMinutes.value,
+                climbExtraRatio: .25, alternateMinutes: alternateMinutes.value,
+                reserveMinutes: reserveMin.value
+            });
+            const wb = AltiviewPerformance.calculateWeightBalance({
+                rows: wbRows, fuelDensity: getFuelDensity(), taxiFuel: taxiFuel.value,
+                expectedBurnToDestination: plan.expectedBurnToDestination, hasRoute: route.hasRoute,
+                mtow: mtow.value, mlw: mlw.value, fwdLimit: fwdLimit.value, aftLimit: aftLimit.value
+            });
+            const selectedSpeed = speeds.find(speed => speed.name === cruiseTas.value);
+            const range = AltiviewPerformance.calculateRange({
+                fuelOnBoard: fuelOnBoard.value, fuelCapacity: fuelCapacity.value,
+                burnPerHour: fuelBurn.value, reserveMinutes: reserveMin.value,
+                taxiFuel: taxiFuel.value, tas: selectedSpeed?.value || 0
+            });
+            const atmosphere = AltiviewPerformance.calculateAtmosphere({
+                elevationFt: fieldElevation.value, qnhHpa: fieldQnh.value,
+                temperatureC: fieldTemperature.value, windSpeedKt: fieldWindSpeed.value,
+                windAngleDeg: fieldWindAngle.value
+            });
+            const mark = window.FlightDossier.getDocumentMark();
+            const styles = window.FlightDossier.getDocumentStyles();
+            const generatedAt = new Date().toLocaleString('fr-FR');
+            const aircraft = [acReg.value, acType.value].filter(Boolean).join(' · ') || 'Appareil à renseigner';
+            const night = document.documentElement.classList.contains('dark-mode') || document.documentElement.getAttribute('data-theme') === 'night';
+            const fmt = (value, digits = 1) => Number.isFinite(value) ? value.toFixed(digits) : '—';
+            const head = () => `<header class="dsr-head"><div class="dsr-brand">${mark}<span>Altiview</span></div><div class="dsr-head-title">Performances</div><div class="dsr-head-end"></div></header><div class="dsr-ticks"></div>`;
+            const foot = page => `<footer class="dsr-foot"><span>Document de travail — vérifier le POH/AFM de l’appareil · généré le ${escapeHtml(generatedAt)}</span><span><b>${escapeHtml(acReg.value || acType.value || 'PERF')}</b> · ${page}/2</span></footer>`;
+            const title = (number, text) => `<h2 class="dsr-title"><span class="n">${number}</span>${escapeHtml(text)}</h2>`;
+            const tile = (key, value, unit, cls = '') => `<div class="dsr-tile ${cls}"><div class="k">${escapeHtml(key)}</div><div class="v">${escapeHtml(String(value))}${unit ? ` <small>${escapeHtml(unit)}</small>` : ''}</div></div>`;
+            const stage = (label, value) => `<tr><td class="leg">${label}</td><td class="m">${fmt(value.weight)} ${currentUnitWeight}</td><td class="m">${fmt(value.cg)} ${currentUnitArm}</td><td class="m">${Math.round(value.moment).toLocaleString('fr-FR')}</td></tr>`;
+            const loadingRows = wbRows.map((row, index) => `<tr class="${index % 2 ? 'alt' : ''}"><td class="leg">${escapeHtml(row.name)}</td><td class="m">${fmt(Number(row.weight))}</td><td class="m">${fmt(Number(row.arm))}</td><td class="m">${Math.round((Number(row.weight) || 0) * (Number(row.arm) || 0)).toLocaleString('fr-FR')}</td></tr>`).join('');
+            const graph = cgGraph.outerHTML;
+            const speedRows = [];
+            for (let index = 0; index < speeds.length; index += 3) {
+                const group = speeds.slice(index, index + 3);
+                while (group.length < 3) group.push(null);
+                speedRows.push(`<tr>${group.map(speed => speed ? `<td class="n">${escapeHtml(speed.name)}</td><td class="v">${fmt(Number(speed.value), 0)} ${escapeHtml(speed.unit || 'kt')}</td>` : '<td></td><td></td>').join('')}</tr>`);
             }
+            const fuelRows = [
+                ['Roulage', plan.taxiFuel],
+                ['Surconsommation montée', plan.climbExtraFuel],
+                ['Trajet', plan.tripFuel],
+                ['Dégagement', plan.alternateFuel],
+                ['Réserve finale', plan.reserveFuel]
+            ].map((row, index) => `<tr class="${index % 2 ? 'alt' : ''}"><td class="leg">${row[0]}</td><td class="m">${fmt(row[1])} ${currentUnitFuel}</td></tr>`).join('');
+            const statusOk = wb.ok && !plan.issues.includes('shortfall') && !plan.issues.includes('capacity');
 
-            let svgContent = document.getElementById('cgGraph').outerHTML;
-            svgContent = svgContent.replace('width="100%"', 'width="440"');
-
-            if (wasDark) {
-                rootClassList.add('dark-mode');
-                computeWB();
-            }
-            
-            const printElement = document.createElement('div');
-            printElement.style.padding = '40px';
-            printElement.style.fontFamily = 'Inter, sans-serif';
-            printElement.style.color = '#111';
-            printElement.style.backgroundColor = '#FFF';
-
-            const normalRows = speeds.filter(s => s.type === 'normal').map(s => `
-                <tr>
-                    <td style="padding:8px;border-bottom:1px solid #ddd;">${escapeHtml(s.name)}</td>
-                    <td style="padding:8px;border-bottom:1px solid #ddd;text-align:right;">${s.value} ${escapeHtml(s.unit||'kt')}</td>
-                    <td style="padding:8px;border-bottom:1px solid #ddd;color:#555;">${escapeHtml(s.desc||'')}</td>
-                </tr>`).join('');
-
-            const emergencyRows = speeds.filter(s => s.type === 'emergency').map(s => `
-                <tr style="background-color: rgba(176, 64, 47, 0.1);">
-                    <td style="padding:8px;border-bottom:1px solid rgba(176, 64, 47, 0.2); color:#B0402F; font-weight:700;">${escapeHtml(s.name)}</td>
-                    <td style="padding:8px;border-bottom:1px solid rgba(176, 64, 47, 0.2); text-align:right; color:#B0402F; font-weight:700;">${s.value} ${escapeHtml(s.unit||'kt')}</td>
-                    <td style="padding:8px;border-bottom:1px solid rgba(176, 64, 47, 0.2); color:#B0402F;">${escapeHtml(s.desc||'')}</td>
-                </tr>`).join('');
-
-            const specialRows = speeds.filter(s => s.type === 'special').map(s => `
-                <tr style="background-color: rgba(58, 107, 136, 0.08);">
-                    <td style="padding:8px;border-bottom:1px solid rgba(58, 107, 136, 0.2); color:#3A6B88; font-weight:700;">${escapeHtml(s.name)}</td>
-                    <td style="padding:8px;border-bottom:1px solid rgba(58, 107, 136, 0.2); text-align:right; color:#3A6B88; font-weight:700;">${s.value} ${escapeHtml(s.unit||'kt')}</td>
-                    <td style="padding:8px;border-bottom:1px solid rgba(58, 107, 136, 0.2); color:#3A6B88;">${escapeHtml(s.desc||'')}</td>
-                </tr>`).join('');
-
-            const aircraftLabel = [acReg.value, acType.value].filter(Boolean).join(' — ') || 'Aircraft';
-
-            printElement.innerHTML = `
-                <div style="border-bottom: 2px solid #111; padding-bottom: 15px; margin-bottom: 25px;">
-                    <h1 style="font-size: 24px; font-weight: 700; margin: 0; text-transform: uppercase;">Aircraft Performance &amp; Weight/Balance</h1>
-                    <p style="margin: 8px 0 0 0; font-size: 14px; color: #555;">${escapeHtml(aircraftLabel)} — Generated by FlightPrep Solution — Units: ${currentUnitWeight.toUpperCase()}, ${currentUnitArm.toUpperCase()}, ${currentUnitFuel.toUpperCase()} — ${new Date().toLocaleDateString()}</p>
+            const page1 = `<section class="dossier-page dsr-page">${head()}<div class="dsr-body">
+                ${title('01', 'Masse et centrage')}
+                <div class="dsr-hero"><div class="dsr-route">${escapeHtml(aircraft)}<small>${escapeHtml(statusBanner.textContent)}</small></div><div class="dsr-stamp ${statusOk ? 'go' : 'nogo'}">${statusOk ? 'Conforme' : 'À vérifier'}</div></div>
+                <div class="dsr-grid dsr-g4 dsr-tiles">
+                    ${tile('Masse parking', fmt(wb.ramp.weight), currentUnitWeight)}
+                    ${tile('Masse décollage', fmt(wb.takeoff.weight), currentUnitWeight, 'teal')}
+                    ${tile('Masse atterrissage', wb.landing ? fmt(wb.landing.weight) : '—', currentUnitWeight)}
+                    ${tile('Centrage décollage', fmt(wb.takeoff.cg), currentUnitArm, wb.checks.takeoffEnvelope ? 'teal' : 'amber')}
                 </div>
+                <div class="dsr-h3">Limites et étapes calculées</div>
+                <table class="dsr-t dsr-sum"><tbody>
+                    <tr><th>Masse à vide</th><td>${escapeHtml(emptyWeight.value)}<small>${currentUnitWeight}</small></td><th>MTOW / MLW</th><td>${escapeHtml(mtow.value)} / ${escapeHtml(mlw.value)}<small>${currentUnitWeight}</small></td></tr>
+                    <tr><th>Limites centrage</th><td>${escapeHtml(fwdLimit.value)} – ${escapeHtml(aftLimit.value)}<small>${currentUnitArm}</small></td><th>Densité carburant</th><td>${escapeHtml(fuelDensityKgL.value)}<small>kg/L</small></td></tr>
+                </tbody></table>
+                <div class="dsr-h3">Chargement</div>
+                <table class="dsr-t"><thead><tr><th>Élément</th><th>Masse (${currentUnitWeight})</th><th>Bras (${currentUnitArm})</th><th>Moment</th></tr></thead><tbody>${loadingRows}<tr class="tot"><td>Total parking</td><td class="m">${fmt(wb.ramp.weight)}</td><td class="m">${fmt(wb.ramp.cg)}</td><td class="m">${Math.round(wb.ramp.moment).toLocaleString('fr-FR')}</td></tr></tbody></table>
+                <div class="dsr-h3" style="margin-top:10px">Trajectoire de centrage</div>
+                <div class="dsr-card plain" style="padding:5px;text-align:center">${graph}</div>
+            </div>${foot(1)}</section>`;
 
-                <h2 style="font-size:16px;margin-bottom:10px;">Speeds</h2>
-                <table style="width:100%;border-collapse:collapse;margin-bottom:25px;">
-                    <tbody>
-                        ${normalRows}
-                        ${emergencyRows}
-                        ${specialRows}
-                    </tbody>
-                </table>
-
-                <h2 style="font-size:16px;margin-bottom:10px;">Weight &amp; Balance</h2>
-                <div style="margin-bottom: 15px; font-size: 13px; color: #555;">
-                    <strong>Basic Empty Weight:</strong> ${emptyWeight.value} ${currentUnitWeight} @ ${emptyArm.value} ${currentUnitArm} &nbsp; | &nbsp; 
-                    <strong>MTOW:</strong> ${mtow.value} ${currentUnitWeight} &nbsp; | &nbsp; 
-                    <strong>MLW:</strong> ${mlw.value} ${currentUnitWeight}
+            const page2 = `<section class="dossier-page dsr-page">${head()}<div class="dsr-body">
+                ${title('02', 'Carburant, atmosphère et vitesses')}
+                <div class="dsr-grid dsr-g4 dsr-tiles">
+                    ${tile('Carburant trajet', fmt(range.tripFuelAvailable), currentUnitFuel, 'amber')}
+                    ${tile('Autonomie hors réserve', `${Math.floor(range.enduranceHours)}h${String(Math.round(range.enduranceHours % 1 * 60)).padStart(2, '0')}`, '', 'teal')}
+                    ${tile('Distance air calme', Math.round(range.rangeNm), 'NM')}
+                    ${tile('Altitude densité', Math.round(atmosphere.densityAltitudeFt), 'ft', 'amber')}
                 </div>
-                <table style="width:100%;border-collapse:collapse;margin-bottom:15px;">
-                    <thead>
-                        <tr>
-                            <th style="width:34%;border-bottom:2px solid #111;padding:8px;font-size:11px;text-transform:uppercase;color:#555;text-align:left;">Item</th>
-                            <th style="border-bottom:2px solid #111;padding:8px;font-size:11px;text-transform:uppercase;color:#555;text-align:right;">Weight (${currentUnitWeight})</th>
-                            <th style="border-bottom:2px solid #111;padding:8px;font-size:11px;text-transform:uppercase;color:#555;text-align:right;">Arm (${currentUnitArm})</th>
-                            <th style="border-bottom:2px solid #111;padding:8px;font-size:11px;text-transform:uppercase;color:#555;text-align:right;">Moment</th>
-                        </tr>
-                    </thead>
-                    <tbody>${wbRows.map(r => `
-                        <tr>
-                            <td style="padding:8px;border-bottom:1px solid #ddd;">${escapeHtml(r.name)}</td>
-                            <td style="padding:8px;border-bottom:1px solid #ddd;text-align:right;">${(parseFloat(r.weight)||0).toFixed(1)}</td>
-                            <td style="padding:8px;border-bottom:1px solid #ddd;text-align:right;">${(parseFloat(r.arm)||0).toFixed(1)}</td>
-                            <td style="padding:8px;border-bottom:1px solid #ddd;text-align:right;">${Math.round((parseFloat(r.weight)||0)*(parseFloat(r.arm)||0)).toLocaleString()}</td>
-                        </tr>`).join('')}
-                    </tbody>
-                </table>
-
-                <div style="border-top: 2px solid #111; padding-top: 12px; font-size:14px; margin-bottom: 25px;">
-                    <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Total Weight</span><strong>${totWeight.textContent}</strong></div>
-                    <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Resulting CG</span><strong>${totCg.textContent}</strong></div>
-                    <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Margin vs MTOW</span><strong>${totMargin.textContent}</strong></div>
-                    <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Envelope Status</span><strong>${escapeHtml(statusBanner.textContent)}</strong></div>
+                <div class="dsr-grid dsr-g2" style="margin-bottom:12px">
+                    <div class="dsr-card"><div class="dsr-h3">Bilan carburant</div><table class="dsr-t"><tbody>${fuelRows}<tr class="tot"><td>Requis au bloc</td><td class="m">${fmt(plan.requiredBlockFuel)} ${currentUnitFuel}</td></tr></tbody></table><p class="dsr-note" style="margin-top:7px">Embarqué ${escapeHtml(fuelOnBoard.value)} ${currentUnitFuel} · capacité ${escapeHtml(fuelCapacity.value)} ${currentUnitFuel} · route ${route.hasRoute ? Math.round(route.minutes) + ' min avec vent' : 'non tracée'}.</p></div>
+                    <div class="dsr-card"><div class="dsr-h3">Atmosphère et vent</div><table class="dsr-t"><tbody>
+                        <tr><td>Altitude pression</td><td class="m">${Math.round(atmosphere.pressureAltitudeFt)} ft</td></tr>
+                        <tr class="alt"><td>Altitude densité</td><td class="m">${Math.round(atmosphere.densityAltitudeFt)} ft</td></tr>
+                        <tr><td>Température ISA</td><td class="m">${fmt(atmosphere.isaTemperatureC)} °C</td></tr>
+                        <tr class="alt"><td>Vent longitudinal</td><td class="m">${fmt(Math.abs(atmosphere.headwindKt))} kt ${atmosphere.headwindKt < 0 ? 'arrière' : 'avant'}</td></tr>
+                        <tr><td>Vent traversier</td><td class="m">${fmt(atmosphere.crosswindKt)} kt</td></tr>
+                    </tbody></table></div>
                 </div>
+                <div class="dsr-h3">Vitesses caractéristiques</div>
+                <div class="dsr-card plain"><table class="dsr-t dsr-vt"><tbody>${speedRows.join('')}</tbody></table></div>
+                <div class="dsr-h3" style="margin-top:12px">Rappel opérationnel</div>
+                <div class="dsr-card"><p class="dsr-note">Valeurs de travail issues du profil sélectionné. Vérifier les limitations, l’enveloppe de centrage et les tableaux de distance dans le POH/AFM applicable à l’immatriculation avant le vol.</p></div>
+            </div>${foot(2)}</section>`;
+            return `<div class="dsr${night ? ' dsr-dark' : ''}">${styles}${page1}${page2}</div>`;
+        }
 
-                <h2 style="font-size:16px;margin:25px 0 10px 0;">Center of Gravity Envelope</h2>
-                <div style="text-align: center; margin-bottom: 30px; background-color: #fafafa; border: 1px solid #eee; padding: 15px 0; border-radius: 6px;">
-                    ${svgContent}
-                </div>
-
-                <h2 style="font-size:16px;margin:25px 0 10px 0;">Range &amp; Endurance</h2>
-                <div style="display:flex;gap:30px;font-size:14px;">
-                    <div><strong>Usable Fuel:</strong> ${resUsableFuel.textContent}</div>
-                    <div><strong>Endurance:</strong> ${resEndurance.textContent}</div>
-                    <div><strong>Still-Air Range:</strong> ${resRange.textContent}</div>
-                </div>
-            `;
-
-            const opt = {
-                margin: 0.5,
-                filename: `${(acReg.value || 'FlightPrep')}_Performance_WB.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-            };
-
-            // aperçu avant export, comme pour le dossier de vol
-            if (window.AltiviewPdfPreview) {
+        document.getElementById('exportPdfBtn').addEventListener('click', (event) => {
+            event.preventDefault();
+            saveState();
+            computeWB();
+            computeRange();
+            window.AltiviewFuelPlan?.render();
+            try {
                 window.AltiviewPdfPreview.open({
-                    title: 'Masse, centrage et performances',
-                    subtitle: 'Vérifiez la feuille avant de l\'imprimer ou de la télécharger.',
-                    html: printElement.innerHTML,
-                    filename: opt.filename,
-                    jsPDF: opt.jsPDF,
-                    margin: opt.margin
+                    title: 'Performances avion',
+                    subtitle: 'Feuille Performance — identité visuelle du dossier de vol.',
+                    html: buildPerformancePdfHtml(),
+                    filename: `${(acReg.value || acType.value || 'Altiview')}_Performances_${new Date().toISOString().slice(0, 10)}.pdf`,
+                    margin: 0.2,
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+                    pagebreak: { mode: ['css', 'legacy'], after: '.dossier-page' },
+                    prepare: window.FlightDossier?.rasterizeSvgs
                 });
-            } else {
-                html2pdf().set(opt).from(printElement).save();
+            } catch (error) {
+                console.error(error);
+                window.alert("Le PDF Performance n'a pas pu être préparé.");
             }
         });
 
@@ -2198,8 +2528,184 @@
         renderWB();
         computeWB();
         computeRange();
+        computeAtmosphere();
     </script>
+    <!-- Three.js embarqué, en script classique : les modules ES sont bloqués
+         quand la page est ouverte directement depuis le disque -->
+    <script src="assets/three/three.global.js"></script>
+    <script src="assets/three/RoomEnvironment.global.js"></script>
+    <script src="assets/three-kit.js"></script>
+    <script src="assets/fleet-models.js"></script>
+    <script src="assets/scene-fleet.js"></script>
+    <script src="assets/scene-card.js"></script>
     <script src="aircraft_profiles.js"></script>
     <script src="flight_dossier.js"></script>
+    <script>
+        // ---------------------------------------------------------------
+        // Bilan carburant : roulage, montée, croisière, dégagement, réserve.
+        // Le temps de vol vient de la route tracée sur la carte ; à défaut,
+        // on prend l'autonomie saisie comme base de calcul.
+        // ---------------------------------------------------------------
+        (function initFuelPlan() {
+            const body = document.getElementById('fuelPlanBody');
+            if (!body) return;
+            const totalEl = document.getElementById('fuelPlanTotal');
+            const noteEl = document.getElementById('fuelPlanNote');
+            const verdict = document.getElementById('fuelPlanVerdict');
+            const num = id => { const e = document.getElementById(id); const v = e ? parseFloat(e.value) : NaN; return isNaN(v) ? 0 : v; };
+
+            function render() {
+                const unit = (document.getElementById('unitFuel') || {}).value || 'L';
+                const burn = num('fuelBurn');
+                const fuelOnBoardValue = num('fuelOnBoard');
+                const tankCapacity = num('fuelCapacity');
+                const taxi = num('taxiFuel');
+                const reserveMin = num('reserveMin') || 45;
+                const climbMin = num('climbMinutes');
+                const alternateMin = num('alternateMinutes');
+                const climbExtra = 0.25;
+                const route = flightRouteMetrics();
+                const tripMin = route.minutes;
+                const q = v => `${v.toFixed(1)} ${unit}`;
+
+                if (burn <= 0) {
+                    body.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--muted);">Renseignez la consommation horaire ci-dessus.</td></tr>';
+                    totalEl.textContent = `— ${unit}`;
+                    noteEl.textContent = '—';
+                    verdict.className = 'fuel-plan-verdict';
+                    verdict.textContent = 'Renseignez la consommation et la capacité pour obtenir le bilan.';
+                    return;
+                }
+
+                const plan = AltiviewPerformance.calculateFuelPlan({
+                    fuelOnBoard: fuelOnBoardValue,
+                    fuelCapacity: tankCapacity,
+                    burnPerHour: burn,
+                    taxiFuel: taxi,
+                    tripMinutes: tripMin,
+                    climbMinutes: climbMin,
+                    climbExtraRatio: climbExtra,
+                    alternateMinutes: alternateMin,
+                    reserveMinutes: reserveMin
+                });
+
+                const rows = [
+                    ['Roulage', 'Mise en route, essais, taxi', plan.taxiFuel],
+                    ['Surconsommation montée', `${climbMin} min à +${Math.round(climbExtra * 100)} %`, plan.climbExtraFuel],
+                    ['Trajet', route.hasRoute ? `${Math.round(tripMin)} min avec le vent de la carte` : 'Route non tracée', plan.tripFuel],
+                    ['Dégagement', `${alternateMin} min à ${burn} ${unit}/h`, plan.alternateFuel],
+                    [`Réserve finale`, `${reserveMin} min à ${burn} ${unit}/h`, plan.reserveFuel]
+                ];
+                body.innerHTML = rows.map(r =>
+                    `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${q(r[2])}</td></tr>`).join('');
+                totalEl.textContent = q(plan.requiredBlockFuel);
+                noteEl.textContent = `Embarqué ${q(fuelOnBoardValue)} · capacité ${q(tankCapacity)}`;
+
+                if (fuelOnBoardValue <= 0) {
+                    verdict.className = 'fuel-plan-verdict';
+                    verdict.textContent = 'Saisissez le carburant à bord pour vérifier le bilan.';
+                } else if (tankCapacity > 0 && fuelOnBoardValue > tankCapacity) {
+                    verdict.className = 'fuel-plan-verdict bad';
+                    verdict.textContent = `Le carburant saisi dépasse la capacité de ${q(tankCapacity)}.`;
+                } else if (!route.hasRoute) {
+                    verdict.className = 'fuel-plan-verdict';
+                    verdict.textContent = 'Tracez la route sur la carte pour calculer le carburant de trajet et la masse à l’atterrissage.';
+                } else if (plan.requiredBlockFuel <= fuelOnBoardValue) {
+                    verdict.className = 'fuel-plan-verdict ok';
+                    verdict.textContent = `Bilan couvert : marge ${q(plan.remainingFuel)}, soit ${Math.round((plan.remainingFuel / burn) * 60)} min au débit saisi.`;
+                } else {
+                    verdict.className = 'fuel-plan-verdict bad';
+                    verdict.textContent = `Il manque ${q(-plan.remainingFuel)} par rapport au carburant embarqué.`;
+                }
+            }
+
+            ['fuelBurn', 'fuelOnBoard', 'fuelCapacity', 'taxiFuel', 'reserveMin', 'climbMinutes', 'alternateMinutes', 'unitFuel'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.addEventListener('input', render); el.addEventListener('change', render); }
+            });
+            window.addEventListener('storage', e => { if (e.key === 'flightprep_map_data_v11') render(); });
+            window.addEventListener('aircraftProfileChanged', render);
+            window.AltiviewFuelPlan = { render: render };
+            render();
+        })();
+    </script>
+    <script>
+        // ---------------------------------------------------------------
+        // Sélecteur de modèle : les cinq avions de la scène 3D, le profil
+        // actif au premier plan. Le bouton charge le profil complet
+        // (vitesses, centrage, consommation) via AircraftProfiles.
+        // ---------------------------------------------------------------
+        (function initPlaneStage() {
+            const stage = document.getElementById('planeStage');
+            if (!stage) return;
+            const nameEl = document.getElementById('acNowName');
+            const loadBtn = document.getElementById('acLoad');
+            const ORDER = ['c172', 'dr400', 'pa28', 'da40', 'c152'];
+            const LABEL = {
+                c172: 'Cessna 172', dr400: 'Robin DR-400', pa28: 'Piper PA-28',
+                da40: 'Diamond DA-40', c152: 'Cessna 152'
+            };
+
+            // le type saisi dans la page decide du modele affiche a l'arrivee
+            function currentId() {
+                const t = String((document.getElementById('acType') || {}).value || '').toUpperCase();
+                if (t.indexOf('DR4') >= 0) return 'dr400';
+                if (t.indexOf('DA4') >= 0) return 'da40';
+                if (t.indexOf('PA') === 0) return 'pa28';
+                if (t.indexOf('C15') >= 0) return 'c152';
+                if (t.indexOf('C17') >= 0 || t.indexOf('172') >= 0) return 'c172';
+                return null;
+            }
+
+            let idx = Math.max(0, ORDER.indexOf(currentId() || 'dr400'));
+            window.AltiState = window.AltiState || {};
+            window.AltiState.aircraft = ORDER[idx];
+
+            function paint() {
+                const id = ORDER[idx];
+                nameEl.textContent = LABEL[id];
+                loadBtn.hidden = id === currentId();
+                document.dispatchEvent(new CustomEvent('altiview:aircraft', { detail: { id: id } }));
+            }
+            function step(d) { idx = (idx + d + ORDER.length) % ORDER.length; paint(); }
+
+            document.getElementById('acPrev').addEventListener('click', () => step(-1));
+            document.getElementById('acNext').addEventListener('click', () => step(1));
+            document.getElementById('acNow').addEventListener('click', () => step(1));
+            loadBtn.addEventListener('click', () => {
+                if (window.AircraftProfiles && AircraftProfiles.loadPreset) AircraftProfiles.loadPreset(ORDER[idx]);
+            });
+            function followActive() {
+                const id = currentId();
+                if (id) { idx = ORDER.indexOf(id); paint(); }
+                else { loadBtn.hidden = false; }
+            }
+            const typeEl = document.getElementById('acType');
+            if (typeEl) {
+                typeEl.addEventListener('input', followActive);
+                typeEl.addEventListener('change', followActive);
+            }
+            // un profil chargé depuis la fenêtre Profils avion, ou d'un autre onglet
+            window.addEventListener('aircraftProfileChanged', followActive);
+            window.addEventListener('storage', e => {
+                if (e.key === 'flightprep_perf_data_v10') setTimeout(followActive, 60);
+            });
+
+            // le kit 3D parle sa propre langue pour le thème
+            window.addEventListener('altiview-theme-changed', () => {
+                document.dispatchEvent(new Event('altiview:theme'));
+            });
+
+            // si la scène ne démarre pas (WebGL absent, Three.js non chargé),
+            // on le dit au lieu de laisser un cadre vide
+            if (window.AltiKit && AltiKit.ready && AltiKit.ready.catch) {
+                AltiKit.ready.catch(() => stage.classList.add('no3d'));
+            } else {
+                stage.classList.add('no3d');
+            }
+
+            paint();
+        })();
+    </script>
 </body>
 </html>

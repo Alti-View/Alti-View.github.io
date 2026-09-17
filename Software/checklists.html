@@ -490,7 +490,7 @@
     <!-- 1. TABLET HUD BAR -->
     <header class="tablet-hud">
         <div class="hud-left">
-            <a href="flg_prep.html" class="hud-brand" title="ALTIVIEW — Préparation du Vol">
+            <a href="VFR.html" class="hud-brand" title="ALTIVIEW — Carte VFR">
                 <svg class="hud-logo-svg" viewBox="250 190 1432 1432" width="26" height="26" aria-hidden="true">
                     <defs>
                         <linearGradient id="lgA-chk" x1="0" y1="212" x2="0" y2="990" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#5FE3CF"/><stop offset="1" stop-color="#4BC8B6"/></linearGradient>
@@ -528,11 +528,11 @@
                 <span class="num">01</span>
                 <span class="label">Carte</span>
             </a>
-            <a href="flg_prep.html#weather" class="sidebar-item" data-nav="wx">
+            <a href="meteo.html" class="sidebar-item" data-nav="wx">
                 <span class="num">02</span>
                 <span class="label">Météo</span>
             </a>
-            <a href="flg_prep.html#flight-fuel" class="sidebar-item" data-nav="info">
+            <a href="infos_vol.html" class="sidebar-item" data-nav="info">
                 <span class="num">03</span>
                 <span class="label">Infos de vol</span>
             </a>
@@ -540,7 +540,7 @@
                 <span class="num">04</span>
                 <span class="label">Performances</span>
             </a>
-            <a href="flg_prep.html#readiness" class="sidebar-item" data-nav="dep">
+            <a href="depart.html" class="sidebar-item" data-nav="dep">
                 <span class="num">05</span>
                 <span class="label">Départ en vol</span>
             </a>
@@ -1529,6 +1529,13 @@
         });
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous"></script>
+    <!-- Three.js embarqué, en script classique : les modules ES sont bloqués
+         quand la page est ouverte directement depuis le disque -->
+    <script src="assets/three/three.global.js"></script>
+    <script src="assets/three/RoomEnvironment.global.js"></script>
+    <script src="assets/three-kit.js"></script>
+    <script src="assets/fleet-models.js"></script>
+    <script src="assets/scene-card.js"></script>
     <script src="aircraft_profiles.js"></script>
     <script src="flight_dossier.js"></script>
 </body>

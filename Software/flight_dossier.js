@@ -217,7 +217,7 @@
     // ==========================================
     function generateRouteMinimapSVG(waypoints) {
         const svgW = 720;
-        const svgH = 300;
+        const svgH = 340;
 
         if (!Array.isArray(waypoints) || waypoints.length === 0) {
             return `
@@ -339,11 +339,54 @@
             gridLines.push(`<line x1="${x.toFixed(1)}" y1="10" x2="${x.toFixed(1)}" y2="${svgH - 10}" stroke="#ece8df" stroke-width="1" stroke-dasharray="4,4" />`);
         }
 
+        // Fond de carte : espaces traversés et terrains proches, mis de côté par
+        // la page Carte. Sans eux la planche n'est qu'un trait sur du vide.
+        let chart = { zones: [], fields: [] };
+        try { chart = JSON.parse(localStorage.getItem('flightprep_route_chart_v1') || '{}') || {}; } catch (e) {}
+        const zones = Array.isArray(chart.zones) ? chart.zones : [];
+        const fieldPts = Array.isArray(chart.fields) ? chart.fields : [];
+
+        const ZONE_INK = {
+            CTR: '#2563EB', TMA: '#7C3AED', CTA: '#7C3AED',
+            Prohibited: '#B3123A', Restricted: '#C2410C', Danger: '#B45309'
+        };
+        const inBox = (la, ln) => la >= minLat && la <= maxLat && ln >= minLng && ln <= maxLng;
+        const zoneShapes = zones.map(z => {
+            const pts = (z.p || []).filter(p => Array.isArray(p) && p.length === 2);
+            if (pts.length < 3) return '';
+            if (!pts.some(p => inBox(p[0], p[1]))) return '';
+            const ink = ZONE_INK[z.t] || '#64748B';
+            const d = pts.map(p => `${normX(p[1]).toFixed(1)},${normY(p[0]).toFixed(1)}`).join(' ');
+            const special = z.t === 'Prohibited' || z.t === 'Restricted' || z.t === 'Danger';
+            const cx = pts.reduce((a, p) => a + normX(p[1]), 0) / pts.length;
+            const cy = pts.reduce((a, p) => a + normY(p[0]), 0) / pts.length;
+            const tag = z.c ? `${z.t} ${z.c}` : z.t;
+            // seules les zones contrôlées portent leur classe : les zones P/R/D
+            // se comptent par dizaines et noieraient la route sous les étiquettes
+            const label = (!special && cx > marginX && cx < svgW - marginX && cy > marginY && cy < svgH - marginY)
+                ? `<text x="${cx.toFixed(1)}" y="${cy.toFixed(1)}" font-size="8" font-family="'IBM Plex Mono',monospace" font-weight="700" fill="${ink}" text-anchor="middle" opacity=".95">${escapeHtml(tag)}</text>`
+                : '';
+            return `<polygon points="${d}" fill="${ink}" fill-opacity="${special ? '0' : '.08'}" stroke="${ink}" stroke-width="${special ? '0.9' : '1.2'}"${special ? ' stroke-dasharray="5,3"' : ''} stroke-opacity="${special ? '.45' : '.75'}" />${label}`;
+        }).join('');
+
+        const fieldShapes = fieldPts.filter(a => inBox(a.y, a.x)).map(a => {
+            const x = normX(a.x), y = normY(a.y);
+            const onRoute = validWps.some(w => String(w.name || '').toUpperCase().indexOf(a.i) >= 0);
+            return `<g opacity="${onRoute ? '1' : '.55'}">
+                <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${onRoute ? 4 : 3}" fill="none" stroke="#3F4A55" stroke-width="${onRoute ? 1.6 : 1.1}" />
+                <text x="${(x + 6).toFixed(1)}" y="${(y + 3).toFixed(1)}" font-size="7" font-family="'IBM Plex Mono',monospace" font-weight="${onRoute ? 700 : 400}" fill="#3F4A55">${escapeHtml(a.i || '')}</text>
+            </g>`;
+        }).join('');
+
         return `
             <div style="width: 100%; height: ${svgH}px; position: relative; background: #faf8f5; border: 1.5px solid #000; border-radius: 4px; overflow: hidden; box-sizing: border-box;">
                 <svg viewBox="0 0 ${svgW} ${svgH}" width="100%" height="${svgH}" style="display:block; width:100%; height:auto; font-family:'IBM Plex Sans', Arial, sans-serif;" preserveAspectRatio="xMidYMid meet">
                     <!-- Grid Lines -->
                     ${gridLines.join('')}
+
+                    <!-- Espaces aériens traversés et terrains proches -->
+                    ${zoneShapes}
+                    ${fieldShapes}
 
                     <!-- Flight Track Casing & Centerline -->
                     <polyline points="${polylinePoints}" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
@@ -484,6 +527,41 @@
             table.dsr-t td.leg { font-weight:600; }
             table.dsr-t tr.alt td { background:#FAFBFC !important; }
             table.dsr-t tr.tot td { border-top:2px solid var(--navy); border-bottom:none; font-weight:700; background:var(--band) !important; }
+            table.dsr-t tr.tod td { background:#F3F7F6 !important; border-top:1px dashed var(--teal); font-style:normal; }
+            table.dsr-t tr.tod td.leg { color:var(--teal); font-weight:700; }
+            table.dsr-t tr.warn td { background:#FDF4F6 !important; }
+            table.dsr-t tr.warn td strong { color:var(--red); }
+            table.dsr-t td.m { white-space:nowrap; }
+            table.dsr-t td.wrap, table.dsr-t td.wrap.m { white-space:normal; }
+            /* fréquences : une ligne par organisme, alignées, jamais coupées */
+            table.dsr-t tr.has-tod td { background:#F3F7F6 !important; }
+            .tod-mark { display:block; margin-top:2px; font-family:'IBM Plex Mono',monospace; font-size:7.5px; font-weight:600;
+                        letter-spacing:.04em; text-transform:uppercase; color:var(--teal); }
+            /* vitesses : trois paires nom / valeur par ligne, alignées */
+            table.dsr-vt td { padding:2px 6px; font-size:9px; font-family:'IBM Plex Mono',monospace; }
+            table.dsr-vt td.n { color:var(--teal); font-weight:600; width:11%; }
+            table.dsr-vt td.v { font-weight:700; text-align:right; width:11%; padding-right:12px; }
+            .dsr-freq { display:flex; justify-content:space-between; gap:5px; white-space:nowrap;
+                        font-family:'IBM Plex Mono',monospace; font-size:8px; line-height:1.65; }
+            .dsr-freq b { color:var(--teal); font-weight:600; }
+            table.dsr-xw td { padding:3px 7px; font-size:8.5px; }
+            table.dsr-xw th { padding:3px 7px; font-size:7px; }
+            table.dsr-xw td.leg { font-family:'IBM Plex Mono',monospace; font-weight:600; color:var(--teal); }
+            table.dsr-xw td small { color:#8C97A2; font-size:7.5px; }
+            /* Bande TOP : les items de mise en palier, en une ligne sous le log */
+            .dsr-topline { display:flex; flex-wrap:wrap; align-items:center; gap:5px 7px;
+                           margin-top:12px; padding:7px 10px; border:1px solid var(--teal);
+                           border-left:3px solid var(--teal); border-radius:8px; background:var(--band) !important; }
+            .dsr-topline .t { font-family:'IBM Plex Mono',monospace; font-size:9px; font-weight:700; letter-spacing:.16em;
+                              color:#fff !important; background:var(--teal) !important; border-radius:4px; padding:2px 7px; }
+            .dsr-topline .i { font-family:'IBM Plex Mono',monospace; font-size:8.5px; font-weight:600; letter-spacing:.04em;
+                              color:var(--ink); }
+            .dsr-topline .i + .i::before { content:'·'; margin-right:7px; color:#8C97A2; font-weight:400; }
+            /* place a ecrire : le bas du log sert de bloc-notes en vol */
+            .dsr-inflight { margin-top:10px; flex:1 1 auto; display:flex; flex-direction:column; min-height:90px; }
+            .dsr-lines { flex:1 1 auto; min-height:64px;
+                         background-image:repeating-linear-gradient(to bottom, transparent 0, transparent 21px, var(--hair) 21px, var(--hair) 22px); }
+            table.dsr-t thead th small { display:block; font-weight:500; font-size:7px; letter-spacing:.06em; opacity:.8; }
             .dsr-fill { display:inline-block; min-width:42px; border-bottom:1px dotted #9AA6B2; }
 
             .dsr-chipline { display:flex; flex-wrap:wrap; gap:5px; }
@@ -501,10 +579,10 @@
 
             .dsr-cols { column-count:2; column-gap:12px; }
             .dsr-chk { break-inside:avoid; border:1px solid var(--hair); border-radius:9px; margin-bottom:9px; overflow:hidden; }
-            .dsr-chk > h4 { margin:0; background:var(--navy) !important; color:#fff !important; font-family:'IBM Plex Mono',monospace; font-size:8.5px; font-weight:600;
+            .dsr-chk > h4 { margin:0; background:var(--navy) !important; color:#fff !important; font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:600;
                             letter-spacing:.1em; text-transform:uppercase; padding:5px 9px; }
             .dsr-chk ul { list-style:none; margin:0; padding:5px 9px 7px; }
-            .dsr-chk li { display:flex; justify-content:space-between; align-items:baseline; gap:8px; font-size:9px; padding:2.5px 0; border-bottom:1px dotted var(--hair); }
+            .dsr-chk li { display:flex; justify-content:space-between; align-items:baseline; gap:8px; font-size:11px; line-height:1.45; padding:4px 0; border-bottom:1px dotted var(--hair); }
             .dsr-chk li:last-child { border-bottom:none; }
             .dsr-chk li b { font-family:'IBM Plex Mono',monospace; font-weight:600; text-align:right; white-space:nowrap; color:var(--teal); }
             .dsr-chk.emg { border-color:var(--red); }
@@ -524,8 +602,8 @@
             .dsr-nt-val { font-family:'IBM Plex Mono',monospace; font-size:8.5px; color:var(--soft); margin-bottom:3px; }
             .dsr-nt-txt { font-size:9.5px; line-height:1.5; }
             .dsr-tight table.dsr-t td { padding:4px 6px; font-size:9px; }
-            .dsr-tight .dsr-chk li { font-size:8px; padding:1.5px 0; }
-            .dsr-tight .dsr-chk > h4 { padding:3px 7px; font-size:8px; }
+            .dsr-tight .dsr-chk li { font-size:10px; padding:3px 0; }
+            .dsr-tight .dsr-chk > h4 { padding:4px 7px; font-size:9.5px; }
             .dsr-tight .dsr-sig { width:8px; height:8px; margin-right:5px; }
             .dsr-tight .dsr-h3 { margin-bottom:4px; }
             .dsr-tight .dsr-cols { margin-bottom:6px !important; }
@@ -533,6 +611,9 @@
             .dsr-tight .dsr-foot { margin-top:6px; }
             .dsr-tight .dsr-chk { margin-bottom:7px; }
             .dsr-tight .dsr-card { padding:9px 11px; }
+            .dsr-refs { grid-template-columns: 0.72fr 1.28fr !important; }
+            .dsr-tight .dsr-card table.dsr-t td { font-size:8.5px; padding:3px 6px; line-height:1.35; }
+            .dsr-tight .dsr-card table.dsr-t th { font-size:7.5px; padding:3px 6px; }
             /* html2canvas coupe les mots quand la typo d'affichage porte un interlettrage : on l'annule dans le document */
             .dsr-brand, .dsr-title, .dsr-route, .dsr-tile .v, .dsr-wx-icao, .dsr-hero-date { letter-spacing: normal !important; }
             .dsr-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
@@ -562,8 +643,10 @@
             .dsr-tiles .dsr-tile .v { font-size: 18px; }
             .dsr-tiles .dsr-tile .v small { font-size: 8px; }
             .dsr-map { padding: 6px !important; margin-bottom: 12px; }
-            .dsr-map { height: 330px; overflow: hidden; display: flex; align-items: center; padding: 5px !important; }
-            .dsr-map svg { display: block !important; width: 100% !important; height: 100% !important; max-height: 320px; }
+            .dsr-map { height: 372px; overflow: hidden; display: flex; align-items: center; padding: 5px !important; }
+            .dsr-map svg { display: block !important; width: 100% !important; height: 100% !important; max-height: 362px; }
+            .dsr-map-shot { display:block; width:100%; height:100%; object-fit:cover; border-radius:3px; }
+            .dsr-dark .dsr-map-shot { filter:brightness(.82) contrast(1.05); }
             /* annexe Go / No-Go */
             .dsr-gng { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
             .dsr-gng-list { list-style: none; margin: 0; padding: 2px 0 0; }
@@ -587,6 +670,9 @@
             .dsr-dark .dsr-tile, .dsr-dark .dsr-hero, .dsr-dark .dsr-raw, .dsr-dark .dsr-empty { background:#16202E !important; }
             .dsr-dark table.dsr-t tr.alt td { background:#111B29 !important; }
             .dsr-dark table.dsr-t tr.tot td { background:#16202E !important; }
+            .dsr-dark table.dsr-t tr.tod td { background:#0F1D22 !important; }
+            .dsr-dark table.dsr-t tr.warn td { background:#1F1420 !important; }
+            .dsr-dark table.dsr-t tr.has-tod td { background:#0F1D22 !important; }
             .dsr-dark .dsr-chk > h4 { background:#243141 !important; }
             .dsr-dark .dsr-chk.emg > h4 { background:#7F1130 !important; }
             .dsr-dark .dsr-title span.n { background:var(--amber) !important; color:#0A1119 !important; }
@@ -599,7 +685,67 @@
         </style>`;
     }
 
+    // ---------------------------------------------------------------
+    // html2canvas ne sait pas rasteriser un SVG posé dans le document :
+    // la planche de route ressortait vide du PDF. On la remplace donc par
+    // une image avant l'export, puis on remet le SVG en place.
+    // ---------------------------------------------------------------
+    function rasterizeSvgs(root) {
+        const svgs = [...root.querySelectorAll('svg')];
+        if (!svgs.length) return Promise.resolve(() => {});
+        const swaps = [];
+        return Promise.all(svgs.map(svg => new Promise(resolve => {
+            const box = svg.getBoundingClientRect();
+            const w = Math.max(1, Math.round(box.width)), h = Math.max(1, Math.round(box.height));
+            const clone = svg.cloneNode(true);
+            clone.setAttribute('width', w);
+            clone.setAttribute('height', h);
+            if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+            const src = 'data:image/svg+xml;charset=utf-8,'
+                + encodeURIComponent(new XMLSerializer().serializeToString(clone));
+            const img = new Image();
+            const done = ok => {
+                if (ok) {
+                    const cv = document.createElement('canvas');
+                    cv.width = w * 2; cv.height = h * 2;
+                    const cx = cv.getContext('2d');
+                    cx.scale(2, 2);
+                    cx.drawImage(img, 0, 0, w, h);
+                    const out = new Image();
+                    out.src = cv.toDataURL('image/png');
+                    out.style.width = '100%';
+                    out.style.height = 'auto';
+                    out.style.display = 'block';
+                    swaps.push({ svg: svg, img: out, parent: svg.parentNode, next: svg.nextSibling });
+                    svg.parentNode.replaceChild(out, svg);
+                }
+                resolve();
+            };
+            img.onload = () => done(true);
+            img.onerror = () => done(false);
+            img.src = src;
+        }))).then(() => () => {
+            swaps.forEach(sw => { if (sw.img.parentNode) sw.img.parentNode.replaceChild(sw.svg, sw.img); });
+        });
+    }
+
+    // Les check-lists normales et la page Urgences alourdissent le dossier :
+    // à bord on les a souvent déjà sous la main, plastifiées. On les garde
+    // ou non, le choix est mémorisé d'un vol à l'autre.
+    const DSR_OPTS_KEY = 'flightprep_dossier_sections_v1';
+    function dossierOpts() {
+        let o = {};
+        try { o = JSON.parse(localStorage.getItem(DSR_OPTS_KEY) || '{}') || {}; } catch (e) {}
+        return { checklists: o.checklists !== false, emergency: o.emergency !== false, gonogo: o.gonogo !== false };
+    }
+    function setDossierOpt(name, on) {
+        const o = dossierOpts();
+        o[name] = !!on;
+        try { localStorage.setItem(DSR_OPTS_KEY, JSON.stringify(o)); } catch (e) {}
+    }
+
     function buildDossierHtml() {
+        const opts = dossierOpts();
         // ---- Sources: tous les modules de la suite -------------------------
         const info = JSON.parse(localStorage.getItem(INFO_KEY) || '{}');
         const mapData = JSON.parse(localStorage.getItem(MAP_KEY) || '{}');
@@ -623,7 +769,7 @@
         const readiness = info.readiness || {};
         const imsafe = readiness.imsafe || {};
         const docs = readiness.documents || {};
-        const totalPages = 6;
+        const totalPages = 5 + (opts.checklists ? 1 : 0) + (opts.emergency ? 1 : 0);
         const generatedAt = new Date().toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
         const dep = waypoints.length ? (waypoints[0].name || '—') : '—';
@@ -649,7 +795,7 @@
             });
         }
         const hrs = Math.floor(totTimeMin / 60), mins = Math.round(totTimeMin % 60);
-        const eteStr = totTimeMin > 0 ? `${hrs > 0 ? hrs + 'h ' : ''}${mins}m` : '—';
+        const eteStr = totTimeMin > 0 ? `${hrs > 0 ? hrs + 'h ' : ''}${mins}′` : '—';
 
         // ---- Performances, carburant, masse & centrage ---------------------
         const speeds = Array.isArray(perfData.speeds) ? perfData.speeds : [];
@@ -670,6 +816,52 @@
         const reserveFuel = fuelBurn > 0 ? (fuelBurn * 0.75).toFixed(1) : '—';
         const enduranceH = (fuelCap > 0 && fuelBurn > 0) ? (fuelCap / fuelBurn) : 0;
         const enduranceStr = enduranceH > 0 ? `${Math.floor(enduranceH)}h ${Math.round((enduranceH % 1) * 60)}m` : '—';
+
+        // Photo de la zone de vol, prise par la carte quand la route est tracée.
+        // À défaut (route non tracée, hors ligne à la saisie) on retombe sur le
+        // tracé vectoriel, qui n'a pas de fond de carte mais reste exploitable.
+        let routeImage = '';
+        try { routeImage = localStorage.getItem('flightprep_route_image_v1') || ''; } catch (e) {}
+        if (routeImage && routeImage.indexOf('data:image') !== 0) routeImage = '';
+
+        // ---- Vent traversier piste par piste --------------------------------
+        // Vent du log de nav projeté sur chaque QFU : la composante de face
+        // rallonge ou raccourcit, la traversière décide si le vol part.
+        function windComponents(qfuDeg) {
+            const a = ((windDir - qfuDeg + 540) % 360 - 180) * Math.PI / 180;
+            return { head: Math.round(windSpd * Math.cos(a)), cross: Math.round(windSpd * Math.sin(a)) };
+        }
+
+        // ---- Terrains de la route : frequences, pistes, tour de piste -------
+        // Mis de cote par la carte, pour que le dossier y ait acces depuis
+        // n'importe quelle page de la suite.
+        let routeFields = [];
+        try { routeFields = JSON.parse(localStorage.getItem('flightprep_route_fields_v1') || '[]'); } catch (e) {}
+        if (!Array.isArray(routeFields)) routeFields = [];
+
+        // ---- Montee, roulage : le carburant que la croisiere seule ignore ---
+        const legAlts = legs.map(l => parseFloat(l.alt)).filter(v => !isNaN(v));
+        const climbFt = parseFloat(perfData.climbAltitude) || (legAlts.length ? Math.max.apply(null, legAlts) : 0);
+        const climbRate = parseFloat(perfData.range?.climbRate) || 700;       // ft/min
+        const climbMin = climbFt > 0 ? Math.round(climbFt / climbRate) : 0;
+        const climbFactor = 1.25;                                             // plein gaz en montee
+        const climbExtra = (climbMin > 0 && fuelBurn > 0)
+            ? ((climbMin / 60) * fuelBurn * (climbFactor - 1)).toFixed(1) : '—';
+        const taxiFuel = (perfData.range?.taxiFuel !== undefined && perfData.range.taxiFuel !== null && perfData.range.taxiFuel !== '')
+            ? parseFloat(perfData.range.taxiFuel) : (fuelBurn > 0 ? +(fuelBurn * 0.1).toFixed(1) : 0);
+        const blockFuel = (tripFuel !== '—' && reserveFuel !== '—')
+            ? (parseFloat(tripFuel) + parseFloat(reserveFuel) + (climbExtra !== '—' ? parseFloat(climbExtra) : 0) + (taxiFuel || 0)).toFixed(1)
+            : '—';
+
+        // ---- Top of descent : ou quitter le niveau de croisiere ------------
+        const descentRate = parseFloat(perfData.range?.descentRate) || 500;    // ft/min
+        const cruiseAlt = legAlts.length ? Math.max.apply(null, legAlts) : climbFt;
+        const arrElev = routeFields.length ? (parseFloat(routeFields[routeFields.length - 1].alt) || 0) : 0;
+        const circuitAlt = arrElev + 1000;
+        const dropFt = Math.max(0, cruiseAlt - circuitAlt);
+        const todMin = dropFt > 0 ? Math.round(dropFt / descentRate) : 0;
+        const lastGs = legs.length ? legs[legs.length - 1].gs : 0;
+        const todNm = (todMin > 0 && lastGs > 0) ? ((todMin / 60) * lastGs).toFixed(1) : '—';
 
         // ---- Go / No-Go ----------------------------------------------------
         const imsafeItems = [
@@ -737,7 +929,9 @@
 
                     <div class="dsr-h3">Route</div>
                     <div class="dsr-card dsr-map">
-                        ${generateRouteMinimapSVG(waypoints)}
+                        ${routeImage
+                            ? `<img src="${routeImage}" alt="Zone de vol" class="dsr-map-shot">`
+                            : generateRouteMinimapSVG(waypoints)}
                     </div>
 
                     <div class="dsr-card dsr-notes">
@@ -749,9 +943,20 @@
             </section>`;
 
         // ---- Page 2: log de navigation --------------------------------------
+        // Le point de descente tombe a `todNm` du terrain : on remonte les
+        // branches depuis l'arrivee pour savoir laquelle le porte.
+        let todLegIdx = -1, todFromEnd = 0;
+        if (todNm !== '—') {
+            let rest = parseFloat(todNm);
+            for (let i = legs.length - 1; i >= 0; i--) {
+                if (rest <= legs[i].dist) { todLegIdx = i; todFromEnd = rest; break; }
+                rest -= legs[i].dist;
+            }
+        }
         const legRows = legs.length ? legs.map((l, i) => `
-            <tr class="${i % 2 ? 'alt' : ''}">
-                <td class="leg">${escapeHtml(l.from)} ➔ ${escapeHtml(l.to)}</td>
+            <tr class="${i % 2 ? 'alt' : ''}${i === todLegIdx ? ' has-tod' : ''}">
+                <td class="leg">${escapeHtml(l.from)} ➔ ${escapeHtml(l.to)}${i === todLegIdx
+                    ? `<span class="tod-mark">TOD à ${todFromEnd.toFixed(1)} NM de ${escapeHtml(l.to)} · ${circuitAlt} ft</span>` : ''}</td>
                 <td class="m">${escapeHtml(String(l.alt))}</td>
                 <td class="m">${String(l.tc).padStart(3, '0')}°</td>
                 <td class="m"><strong>${String(l.th).padStart(3, '0')}°</strong></td>
@@ -760,57 +965,217 @@
                 <td class="m"><strong>${l.ete}′</strong></td>
                 <td class="m"><span class="dsr-fill"></span></td>
                 <td class="m"><span class="dsr-fill"></span></td>
-            </tr>`).join('') : `<tr><td colspan="9" style="padding:18px; text-align:center; color:#8C97A2; font-size:10.5px;">Aucune branche : tracez la route sur la carte VFR.</td></tr>`;
+                <td class="m"><span class="dsr-fill"></span></td>
+            </tr>`).join('') : `<tr><td colspan="10" style="padding:18px; text-align:center; color:#8C97A2; font-size:10.5px;">Aucune branche : tracez la route sur la carte VFR.</td></tr>`;
+
+        const FREQ_ORDER = ['ATIS', 'TWR', 'AFIS', 'INFO', 'APP'];
+        const fieldRows = routeFields.length ? `
+            <table class="dsr-t">
+                <thead><tr>
+                    <th style="width:22%;">Terrain</th><th>Pistes</th><th>Tour de piste</th><th style="width:19%;">Fréquences</th>
+                </tr></thead>
+                <tbody>
+                    ${routeFields.map((a, i) => {
+                        const rwys = (a.runways || []).map(r => `${escapeHtml(r.name)}<small> ${escapeHtml(r.length || '')}</small>`).join(' · ') || '—';
+                        const hand = a.circuit && /right|droit/i.test(String(a.circuit.dir || '')) ? 'Main droite' : 'Main gauche';
+                        const cAlt = a.circuit && a.circuit.alt ? escapeHtml(a.circuit.alt) : '—';
+                        // Le QFU se lit dans le nom de piste : "09/27" donne 090 et 270.
+                        const qfus = (a.runways || []).map(r => String(r.name || '')
+                            .split('/').map(x => x.replace(/[^0-9]/g, '')).filter(Boolean)
+                            .map(x => (x + '0').slice(0, 3)).join('/'))
+                            .filter((v, i, arr) => v && arr.indexOf(v) === i)
+                            .join(' · ');
+                        const fr = FREQ_ORDER.filter(t => a.freqs && a.freqs[t])
+                            .map(t => `<span class="dsr-freq"><b>${t}</b>${escapeHtml(a.freqs[t])}</span>`).join('') || '<span style="color:#8C97A2;">—</span>';
+                        return `<tr class="${i % 2 ? 'alt' : ''}">
+                            <td class="leg"><strong>${escapeHtml(a.icao)}</strong> <small>${escapeHtml(a.role)}</small></td>
+                            <td class="m wrap">${rwys}</td>
+                            <td class="m wrap">${hand}${qfus ? ` <strong>QFU ${escapeHtml(qfus)}</strong>` : ''}<small> · ${cAlt}</small></td>
+                            <td class="m wrap">${fr}</td>
+                        </tr>`;
+                    }).join('')}
+                </tbody>
+            </table>`
+            : `<p class="dsr-note" style="margin:0;">Tracez la route sur la carte VFR : les fréquences, pistes et sens de tour de piste des terrains s'inscrivent ici automatiquement.</p>`;
+
+        // chaque QFU des terrains de la route, face et traversier
+        // Une ligne par piste, sur le seuil favorable au vent : l'autre seuil
+        // donne les mêmes chiffres inversés. Les pistes parallèles de même QFU
+        // ne sont comptées qu'une fois.
+        const xwLines = [];
+        routeFields.forEach(a => {
+            const seen = {};
+            (a.runways || []).forEach(r => {
+                const ends = String(r.name || '').split('/')
+                    .map(e => ({ lbl: e.trim(), num: e.replace(/[^0-9]/g, '') }))
+                    .filter(e => e.num)
+                    .map(e => {
+                        const qfu = parseInt(e.num, 10) * 10;
+                        return Object.assign({ qfu: qfu }, windComponents(qfu), e);
+                    });
+                if (!ends.length) return;
+                const best = ends.reduce((p, c) => (c.head > p.head ? c : p), ends[0]);
+                if (seen[best.qfu]) return;
+                seen[best.qfu] = true;
+                xwLines.push({
+                    icao: a.icao, rwy: best.lbl,
+                    qfu: String(best.qfu).padStart(3, '0'),
+                    head: best.head, cross: best.cross
+                });
+            });
+        });
+        xwLines.sort((a, b) => Math.abs(a.cross) - Math.abs(b.cross));
+        const xwRows = (xwLines.length && windSpd > 0) ? `
+            <table class="dsr-t dsr-xw"><thead><tr>
+                <th>Piste</th><th>QFU</th><th>Face / arrière</th><th>Traversier</th>
+            </tr></thead><tbody>
+                ${xwLines.slice(0, 6).map((l, i) => `
+                    <tr class="${i % 2 ? 'alt' : ''}">
+                        <td class="leg">${escapeHtml(l.icao)} ${escapeHtml(l.rwy)}</td>
+                        <td class="m">${l.qfu}°</td>
+                        <td class="m">${l.head >= 0 ? 'Face ' + l.head : 'Arrière ' + Math.abs(l.head)} kt</td>
+                        <td class="m"><strong>${Math.abs(l.cross)} kt</strong> <small>${l.cross === 0 ? '—' : (l.cross > 0 ? 'de droite' : 'de gauche')}</small></td>
+                    </tr>`).join('')}
+            </tbody></table>
+            <p class="dsr-note" style="margin:5px 0 0;">Seuil favorable de chaque piste, classé du traversier le plus faible au plus fort. Comparer à la limite démontrée de l'appareil.</p>`
+            : `<p class="dsr-note" style="margin:0;">${windSpd > 0 ? 'Tracez la route sur la carte pour obtenir les pistes des terrains.' : 'Saisissez le vent dans le log de navigation pour obtenir les composantes.'}</p>`;
 
         const page2 = `
             <section class="dossier-page dsr-page">
                 ${head()}
                 <div class="dsr-body">
                     ${title('02', 'Log de navigation')}
-                    <p class="dsr-note">Caps vrais calculés avec le vent saisi (${windDir}° / ${windSpd} kt) et une TAS de ${tas} kt. Les deux dernières colonnes se remplissent en vol.</p>
+                    <p class="dsr-note">Caps vrais calculés avec le vent saisi (${windDir}° / ${windSpd} kt) et une TAS de ${tas} kt.
+                       Heure estimée à compléter au briefing, heure réelle et carburant restant en vol.
+                       Le repère TOD marque la branche où quitter la croisière (${descentRate} ft/min jusqu'au tour de piste).</p>
                     <table class="dsr-t">
                         <thead>
                             <tr>
-                                <th style="width:26%;">Branche</th><th>Alt</th><th>Rv</th><th>Cap vrai</th><th>Dist</th><th>GS</th><th>ETE</th><th>Heure</th><th>Carb.</th>
+                                <th style="width:23%;">Branche</th><th>Alt</th><th>Rv</th><th>Cap vrai</th><th>Dist</th><th>GS</th><th>ETE</th>
+                                <th>Heure<br><small>estimée</small></th><th>Heure<br><small>réelle</small></th><th>Carb.</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${legRows}
                             ${legs.length ? `<tr class="tot">
                                 <td>Total</td><td class="m">—</td><td class="m">—</td><td class="m">—</td>
-                                <td class="m">${totDist.toFixed(1)}</td><td class="m">—</td><td class="m">${eteStr}</td><td></td><td></td>
+                                <td class="m">${totDist.toFixed(1)}</td><td class="m">—</td><td class="m">${eteStr}</td><td></td><td></td><td></td>
                             </tr>` : ''}
                         </tbody>
                     </table>
 
-                    <div class="dsr-grid dsr-g2" style="margin-top:14px;">
+                    <div class="dsr-topline">
+                        <span class="t">TOP</span>
+                        <span class="i">Heure</span><span class="i">Cap</span><span class="i">Alt</span>
+                        <span class="i">Puissance</span><span class="i">Richesse</span><span class="i">Compensateur</span>
+                        <span class="i">Conservateur de cap</span><span class="i">Altimètre</span>
+                        <span class="i">Carburant</span><span class="i">Position</span><span class="i">Radio</span>
+                    </div>
+
+                    <div class="dsr-grid dsr-g2" style="margin-top:12px;">
                         <div class="dsr-card">
                             <div class="dsr-h3">Carburant</div>
                             <table class="dsr-t"><tbody>
                                 <tr><td>Emport</td><td class="m" style="text-align:right;">${fuelCap || '—'} ${uF}</td></tr>
                                 <tr><td>Consommation</td><td class="m" style="text-align:right;">${fuelBurn || '—'} ${uF}/h</td></tr>
-                                <tr><td>Vol</td><td class="m" style="text-align:right;">${tripFuel} ${uF}</td></tr>
+                                <tr><td>Roulage</td><td class="m" style="text-align:right;">${taxiFuel || '—'} ${uF}</td></tr>
+                                <tr><td>Surconsommation montée <small>(${climbMin || '—'} min à ${Math.round((climbFactor - 1) * 100)} %)</small></td><td class="m" style="text-align:right;">+${climbExtra} ${uF}</td></tr>
+                                <tr><td>Croisière</td><td class="m" style="text-align:right;">${tripFuel} ${uF}</td></tr>
                                 <tr><td>Réserve 45 min</td><td class="m" style="text-align:right;">${reserveFuel} ${uF}</td></tr>
-                                <tr><td><strong>Au bloc</strong></td><td class="m" style="text-align:right;"><strong>${(tripFuel !== '—' && reserveFuel !== '—') ? (parseFloat(tripFuel) + parseFloat(reserveFuel)).toFixed(1) : '—'} ${uF}</strong></td></tr>
+                                <tr><td><strong>Au bloc</strong></td><td class="m" style="text-align:right;"><strong>${blockFuel} ${uF}</strong></td></tr>
                             </tbody></table>
                         </div>
                         <div class="dsr-card">
-                            <div class="dsr-h3">Vitesses (opérations normales)</div>
-                            <div class="dsr-chipline">
-                                ${normalSpeeds.length ? normalSpeeds.map(s => `<span class="dsr-chip cat">${escapeHtml(s.name)} ${escapeHtml(String(s.value))} ${escapeHtml(s.unit || 'kt')}</span>`).join('') : '<span style="font-size:10px; color:#8C97A2;">À saisir dans Performances</span>'}
-                            </div>
-                            <div class="dsr-h3" style="margin-top:10px;">Fréquences</div>
-                            <div style="font-size:9.5px; color:#8C97A2; line-height:1.9;">
-                                ATIS <span class="dsr-fill"></span> · TWR <span class="dsr-fill"></span><br>
-                                APP <span class="dsr-fill"></span> · SIV <span class="dsr-fill"></span>
-                            </div>
+                            ${normalSpeeds.length ? `
+                            <div class="dsr-h3">Vitesses</div>
+                            <table class="dsr-t dsr-vt"><tbody>
+                                ${(() => {
+                                    const rows = [];
+                                    for (let i = 0; i < normalSpeeds.length; i += 3) {
+                                        const cells = [0, 1, 2].map(k => {
+                                            const sp = normalSpeeds[i + k];
+                                            return sp
+                                                ? `<td class="n">${escapeHtml(sp.name)}</td><td class="v">${escapeHtml(String(sp.value))}</td>`
+                                                : '<td class="n"></td><td class="v"></td>';
+                                        }).join('');
+                                        rows.push(`<tr class="${(i / 3) % 2 ? 'alt' : ''}">${cells}</tr>`);
+                                    }
+                                    return rows.join('');
+                                })()}
+                            </tbody></table>`
+                            : '<span style="font-size:10px; color:#8C97A2;">À saisir dans Performances</span>'}
+
+                            <div class="dsr-h3" style="margin-top:9px;">Vent sur les pistes <small>${windDir}° / ${windSpd} kt</small></div>
+                            ${xwRows}
                         </div>
+                    </div>
+
+                    <div class="dsr-card dsr-inflight">
+                        <div class="dsr-h3">Notes en vol</div>
+                        <div class="dsr-lines"></div>
                     </div>
                 </div>
                 ${foot(2)}
             </section>`;
 
-        // ---- Page 3: météo ---------------------------------------------------
+        // ---- Page 3: TOP (arrivée en croisière) et suivi carburant ----------
+        // Le "TOP" est le point de mise en palier : on y fige la croisiere et on
+        // note l'heure. Le tableau qui suit sert de suivi horaire du carburant.
+        // Suivi carburant : une ligne par demi-heure jusqu'a l'autonomie totale
+        const halfSteps = [];
+        if (fuelBurn > 0) {
+            const startQty = fuelCap > 0 ? fuelCap : 0;
+            const maxMin = startQty > 0 ? Math.min(360, Math.ceil((startQty / fuelBurn) * 60)) : 240;
+            for (let m = 30; m <= maxMin + 29; m += 30) {
+                const used = (m / 60) * fuelBurn;
+                const left = startQty > 0 ? startQty - used : null;
+                if (left !== null && left < 0) break;
+                halfSteps.push({
+                    label: `${Math.floor(m / 60)}h${String(m % 60).padStart(2, '0')}`,
+                    used: used.toFixed(1),
+                    left: left === null ? '—' : left.toFixed(1),
+                    low: left !== null && left <= (fuelBurn * 0.75)
+                });
+            }
+        }
+        const fuelTable = halfSteps.length ? `
+            <table class="dsr-t">
+                <thead><tr>
+                    <th style="width:16%;">Temps de vol</th><th>Consommé (${uF})</th><th>Restant théorique (${uF})</th>
+                    <th>Relevé réel (${uF})</th><th>Heure</th>
+                </tr></thead>
+                <tbody>
+                    ${halfSteps.map((h, i) => `
+                        <tr class="${i % 2 ? 'alt' : ''}${h.low ? ' warn' : ''}">
+                            <td class="leg">${h.label}</td>
+                            <td class="m">${h.used}</td>
+                            <td class="m"><strong>${h.left}</strong></td>
+                            <td class="m"><span class="dsr-fill"></span></td>
+                            <td class="m"><span class="dsr-fill"></span></td>
+                        </tr>`).join('')}
+                </tbody>
+            </table>
+            <p class="dsr-note">Départ pleins à ${fuelCap || '—'} ${uF}, consommation ${fuelBurn} ${uF}/h. Les lignes surlignées entament la réserve de 45 min (${reserveFuel} ${uF}) : au-delà, le vol doit se poser.</p>`
+            : `<p class="dsr-note" style="margin:0;">Renseignez la capacité et la consommation dans Performances pour obtenir le suivi carburant par demi-heure.</p>`;
+
+        const pageTop = `
+            <section class="dossier-page dsr-page dsr-tight">
+                ${head()}
+                <div class="dsr-body">
+                    ${title('03', 'Terrains & suivi carburant')}
+                    <div class="dsr-card">
+                        <div class="dsr-h3">Terrains de la route — fréquences, pistes, tour de piste</div>
+                        ${fieldRows}
+                    </div>
+                    <div class="dsr-card" style="margin-top:14px;">
+                        <div class="dsr-h3">Carburant par demi-heure</div>
+                        ${fuelTable}
+                    </div>
+                </div>
+                ${foot(3)}
+            </section>`;
+
+        // ---- Page 4: météo ---------------------------------------------------
         const monitored = Array.isArray(airportsWx) ? airportsWx : [];
         const wxCards = monitored.length ? monitored.map(apt => {
             const d = apt.decoded || {};
@@ -843,14 +1208,14 @@
             <section class="dossier-page dsr-page">
                 ${head()}
                 <div class="dsr-body">
-                    ${title('03', 'Météo — METAR & TAF')}
+                    ${title('04', 'Météo — METAR & TAF')}
                     <p class="dsr-note">Relevés tels que reçus lors de la dernière actualisation. Revérifiez juste avant le départ : un METAR se périme en 30 à 60 minutes.</p>
                     ${wxCards}
                 </div>
-                ${foot(3)}
+                ${foot(4)}
             </section>`;
 
-        // ---- Page 4: NOTAM ---------------------------------------------------
+        // ---- Page 5: NOTAM ---------------------------------------------------
         const notamGroups = (Array.isArray(notamsData) ? notamsData : []).filter(g => g && g.icao);
         const notamHtml = notamGroups.length ? notamGroups.map(g => {
             const list = Array.isArray(g.notams) ? g.notams : [];
@@ -883,11 +1248,11 @@
             <section class="dossier-page dsr-page">
                 ${head()}
                 <div class="dsr-body">
-                    ${title('04', 'NOTAM')}
+                    ${title('05', 'NOTAM')}
                     <p class="dsr-note">Avis aux navigateurs pour les terrains du vol. Ce dossier ne remplace pas le briefing officiel : contrôlez les NOTAM le jour du vol.</p>
                     ${notamHtml}
                 </div>
-                ${foot(4)}
+                ${foot(5)}
             </section>`;
 
         // ---- Page 5: checklists normales -------------------------------------
@@ -895,7 +1260,7 @@
             <section class="dossier-page dsr-page">
                 ${head()}
                 <div class="dsr-body">
-                    ${title('05', 'Checklists normales')}
+                    ${title(String(6).padStart(2, '0'), 'Checklists normales')}
                     <p class="dsr-note">Checklists de l'avion actif, dans l'ordre du vol.</p>
                     <div class="dsr-cols">
                         ${activeChecklists.map((chk, idx) => `
@@ -907,23 +1272,23 @@
                             </div>`).join('')}
                     </div>
                 </div>
-                ${foot(5)}
+                ${foot(6)}
             </section>`;
 
         // ---- Page 6: urgences -------------------------------------------------
         const lights = [
-            ['#2E8B57', false, 'Vert fixe', 'Autorisé à décoller', 'Autorisé à atterrir'],
-            ['#2E8B57', true, 'Vert clignotant', 'Autorisé à circuler', 'Revenez pour atterrir *'],
-            ['#B3123A', false, 'Rouge fixe', 'Arrêtez', 'Cédez le passage et continuez à tourner'],
-            ['#B3123A', true, 'Rouge clignotant', "Dégagez l'aire d'atterrissage", "Aérodrome dangereux, n'atterrissez pas"],
-            ['#FFFFFF', true, 'Blanc clignotant', 'Retournez au point de départ', "Atterrissez ici et gagnez l'aire de trafic *"],
-            ['#D34D2E', false, 'Artifice rouge', '—', "N'atterrissez pas pour le moment"]
+            ['#2E8B57', false, 'Vert fixe', 'Décollage autorisé', 'Atterrissage autorisé'],
+            ['#2E8B57', true, 'Vert clignotant', 'Roulage autorisé', 'Revenir pour atterrir *'],
+            ['#B3123A', false, 'Rouge fixe', 'Arrêtez', 'Cédez le passage, restez en circuit'],
+            ['#B3123A', true, 'Rouge clignotant', "Dégagez la piste", "Terrain dangereux, ne pas atterrir"],
+            ['#FFFFFF', true, 'Blanc clignotant', 'Retour au point de départ', "Atterrir ici, puis aire de trafic *"],
+            ['#D34D2E', false, 'Artifice rouge', '—', "Ne pas atterrir pour le moment"]
         ];
         const page6 = `
             <section class="dossier-page dsr-page dsr-tight">
                 ${head()}
                 <div class="dsr-body">
-                    ${title("06", "Urgences & références")}
+                    ${title(String(opts.checklists ? 7 : 6).padStart(2, "0"), "Urgences & références")}
                     <div class="dsr-card" style="border-color:var(--red); border-left:4px solid var(--red); margin-bottom:11px;">
                         <div class="dsr-h3" style="color:var(--red);">Vitesses critiques</div>
                         <div class="dsr-chipline">
@@ -941,7 +1306,7 @@
                             </div>`).join('')}
                     </div>
 
-                    <div class="dsr-grid dsr-g2">
+                    <div class="dsr-grid dsr-g2 dsr-refs">
                         <div class="dsr-card">
                             <div class="dsr-h3">Codes transpondeur</div>
                             <table class="dsr-t"><tbody>
@@ -970,7 +1335,7 @@
                         </div>
                     </div>
                 </div>
-                ${foot(6)}
+                ${foot(opts.checklists ? 7 : 6)}
             </section>`;
 
         // ---- Annexe (hors pagination) : décision Go / No-Go ------------------
@@ -1011,7 +1376,10 @@
 
         const nightMode = document.documentElement.classList.contains('dark-mode')
             || document.documentElement.getAttribute('data-theme') === 'night';
-        return `<div id="dossierPrintContainer" class="dsr${nightMode ? ' dsr-dark' : ''}">${dossierStyles()}${page1}${page2}${page3}${page4}${page5}${page6}${annexe}</div>`;
+        const pages = [page1, page2, pageTop, page3, page4];
+        if (opts.checklists) pages.push(page5);
+        if (opts.emergency) pages.push(page6);
+        return `<div id="dossierPrintContainer" class="dsr${nightMode ? ' dsr-dark' : ''}">${dossierStyles()}${pages.join('')}${opts.gonogo ? annexe : ''}</div>`;
     }
 
     // ==========================================
@@ -1034,6 +1402,18 @@
             backdrop-filter: blur(4px);
         `;
 
+        const optCss = document.getElementById('dsrOptCss') || document.createElement('style');
+        optCss.id = 'dsrOptCss';
+        optCss.textContent = `
+            .dsr-opt { display:flex; align-items:center; gap:6px; cursor:pointer; user-select:none;
+                       padding:6px 10px; border-radius:4px; font-size:11.5px; font-weight:600;
+                       border:1.5px solid var(--border-color, #111); color:var(--text-color, #111);
+                       background:var(--card-bg, #fff); white-space:nowrap; }
+            .dsr-opt input { accent-color:#B4531A; width:14px; height:14px; margin:0; cursor:pointer; }
+            .dsr-opt:has(input:not(:checked)) { opacity:.55; }
+        `;
+        if (!optCss.parentNode) document.head.appendChild(optCss);
+
         modalDiv.innerHTML = `
             <div style="background: var(--card-bg, #fff); color: var(--text-color, #111); border: 2px solid var(--border-color, #111); border-radius: 8px; width: 100%; max-width: 900px; max-height: 94vh; display: flex; flex-direction: column; box-shadow: 0 16px 40px rgba(0,0,0,0.35); overflow: hidden;">
                 <!-- Header Toolbar -->
@@ -1042,10 +1422,19 @@
                         <span style="font-size: 20px;"></span>
                         <div>
                             <div style="font-size: 15px; font-weight: 800; text-transform: uppercase;">Dossier de vol</div>
-                            <div style="font-size: 11px; color: var(--muted-text, #666);">PrÃªt Ã  imprimer Â· 6 pages Â· kneeboard A5/A4</div>
+                            <div style="font-size: 11px; color: var(--muted-text, #666);" id="dsrPageCount">Prêt à imprimer · kneeboard A5/A4</div>
                         </div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
+                        <label class="dsr-opt" title="Inclure les check-lists normales de l'avion actif">
+                            <input type="checkbox" id="optChecklists"><span>Check-lists</span>
+                        </label>
+                        <label class="dsr-opt" title="Inclure les procédures d'urgence et les tables de référence">
+                            <input type="checkbox" id="optEmergency"><span>Urgences</span>
+                        </label>
+                        <label class="dsr-opt" title="Inclure l'annexe de décision Go / No-Go">
+                            <input type="checkbox" id="optGonogo"><span>Go / No-Go</span>
+                        </label>
                         <button id="dossierPrintBtn" class="btn-action" style="padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; border: 1.5px solid var(--border-color, #111); border-radius: 4px; background: var(--card-bg, #fff); color: var(--text-color, #111);">
                             Print / Save as PDF
                         </button>
@@ -1109,11 +1498,39 @@
             doc.close();
 
             printFrame.contentWindow.focus();
-            setTimeout(() => {
                 printFrame.contentWindow.print();
                 setTimeout(() => printFrame.remove(), 1000);
-            }, 500);
+            
         });
+
+        // Cocher ou décocher refait l'aperçu : la pagination change avec.
+        function paintPageCount() {
+            const el = document.getElementById('dsrPageCount');
+            if (!el) return;
+            const o = dossierOpts();
+            const n = 5 + (o.checklists ? 1 : 0) + (o.emergency ? 1 : 0);
+            el.textContent = `Prêt à imprimer · ${n} pages${o.gonogo ? ' + annexe' : ''} · kneeboard A5/A4`;
+        }
+
+        (function wireDossierOpts() {
+            const cur = dossierOpts();
+            [['optChecklists', 'checklists'], ['optEmergency', 'emergency'], ['optGonogo', 'gonogo']].forEach(([id, key]) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.checked = cur[key];
+                el.addEventListener('change', () => {
+                    setDossierOpt(key, el.checked);
+                    const body = document.getElementById('dossierModalBody');
+                    if (body) {
+                        const top = body.scrollTop;
+                        body.innerHTML = buildDossierHtml();
+                        body.scrollTop = top;
+                    }
+                    paintPageCount();
+                });
+            });
+            paintPageCount();
+        })();
 
         document.getElementById('dossierDownloadBtn').addEventListener('click', () => {
             const container = document.getElementById('dossierPrintContainer');
@@ -1138,10 +1555,16 @@
                 };
 
                 const fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
-                fontsReady.then(() => window.html2pdf().set(opt).from(container).save()).then(() => {
+                let restoreSvgs = () => {};
+                fontsReady
+                    .then(() => rasterizeSvgs(container))
+                    .then(undo => { restoreSvgs = undo; return window.html2pdf().set(opt).from(container).save(); })
+                    .then(() => {
+                    restoreSvgs();
                     dlBtn.innerHTML = origText;
                     dlBtn.disabled = false;
                 }).catch(err => {
+                    restoreSvgs();
                     console.error("PDF generation failed:", err);
                     alert("Could not generate PDF directly. Opening print dialog instead.");
                     dlBtn.innerHTML = origText;
@@ -1160,13 +1583,9 @@
     function openDossierModal() {
         ensureModalExists();
         const bodyEl = document.getElementById('dossierModalBody');
-        if (bodyEl) {
-            bodyEl.innerHTML = buildDossierHtml();
-        }
+        if (bodyEl) bodyEl.innerHTML = buildDossierHtml();
         const modal = document.getElementById('flightDossierModal');
-        if (modal) {
-            modal.style.display = 'flex';
-        }
+        if (modal) modal.style.display = 'flex';
     }
 
     function closeDossierModal() {
@@ -1221,7 +1640,10 @@
     window.FlightDossier = {
         open: openDossierModal,
         close: closeDossierModal,
-        generateHtml: buildDossierHtml
+        generateHtml: buildDossierHtml,
+        getDocumentStyles: dossierStyles,
+        getDocumentMark: () => DSR_MARK,
+        rasterizeSvgs: rasterizeSvgs
     };
 
     // Auto-bind any button with id="exportFlightDocBtn" or class="btn-export-dossier"
