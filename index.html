@@ -42,6 +42,16 @@
     <circle cx="966" cy="362" r="44" fill="#8CF7E4"/>
     <path d="M966 405 1020 920 1660 1177 1550 1250 1020 1138V1440L1166 1512 966 1473 766 1512 912 1440V1138L381 1250 272 1177 912 920Z" style="fill:var(--logo-plane,#F8FAFB)"/>
   </symbol>
+
+  <!-- emblème des formules : le logo, dont le A prend la couleur de la formule -->
+  <symbol id="mk-logo" viewBox="0 0 64 64">
+    <g transform="translate(.5 0) scale(.0454) translate(-272 -212)">
+      <path d="M966 212 1366 990H566ZM966 540 820 916H1111Z" fill="currentColor" fill-rule="evenodd"/>
+      <path d="M540 1120 346 1586H602L790 1120ZM1392 1120 1586 1586H1330L1142 1120Z" fill="currentColor" opacity=".62"/>
+      <circle cx="966" cy="362" r="44" fill="currentColor"/>
+      <path d="M966 405 1020 920 1660 1177 1550 1250 1020 1138V1440L1166 1512 966 1473 766 1512 912 1440V1138L381 1250 272 1177 912 920Z" style="fill:var(--logo-plane,#F8FAFB)"/>
+    </g>
+  </symbol>
 </svg>
 
 <!-- arrival screen: removed from the page by main.js as soon as it has played -->
@@ -71,7 +81,7 @@
         <li style="--n:11"><a href="#abonnements">Abonnements</a></li>
         <li style="--n:9"><a href="#questions">Questions</a></li>
         <li style="--n:7"><a href="#contact">Contact</a></li>
-        <li class="only-m"><a href="https://alti-view.github.io">Se connecter</a></li>
+        <li class="only-m"><a href="https://alti-view.github.io" data-auth="open">Se connecter</a></li>
       </ul>
     </nav>
     <div class="nav-ctrl">
@@ -80,7 +90,8 @@
         <svg class="ico sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.3"/><path d="M12 2.4v2.3M12 19.3v2.3M2.4 12h2.3M19.3 12h2.3M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M5.2 18.8l1.6-1.6M17.2 6.8l1.6-1.6"/></svg>
       </button>
       <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navLinks" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
-      <a class="btn btn-primary" href="https://alti-view.github.io">Se connecter</a>
+      <span class="nav-plan" id="navPlan" hidden></span>
+      <a class="btn btn-primary" href="https://alti-view.github.io" data-auth="open">Se connecter</a>
     </div>
   </div>
 </header>
@@ -96,7 +107,7 @@
       <h1 class="display" id="h1"><span class="sr-only">Tout votre vol, une seule application</span><span aria-hidden="true"><span class="ln"><span class="w" style="--i:0">Tout</span> <span class="w" style="--i:1">votre</span> <span class="w" style="--i:2">vol,</span></span><span class="ln"><span class="w accent" style="--i:3">une</span> <span class="w accent" style="--i:4">seule</span> <span class="w accent" style="--i:5">application</span></span></span></h1>
       <p class="lede fade" style="--d:620ms">Carte interactive, calcul automatique des performances, dossier de vol en PDF, checklists et procédures d'urgence. Préparez votre navigation au sol, gardez l'essentiel sous les yeux en vol.</p>
       <div class="ctas fade" style="--d:780ms">
-        <a class="btn btn-primary" href="Software/VFR.html">Voir l'application <span class="arr" aria-hidden="true">→</span></a>
+        <a class="btn btn-primary" href="#apercu" data-auth="open">Voir l'application <span class="arr" aria-hidden="true">→</span></a>
       </div>
       <p class="note fade" style="--d:940ms">Pour les pilotes privés, élèves pilotes et instructeurs.</p>
     </div>
@@ -581,52 +592,68 @@
 
     <div class="pricing" id="pricing">
       <article class="plan" aria-labelledby="pl-1">
+        <svg class="plan-mark" aria-hidden="true"><use href="#mk-logo"/></svg>
         <h3 id="pl-1">Pilote VFR</h3>
         <p class="price"><s class="was">7 €</s><b class="amount" data-m="7" data-y="5.83">7</b> €<small>/ mois</small></p>
-        <p class="plan-bill"><span class="m-only">Sans engagement</span><span class="y-only" hidden>70 € par an</span></p>
+        <p class="plan-bill"><span class="m-only">Sans engagement</span><span class="y-only" hidden><b class="yamt">70</b> € par an</span></p>
+        <p class="plan-stu"></p>
         <p class="desc">Toute la préparation au sol, de la carte au devis de masse, sur vos trois écrans.</p>
         <ul>
-          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Carte interactive et NavLog automatique</li>
-          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Calcul de cap, de temps et de consommation</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Carte VFR interactive et NavLog automatique</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Cap, temps de vol et bilan carburant</li>
           <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>METAR et TAF décodés en clair</li>
-          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Devis de masse et centrage</li>
-          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Checklists standard et dossier de vol</li>
-          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>1 profil avion standardisé (C152, C172, DR-400, PA28 ou DA40)</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Devis de masse et centrage, vitesses caractéristiques</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Performances de décollage et d'atterrissage</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Un profil avion personnalisable (C152, C172, DR-400, PA28 ou DA40)</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Checklists, procédures d'urgence et dossier de vol</li>
           <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Sur ordinateur, tablette et téléphone</li>
         </ul>
-        <a class="btn btn-ghost" href="#contact" data-plan="pilote">Obtenir Pilote VFR <span class="arr" aria-hidden="true">→</span></a>
-        <p class="plan-save">Économisez 14 € par an</p>
+        <a class="btn btn-ghost" href="https://buy.stripe.com/test_9B65kE4zG8Vt6TY1CLbo402" data-plan="pilote"
+           data-buy-m="https://buy.stripe.com/test_9B65kE4zG8Vt6TY1CLbo402"
+           data-buy-y="https://buy.stripe.com/test_cNi6oIc28dbJ5PU0yHbo401">Obtenir Pilote VFR <span class="arr" aria-hidden="true">→</span></a>
+        <p class="plan-save">Économisez <b class="samt">14</b> € par an</p>
       </article>
 
       <article class="plan rec" aria-labelledby="pl-2">
         <span class="ring" aria-hidden="true"></span>
         <span class="badge">Recommandé</span>
+        <svg class="plan-mark" aria-hidden="true"><use href="#mk-logo"/></svg>
         <h3 id="pl-2">Pilote VFR Pro</h3>
-        <p class="price"><s class="was">13 €</s><b class="amount" data-m="13" data-y="10.83">13</b> €<small>/ mois</small></p>
-        <p class="plan-bill"><span class="m-only">Sans engagement</span><span class="y-only" hidden>130 € par an</span></p>
+        <p class="price"><s class="was"><b class="wasn">13</b> €</s><b class="amount" data-m="13" data-y="10.83" data-sm="9" data-sy="7.5">13</b> €<small>/ mois</small></p>
+        <p class="plan-bill"><span class="m-only">Sans engagement</span><span class="y-only" hidden><b class="yamt">130</b> € par an</span></p>
+        <p class="plan-stu"><button type="button" class="stu" id="stuBtn" aria-pressed="false">Tarif étudiant</button></p>
         <p class="desc">Tout Pilote VFR, plus ce qu'il faut emporter à bord et garder après le vol.</p>
         <ul>
           <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg><span><b>Tout Pilote VFR inclus</b></span></li>
-          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Profils avions illimités</li>
-          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Relief 3D et profil de route vertical</li>
-          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Alertes NOTAM, SUP AIP et zones AZBA</li>
-          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Dossier de vol PDF, archivage et carnet de vol</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Profils avions illimités, avec la fiche de pesée réelle de la machine</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Navigations enregistrées, rejouables en un clic</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Carnet de vol qui se remplit depuis vos dossiers de vol</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Dossier de vol PDF, archivé et partageable par lien</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Alertes NOTAM et SUP AIP sur votre route</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Statistiques de vol et carte des terrains visités</li>
           <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Support prioritaire</li>
         </ul>
-        <a class="btn btn-primary" href="#contact" data-plan="pilote-pro">Obtenir Pilote VFR Pro <span class="arr" aria-hidden="true">→</span></a>
-        <p class="plan-save">Économisez 26 € par an</p>
+        <a class="btn btn-primary" href="https://buy.stripe.com/test_6oUeVe9U0c7Fdim2GPbo400" data-plan="pilote-pro"
+           data-buy-m="https://buy.stripe.com/test_6oUeVe9U0c7Fdim2GPbo400"
+           data-buy-y="https://buy.stripe.com/test_4gMfZi8PWgnV6TY6X5bo403"
+           data-buy-sm="https://buy.stripe.com/test_00waEY7LS9Zx2DI819bo404"
+           data-buy-sy="https://buy.stripe.com/test_6oU28s9U0c7F7Y21CLbo405">Obtenir Pilote VFR Pro <span class="arr" aria-hidden="true">→</span></a>
+        <p class="plan-save">Économisez <b class="samt">26</b> € par an</p>
       </article>
 
       <article class="plan" aria-labelledby="pl-3">
-        <h3 id="pl-3">Aéroclub &amp; flotte</h3>
+        <svg class="plan-mark" aria-hidden="true"><use href="#mk-logo"/></svg>
+        <h3 id="pl-3">Aéroclub</h3>
         <p class="price custom">Sur mesure</p>
         <p class="plan-bill" aria-hidden="true"></p>
+        <p class="plan-stu"></p>
         <p class="desc">Pour les aéroclubs, écoles ATO et DTO et propriétaires en copropriété qui veulent équiper leur flotte.</p>
         <ul>
-          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Gestion centralisée de la flotte d'avions</li>
-          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Profils machine partagés avec fiches de pesée à jour</li>
-          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Espaces instructeurs et suivi des élèves</li>
-          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Exports réglementaires et archivage des dossiers de vol</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Pilote VFR Pro pour chaque membre du club</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Flotte partagée : les fiches de pesée réelles saisies une fois pour tous</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Comptes créés et gérés par le club, arrivées et départs compris</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Dossiers de vol des élèves partagés avec les instructeurs</li>
+          <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Devis au nombre de places, facturation annuelle</li>
           <li><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Support prioritaire et accompagnement du club</li>
         </ul>
         <a class="btn btn-ghost" href="#contact" data-plan="club">Nous contacter</a>
@@ -666,7 +693,7 @@
         <form class="wl" id="wl">
           <div class="row2">
             <div class="fld"><label for="f-plan">Objet</label>
-              <select id="f-plan" name="objet"><option value="pilote">Abonnement Pilote VFR</option><option value="pilote-pro">Abonnement Pilote VFR Pro</option><option value="club">Aéroclub et flotte</option><option value="question">Autre question</option></select></div>
+              <select id="f-plan" name="objet"><option value="pilote">Abonnement Pilote VFR</option><option value="pilote-pro">Abonnement Pilote VFR Pro</option><option value="club">Aéroclub</option><option value="question">Autre question</option></select></div>
             <div class="fld"><label for="f-role">Vous êtes</label>
               <select id="f-role" name="profil"><option>Pilote privé (PPL)</option><option>Pilote LAPL</option><option>Élève pilote</option><option>Instructeur</option><option>Aéroclub ou école</option></select></div>
           </div>
@@ -688,7 +715,7 @@
         <p>Prepare • Fly • Improve.<br>La préparation et la conduite du vol VFR, dans une seule application.</p>
       </div>
       <div><h4>Produit</h4><ul><li><a href="#fonctionnalites">Modules</a></li><li><a href="#apercu">Plateformes</a></li><li><a href="#abonnements">Abonnements</a></li><li><a href="#contact">Contact</a></li></ul></div>
-      <div><h4>Légal</h4><ul><li><a href="legal.html#mentions">Mentions légales</a></li><li><a href="legal.html#confidentialite">Confidentialité</a></li></ul></div>
+      <div><h4>Légal</h4><ul><li><a href="legal.html#mentions">Mentions légales</a></li><li><a href="legal.html#confidentialite">Confidentialité</a></li><li><a href="cgv.html">CGV</a></li></ul></div>
       <div><h4>Contact</h4><ul class="social">
         <li><a href="mailto:altiview@outlook.com">altiview@outlook.com</a></li>
         <li><a href="https://www.instagram.com/altiview.eu/" target="_blank" rel="noopener" aria-label="Instagram @altiview.eu (nouvel onglet)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle class="dot" cx="17.4" cy="6.6" r="1.1"/></svg>@altiview.eu</a></li>
@@ -704,6 +731,265 @@
   </div>
 </footer>
 
+<!-- ============ TARIF ÉTUDIANT : ce qui est demandé après le paiement ============ -->
+<div class="auth" id="stuModal" hidden>
+  <div class="auth-bg" data-stu="close"></div>
+  <div class="auth-panel" id="stuPanel" role="dialog" aria-modal="true" aria-labelledby="stuTitle">
+    <button class="auth-x" type="button" data-stu="close" aria-label="Fermer">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <div class="auth-head">
+      <p class="kicker"><span class="wp"></span>Élèves et étudiants<span class="trk"></span></p>
+      <h2 class="display" id="stuTitle">Tarif étudiant</h2>
+      <p class="auth-lede">Sur Pilote VFR Pro, 4 € de moins chaque mois.</p>
+    </div>
+
+    <div class="stu-deal">
+      <div><span class="k">Par mois</span><b><s>13 €</s> 9 €</b></div>
+      <div><span class="k">Par an</span><b><s>130 €</s> 90 €</b></div>
+      <p class="stu-save">Économisez 40 € par an</p>
+    </div>
+
+    <p class="stu-note">Vous payez directement au tarif réduit. Envoyez ensuite votre justificatif de scolarité à <a href="mailto:altiview@outlook.com">altiview@outlook.com</a>, sous quinze jours : carte étudiante, certificat de scolarité ou attestation d'inscription en aéroclub.</p>
+    <button class="btn btn-primary" type="button" data-stu="ok">Appliquer le tarif étudiant <span class="arr" aria-hidden="true">→</span></button>
+  </div>
+</div>
+
+<!-- ============ ESPACE PILOTE : connexion et inscription ============
+     Démonstration d'interface : aucun compte n'est créé et rien n'est envoyé tant que le service d'authentification n'est pas branché. -->
+<div class="auth" id="auth" hidden>
+  <div class="auth-bg" data-auth="close"></div>
+
+  <div class="auth-panel" id="authPanel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <button class="auth-x" type="button" data-auth="close" aria-label="Fermer">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+
+    <!-- vue 1 : connexion -->
+    <section class="auth-view" id="authLogin">
+      <div class="auth-head">
+        <svg class="auth-logo" aria-hidden="true"><use href="#logo"/></svg>
+        <p class="kicker"><span class="wp"></span>Espace pilote<span class="trk"></span></p>
+        <h2 class="display" id="authTitle">Se connecter</h2>
+        <p class="auth-lede">Retrouvez vos avions, vos navigations et vos dossiers de vol.</p>
+      </div>
+
+      <!-- Connexion par fournisseur. Apple reste masqué tant qu'il n'y a pas de compte Apple Developer :
+           retirer l'attribut hidden le jour où le fournisseur est activé dans Supabase. -->
+      <div class="sso-block">
+        <button class="btn btn-ghost sso" type="button" data-sso="google">
+          <svg class="sso-i" viewBox="0 0 18 18" aria-hidden="true">
+            <path fill="#4285F4" d="M17.64 9.2045c0-.6381-.0573-1.2518-.1636-1.8409H9v3.4814h4.8436c-.2086 1.125-.8427 2.0782-1.7959 2.7164v2.2581h2.9087c1.7018-1.5668 2.6836-3.874 2.6836-6.615z"/>
+            <path fill="#34A853" d="M9 18c2.43 0 4.4673-.806 5.9564-2.1805l-2.9087-2.2581c-.8059.54-1.8368.859-3.0477.859-2.344 0-4.3282-1.5831-5.036-3.7104H.9574v2.3318C2.4382 15.9832 5.4818 18 9 18z"/>
+            <path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.2822-1.1168-.2822-1.71s.1023-1.17.2823-1.71V4.9582H.9573A8.9965 8.9965 0 0 0 0 9c0 1.4523.3477 2.8268.9573 4.0418L3.964 10.71z"/>
+            <path fill="#EA4335" d="M9 3.5795c1.3214 0 2.5077.4541 3.4405 1.346l2.5813-2.5814C13.4632.8918 11.426 0 9 0 5.4818 0 2.4382 2.0168.9573 4.9582L3.964 7.29C4.6718 5.1627 6.656 3.5795 9 3.5795z"/>
+          </svg>Continuer avec Google</button>
+        <button class="btn btn-ghost sso" type="button" data-sso="apple" hidden>
+          <svg class="sso-i" viewBox="0 0 18 18" aria-hidden="true"><path fill="currentColor" d="M12.53 1.5c-.08 1.02-.49 1.94-1.15 2.62-.68.72-1.62 1.24-2.52 1.17-.1-.98.38-1.98 1.02-2.6.68-.7 1.78-1.2 2.65-1.19zM15.9 13.2c-.36.83-.53 1.2-1 1.94-.65 1.03-1.57 2.3-2.71 2.31-1.01.01-1.27-.66-2.64-.65-1.37 0-1.66.66-2.67.65-1.14-.01-2.01-1.16-2.66-2.19C2.4 12.2 2.21 8.8 3.33 7c.79-1.28 2.05-2.03 3.23-2.03 1.2 0 1.96.66 2.95.66.96 0 1.55-.66 2.94-.66 1.05 0 2.17.57 2.96 1.56-2.6 1.43-2.18 5.15.49 6.67z"/></svg>Continuer avec Apple</button>
+        <p class="auth-or"><span>ou</span></p>
+      </div>
+
+      <form id="loginForm" novalidate>
+        <div class="fld"><label for="lg-mail">Adresse e-mail</label>
+          <input id="lg-mail" name="email" type="email" autocomplete="email" required placeholder="prenom@exemple.fr"></div>
+        <div class="fld"><label for="lg-pass">Mot de passe</label>
+          <div class="pass"><input id="lg-pass" name="password" type="password" autocomplete="current-password" required minlength="8" placeholder="••••••••">
+            <button class="pass-eye" type="button" data-eye="lg-pass" aria-label="Afficher le mot de passe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6.5 5.5 12 5.5 21.5 12 21.5 12 17.5 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3.2"/></svg></button>
+          </div></div>
+        <div class="auth-row">
+          <label class="chk-line"><input type="checkbox" name="remember"><span>Rester connecté</span></label>
+          <button class="auth-link" type="button" data-auth="forgot">Mot de passe oublié ?</button>
+        </div>
+        <button class="btn btn-primary" type="submit">Se connecter <span class="arr" aria-hidden="true">→</span></button>
+        <p class="sent-note" id="loginNote" role="status" hidden>L'espace pilote ouvre avec l'accès anticipé. Écrivez-nous à <a href="mailto:altiview@outlook.com">altiview@outlook.com</a> et nous vous prévenons dès que votre compte est prêt.</p>
+      </form>
+
+      <p class="auth-alt">Vous n'avez pas encore de compte ? <button class="auth-sw" type="button" data-auth="signup">S'enregistrer</button></p>
+    </section>
+
+    <!-- vue 2 : inscription -->
+    <section class="auth-view" id="authSignup" hidden>
+      <div class="auth-head">
+        <svg class="auth-logo" aria-hidden="true"><use href="#logo"/></svg>
+        <p class="kicker"><span class="wp"></span>Créer un compte<span class="trk"></span></p>
+        <h2 class="display" id="authTitle2">S'enregistrer</h2>
+        <p class="auth-lede">Quelques informations et votre espace est prêt pour votre première navigation.</p>
+      </div>
+
+      <div class="sso-block">
+        <button class="btn btn-ghost sso" type="button" data-sso="google">
+          <svg class="sso-i" viewBox="0 0 18 18" aria-hidden="true">
+            <path fill="#4285F4" d="M17.64 9.2045c0-.6381-.0573-1.2518-.1636-1.8409H9v3.4814h4.8436c-.2086 1.125-.8427 2.0782-1.7959 2.7164v2.2581h2.9087c1.7018-1.5668 2.6836-3.874 2.6836-6.615z"/>
+            <path fill="#34A853" d="M9 18c2.43 0 4.4673-.806 5.9564-2.1805l-2.9087-2.2581c-.8059.54-1.8368.859-3.0477.859-2.344 0-4.3282-1.5831-5.036-3.7104H.9574v2.3318C2.4382 15.9832 5.4818 18 9 18z"/>
+            <path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.2822-1.1168-.2822-1.71s.1023-1.17.2823-1.71V4.9582H.9573A8.9965 8.9965 0 0 0 0 9c0 1.4523.3477 2.8268.9573 4.0418L3.964 10.71z"/>
+            <path fill="#EA4335" d="M9 3.5795c1.3214 0 2.5077.4541 3.4405 1.346l2.5813-2.5814C13.4632.8918 11.426 0 9 0 5.4818 0 2.4382 2.0168.9573 4.9582L3.964 7.29C4.6718 5.1627 6.656 3.5795 9 3.5795z"/>
+          </svg>Continuer avec Google</button>
+        <button class="btn btn-ghost sso" type="button" data-sso="apple" hidden>
+          <svg class="sso-i" viewBox="0 0 18 18" aria-hidden="true"><path fill="currentColor" d="M12.53 1.5c-.08 1.02-.49 1.94-1.15 2.62-.68.72-1.62 1.24-2.52 1.17-.1-.98.38-1.98 1.02-2.6.68-.7 1.78-1.2 2.65-1.19zM15.9 13.2c-.36.83-.53 1.2-1 1.94-.65 1.03-1.57 2.3-2.71 2.31-1.01.01-1.27-.66-2.64-.65-1.37 0-1.66.66-2.67.65-1.14-.01-2.01-1.16-2.66-2.19C2.4 12.2 2.21 8.8 3.33 7c.79-1.28 2.05-2.03 3.23-2.03 1.2 0 1.96.66 2.95.66.96 0 1.55-.66 2.94-.66 1.05 0 2.17.57 2.96 1.56-2.6 1.43-2.18 5.15.49 6.67z"/></svg>Continuer avec Apple</button>
+        <p class="auth-or"><span>ou créez un compte avec votre adresse</span></p>
+      </div>
+
+      <form id="signupForm" novalidate>
+        <div class="row2">
+          <div class="fld"><label for="sg-first">Prénom</label><input id="sg-first" name="prenom" type="text" autocomplete="given-name" required placeholder="Antoine"></div>
+          <div class="fld"><label for="sg-last">Nom</label><input id="sg-last" name="nom" type="text" autocomplete="family-name" required placeholder="Mercier"></div>
+        </div>
+        <div class="fld"><label for="sg-mail">Adresse e-mail</label><input id="sg-mail" name="email" type="email" autocomplete="email" required placeholder="prenom@exemple.fr"></div>
+        <div class="row2">
+          <div class="fld"><label for="sg-pass">Mot de passe</label>
+            <div class="pass"><input id="sg-pass" name="password" type="password" autocomplete="new-password" required minlength="8" placeholder="••••••••">
+              <button class="pass-eye" type="button" data-eye="sg-pass" aria-label="Afficher le mot de passe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6.5 5.5 12 5.5 21.5 12 21.5 12 17.5 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3.2"/></svg></button>
+            </div></div>
+          <div class="fld"><label for="sg-pass2">Confirmer le mot de passe</label><input id="sg-pass2" name="password2" type="password" autocomplete="new-password" required minlength="8" placeholder="••••••••"></div>
+        </div>
+        <p class="auth-fine">8 caractères minimum, dont un chiffre.</p>
+        <div class="row2">
+          <div class="fld"><label for="sg-role">Vous êtes</label>
+            <select id="sg-role" name="profil"><option>Pilote privé (PPL)</option><option>Pilote LAPL</option><option>Élève pilote</option><option>Instructeur</option><option>Aéroclub ou école</option></select></div>
+          <div class="fld"><label for="sg-plan">Formule souhaitée</label>
+            <select id="sg-plan" name="formule"><option>Pilote VFR</option><option>Pilote VFR Pro</option><option>Aéroclub</option></select></div>
+        </div>
+        <div class="fld"><label for="sg-club">Aéroclub ou aérodrome de rattachement</label>
+          <input id="sg-club" name="club" type="text" list="ad-list" autocomplete="off" placeholder="LFBZ · Biarritz-Pays Basque">
+          <datalist id="ad-list"></datalist></div>
+        <label class="chk-line"><input id="sg-cgu" type="checkbox" name="cgu" required><span>J'accepte les <a href="legal.html#mentions">mentions légales</a> et la <a href="legal.html#confidentialite">politique de confidentialité</a>.</span></label>
+        <label class="chk-line"><input type="checkbox" name="news"><span>Je souhaite recevoir les nouveautés Altiview par e-mail.</span></label>
+        <button class="btn btn-primary" type="submit">Créer mon compte <span class="arr" aria-hidden="true">→</span></button>
+        <p class="sent-note" id="signupNote" role="status" hidden>Les inscriptions ouvrent avec l'accès anticipé. Écrivez-nous à <a href="mailto:altiview@outlook.com">altiview@outlook.com</a> pour réserver votre place, nous créons votre espace à l'ouverture.</p>
+      </form>
+
+      <p class="auth-alt">Vous avez déjà un compte ? <button class="auth-sw" type="button" data-auth="login">Se connecter</button></p>
+    </section>
+
+    <!-- vue 3 : mot de passe oublié -->
+    <section class="auth-view" id="authForgot" hidden>
+      <div class="auth-head">
+        <svg class="auth-logo" aria-hidden="true"><use href="#logo"/></svg>
+        <p class="kicker"><span class="wp"></span>Récupération de compte<span class="trk"></span></p>
+        <h2 class="display" id="authTitle3">Mot de passe oublié</h2>
+        <p class="auth-lede">Saisissez l'adresse e-mail de votre compte. Nous vous envoyons un code de vérification à 6 chiffres, valable 10 minutes.</p>
+      </div>
+
+      <form id="forgotForm" novalidate>
+        <div class="fld"><label for="fg-mail">Adresse e-mail</label>
+          <input id="fg-mail" name="email" type="email" autocomplete="email" required placeholder="prenom@exemple.fr"></div>
+        <button class="btn btn-primary" type="submit">Envoyer le code <span class="arr" aria-hidden="true">→</span></button>
+        <p class="sent-note" id="forgotNote" role="status" hidden></p>
+      </form>
+
+      <p class="auth-alt">Vous vous souvenez de votre mot de passe ? <button class="auth-sw" type="button" data-auth="login">Se connecter</button></p>
+    </section>
+
+    <!-- vue 4 : code de vérification -->
+    <section class="auth-view" id="authCode" hidden>
+      <div class="auth-head">
+        <svg class="auth-logo" aria-hidden="true"><use href="#logo"/></svg>
+        <p class="kicker"><span class="wp"></span>Vérification en deux étapes<span class="trk"></span></p>
+        <h2 class="display" id="authTitle4">Entrez le code</h2>
+        <p class="auth-lede">Code à 6 chiffres envoyé à <b class="auth-mail" id="codeMail">votre adresse</b>. Il expire dans <b class="auth-timer" id="codeTimer">10:00</b>.</p>
+      </div>
+
+      <form id="codeForm" novalidate>
+        <div class="otp" id="otp">
+          <input class="otp-i" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" pattern="[0-9]" required aria-label="Chiffre 1">
+          <input class="otp-i" type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" required aria-label="Chiffre 2">
+          <input class="otp-i" type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" required aria-label="Chiffre 3">
+          <input class="otp-i" type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" required aria-label="Chiffre 4">
+          <input class="otp-i" type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" required aria-label="Chiffre 5">
+          <input class="otp-i" type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" required aria-label="Chiffre 6">
+        </div>
+        <button class="btn btn-primary" type="submit">Vérifier le code <span class="arr" aria-hidden="true">→</span></button>
+        <p class="auth-row"><span class="auth-fine">Rien reçu ? Pensez aux indésirables.</span>
+          <button class="auth-link" type="button" id="resend">Renvoyer le code</button></p>
+        <p class="sent-note" id="codeNote" role="status" hidden>L'envoi du code par e-mail sera actif à l'ouverture de l'espace pilote. Besoin d'aide maintenant ? Écrivez-nous à <a href="mailto:altiview@outlook.com">altiview@outlook.com</a>.</p>
+      </form>
+
+      <p class="auth-alt">Mauvaise adresse ? <button class="auth-sw" type="button" data-auth="forgot">Recommencer</button></p>
+    </section>
+
+    <!-- vue 5 : nouveau mot de passe -->
+    <section class="auth-view" id="authReset" hidden>
+      <div class="auth-head">
+        <svg class="auth-logo" aria-hidden="true"><use href="#logo"/></svg>
+        <p class="kicker"><span class="wp"></span>Récupération de compte<span class="trk"></span></p>
+        <h2 class="display" id="authTitle5">Nouveau mot de passe</h2>
+        <p class="auth-lede">Choisissez un mot de passe que vous n'utilisez nulle part ailleurs.</p>
+      </div>
+
+      <form id="resetForm" novalidate>
+        <div class="fld"><label for="rs-pass">Nouveau mot de passe</label>
+          <div class="pass"><input id="rs-pass" name="password" type="password" autocomplete="new-password" required minlength="8" placeholder="••••••••">
+            <button class="pass-eye" type="button" data-eye="rs-pass" aria-label="Afficher le mot de passe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6.5 5.5 12 5.5 21.5 12 21.5 12 17.5 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3.2"/></svg></button>
+          </div></div>
+        <div class="fld"><label for="rs-pass2">Confirmer le mot de passe</label>
+          <input id="rs-pass2" name="password2" type="password" autocomplete="new-password" required minlength="8" placeholder="••••••••"></div>
+        <p class="auth-fine">8 caractères minimum, dont un chiffre.</p>
+        <button class="btn btn-primary" type="submit">Enregistrer le mot de passe <span class="arr" aria-hidden="true">→</span></button>
+        <p class="sent-note" id="resetNote" role="status" hidden>La récupération de compte sera active à l'ouverture de l'espace pilote. Écrivez-nous à <a href="mailto:altiview@outlook.com">altiview@outlook.com</a> et nous reprenons la main sur votre compte.</p>
+      </form>
+
+      <p class="auth-alt">Retour à la <button class="auth-sw" type="button" data-auth="login">connexion</button></p>
+    </section>
+
+    <!-- vue 6 : espace connecté -->
+    <section class="auth-view" id="authAccount" hidden>
+      <div class="auth-head">
+        <svg class="auth-logo" aria-hidden="true"><use href="#logo"/></svg>
+        <p class="kicker"><span class="wp"></span>Espace pilote<span class="trk"></span></p>
+        <h2 class="display" id="authTitle6">Vous êtes connecté</h2>
+        <p class="auth-lede">Session ouverte avec <b class="auth-mail" id="myMail">votre adresse</b>.</p>
+      </div>
+
+      <dl class="ac-list">
+        <div><dt>Pilote</dt><dd id="myName">—</dd></div>
+        <div><dt>Aéroclub</dt><dd id="myClub">—</dd></div>
+        <div><dt>Formule</dt><dd><span class="ac-badge" id="myPlan">—</span></dd></div>
+      </dl>
+
+      <p class="sent-note" id="accountNote" role="status" hidden></p>
+
+      <a class="btn btn-primary" href="https://alti-view.github.io">Ouvrir l'application <span class="arr" aria-hidden="true">→</span></a>
+      <button class="btn btn-ghost" type="button" data-auth="profile">Mon profil</button>
+      <button class="btn btn-ghost" type="button" id="signout">Se déconnecter</button>
+    </section>
+
+    <!-- vue 7 : modifier son profil -->
+    <section class="auth-view" id="authProfile" hidden>
+      <div class="auth-head">
+        <svg class="auth-logo" aria-hidden="true"><use href="#logo"/></svg>
+        <p class="kicker"><span class="wp"></span>Espace pilote<span class="trk"></span></p>
+        <h2 class="display" id="authTitle7">Mon profil</h2>
+        <p class="auth-lede">Ces informations suivent vos dossiers de vol et situent votre terrain de rattachement.</p>
+      </div>
+
+      <form id="profileForm" novalidate>
+        <div class="row2">
+          <div class="fld"><label for="pf-first">Prénom</label><input id="pf-first" name="prenom" type="text" autocomplete="given-name" required></div>
+          <div class="fld"><label for="pf-last">Nom</label><input id="pf-last" name="nom" type="text" autocomplete="family-name" required></div>
+        </div>
+        <div class="fld"><label for="pf-club">Aéroclub ou aérodrome de rattachement</label>
+          <input id="pf-club" name="club" type="text" list="ad-list" autocomplete="off" placeholder="LFBZ · Biarritz-Pays Basque"></div>
+        <div class="fld"><label for="pf-role">Vous êtes</label>
+          <select id="pf-role" name="profil"><option>Pilote privé (PPL)</option><option>Pilote LAPL</option><option>Élève pilote</option><option>Instructeur</option><option>Aéroclub ou école</option></select></div>
+
+        <div class="pf-plan">
+          <span class="k">Formule</span>
+          <span class="ac-badge" id="pfPlan">—</span>
+          <button class="auth-link" type="button" data-auth="plans">Changer de formule</button>
+        </div>
+
+        <button class="btn btn-primary" type="submit">Enregistrer <span class="arr" aria-hidden="true">→</span></button>
+        <p class="sent-note" id="profileNote" role="status" hidden></p>
+      </form>
+
+      <p class="auth-alt">Retour à <button class="auth-sw" type="button" data-auth="account">mon espace</button></p>
+    </section>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
+<script src="assets/aerodromes.js" defer></script>
+<script src="assets/auth.js" defer></script>
 <script src="assets/main.js" defer></script>
 <script src="assets/i18n.js" defer></script>
 <script src="assets/three-kit.js" defer></script>
