@@ -76,12 +76,54 @@
   var pricing = $('#pricing');
   new IntersectionObserver(function (es) { pricing.classList.toggle('live', es[es.length - 1].isIntersecting); }).observe(pricing);
 
-  /* ---------- monthly / annual: a year costs ten months instead of twelve ---------- */
-  var billBtns = $$('.bill-opt');   /* the nudge button also carries data-cycle, but it is not one of the two tabs */
+  /* ---------- monthly / annual: a year costs ten months instead of twelve ----------
+     Le tarif étudiant ne concerne que la formule Pro : 9 € au lieu de 13, 90 € au lieu de 130.
+     Ce script n'écrit que des nombres, les mots restent dans la page pour rester traduisibles. */
+  var billBtns = $$('.bill-opt'), stuBtn = $('#stuBtn'), student = false, cycle = 'month';
+  var PRO = { m: { was: 13, year: 130, save: 26 }, s: { was: 9, year: 90, save: 18 } };
   function fmtPrice(v) { return v % 1 ? v.toFixed(2).replace('.', isEN() ? '.' : ',') : String(v); }
+  function proFigures() {
+    var f = student ? PRO.s : PRO.m, card = $('.plan.rec');   /* $ ne prend pas de contexte : on interroge la carte elle-même */
+    card.querySelector('.wasn').textContent = f.was;
+    card.querySelector('.yamt').textContent = f.year;
+    card.querySelector('.samt').textContent = f.save;
+  }
+  /* chaque bouton porte ses adresses de paiement Stripe : mensuel, annuel, et les deux versions
+     étudiantes pour la formule Pro. Liens de test aujourd'hui, à remplacer au passage en live. */
+  function updateBuy(yr) {
+    var u = window.AltiAuth && window.AltiAuth.user();
+    $$('.plan .btn[data-buy-m]').forEach(function (a) {
+      var stu = student && a.getAttribute('data-buy-sm');
+      var url = a.getAttribute(yr ? (stu ? 'data-buy-sy' : 'data-buy-y') : (stu ? 'data-buy-sm' : 'data-buy-m'));
+      if (!url) return;
+      /* client_reference_id est ce qui permettra au webhook de rattacher le paiement au bon pilote */
+      if (u) url += (url.indexOf('?') < 0 ? '?' : '&') + 'client_reference_id=' + encodeURIComponent(u.id) +
+        (u.email ? '&prefilled_email=' + encodeURIComponent(u.email) : '');
+      a.setAttribute('href', url);
+    });
+  }
+  /* sans compte, on ne peut rien rattacher : le clic ouvre l'espace pilote au lieu d'aller payer.
+     Et on recalcule l'adresse juste avant de partir : la session arrive après le chargement de la page,
+     donc un bouton figé au démarrage partirait sans identifiant de pilote. */
+  $$('.plan .btn[data-buy-m]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      if (!(window.AltiAuth && window.AltiAuth.user())) {
+        e.preventDefault();
+        var open = document.querySelector('#nav [data-auth="open"]');
+        if (open) open.click();
+        return;
+      }
+      updateBuy(pricing.classList.contains('annual'));
+    });
+  });
+  /* la session se charge en différé : dès qu'elle arrive, les boutons reprennent l'identifiant */
+  document.addEventListener('altiview:auth', function () { updateBuy(pricing.classList.contains('annual')); });
+  updateBuy(false);
   function setCycle(c) {
+    cycle = c;
     var yr = c === 'year';
     pricing.classList.toggle('annual', yr);
+    updateBuy(yr);
     billBtns.forEach(function (b) {
       var on = b.getAttribute('data-cycle') === c;
       b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
@@ -90,11 +132,49 @@
     $$('.y-only').forEach(function (el) { el.hidden = !yr; });
     pricing.classList.add('swapping');                 /* the figures fade out, change, and come back */
     setTimeout(function () {
-      $$('.price .amount[data-m]').forEach(function (el) { el.textContent = fmtPrice(+el.getAttribute(yr ? 'data-y' : 'data-m')); });
+      $$('.price .amount[data-m]').forEach(function (el) {
+        var stu = student && el.getAttribute('data-sm');
+        el.textContent = fmtPrice(+el.getAttribute(yr ? (stu ? 'data-sy' : 'data-y') : (stu ? 'data-sm' : 'data-m')));
+      });
+      proFigures();
       pricing.classList.remove('swapping');
     }, reducedMQ.matches ? 0 : 200);
   }
   $$('[data-cycle]').forEach(function (b) { b.addEventListener('click', function () { setCycle(b.getAttribute('data-cycle')); }); });
+
+  /* ---------- tarif étudiant : la fenêtre explique d'abord ce qu'on demandera ---------- */
+  var stuModal = $('#stuModal'), stuBack = null;
+  function stuApply(on) {
+    student = on;
+    stuBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    $('.plan.rec').classList.toggle('student', on);
+    setCycle(cycle);
+  }
+  function stuOpen() {
+    stuBack = document.activeElement;
+    stuModal.hidden = false;
+    root.style.overflow = 'hidden';
+    setTimeout(function () { stuModal.querySelector('[data-stu="ok"]').focus(); }, 60);
+  }
+  function stuClose() {
+    if (stuModal.hidden) return;
+    stuModal.hidden = true;
+    root.style.overflow = '';
+    if (stuBack && stuBack.focus) stuBack.focus();
+  }
+  if (stuBtn) {
+    stuBtn.addEventListener('click', function () {
+      if (student) { stuApply(false); return; }         /* un second clic revient au tarif normal, sans fenêtre */
+      stuOpen();
+    });
+    $$('[data-stu]', stuModal).forEach(function (el) {
+      el.addEventListener('click', function () {
+        if (el.getAttribute('data-stu') === 'ok') stuApply(true);
+        stuClose();
+      });
+    });
+    addEventListener('keydown', function (e) { if (e.key === 'Escape' && !stuModal.hidden) stuClose(); });
+  }
 
   /* ---------- scroll drives: nav state, pinned convergence field, tablet ---------- */
   var pin = $('#fieldPin'), field = $('#field'), tablet = $('#tablet');
@@ -330,6 +410,9 @@
     note.hidden = false;
     window.location.href = 'mailto:' + CONTACT + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
   });
+
+  /* ---------- espace pilote: connexion, inscription, récupération ----------
+     Sorti dans assets/auth.js, qui parle à Supabase. */
 
   /* ---------- pause every CSS loop on hidden tabs ---------- */
   document.addEventListener('visibilitychange', function () { document.body.classList.toggle('paused', document.hidden); });
